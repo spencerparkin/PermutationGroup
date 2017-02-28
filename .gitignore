@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+# DevStudio crap...
+.vs/
+*.VC.db
+*.VC.VC.opendb
+Debug/
