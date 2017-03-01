@@ -52,6 +52,7 @@ public:
 	Word( void );
 	virtual ~Word( void );
 
+	void Clear( void );
 	void SetName( const std::string& name );
 	void Multiply( const Word& wordA, const Word& wordB );
 	void MultiplyOnRight( const Word& word );

@@ -4,55 +4,53 @@
 #include "NaturalNumberSet.h"
 #include <sstream>
 
-// TODO: A major optimization may be to re-impliment this class with a simple C-array.
-//       We might just hard code the array size to something reasonably useful.
-
 //------------------------------------------------------------------------------------------
 //                                        Permutation
 //------------------------------------------------------------------------------------------
 
 Permutation::Permutation( void )
 {
-	map = new Map();
+	DefineIdentity();
 }
 
 Permutation::Permutation( const Permutation& permutation )
 {
-	map = new Map();
 	SetCopy( permutation );
 }
 
 /*virtual*/ Permutation::~Permutation( void )
 {
-	delete map;
 }
 
 uint Permutation::Evaluate( uint input ) const
 {
 	uint output = input;
-
-	Map::iterator iter = map->find( input );
-	if( iter != map->end() )
-		output = iter->second;
-
+	if( input < MAX_MAP_SIZE )
+		output = map[ input ];
 	return output;
+}
+
+void Permutation::DefineIdentity( void )
+{
+	for( int i = 0; i < MAX_MAP_SIZE; i++ )
+		map[i] = i;
 }
 
 bool Permutation::Define( uint input, uint output )
 {
-	map->insert( std::pair< uint, uint >( input, output ) );
+	if( input >= MAX_MAP_SIZE || output >= MAX_MAP_SIZE )
+		return false;
+	map[ input ] = output;
 	return true;
 }
 
 std::size_t Permutation::CalcHash( void ) const
 {
-	PruneInfo info;
-	Prune( &info );
-
 	std::stringstream stream;
 
-	for( Map::const_iterator iter = map->cbegin(); iter != map->cend(); iter++ )
-		stream << iter->first << iter->second;
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+		if( map[i] != i )
+			stream << i << map[i];
 
 	std::string str = stream.str();
 	std::size_t hash = std::hash< std::string >{}( str );
@@ -62,8 +60,19 @@ std::size_t Permutation::CalcHash( void ) const
 
 bool Permutation::IsValid( void ) const
 {
-	Permutation inverse;
-	return GetInverse( inverse );
+	NaturalNumberSet set;
+
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+	{
+		uint j = map[i];
+		if( j >= MAX_MAP_SIZE )
+			return false;
+		if( set.IsMember(j) )
+			return false;
+		set.AddMember(j);
+	}
+
+	return true;
 }
 
 bool Permutation::IsEven( void ) const
@@ -71,12 +80,13 @@ bool Permutation::IsEven( void ) const
 	PermutationList permutationList;
 	Factor( permutationList );
 
-	int total = 0;
+	uint total = 0;
 	for( PermutationList::iterator iter = permutationList.begin(); iter != permutationList.end(); iter++ )
 	{
 		// An N-cycle can be written as N-1 transpositions.
 		const Permutation& permutation = *iter;
-		total += ( int )permutation.map->size() - 1;
+		uint cycleOrder = permutation.CycleOrder();
+		total += cycleOrder - 1;
 	}
 
 	return( total % 2 == 0 ? true : false );
@@ -89,35 +99,18 @@ bool Permutation::IsOdd( void ) const
 
 bool Permutation::IsIdentity( void ) const
 {
-	Prune();
-
-	return( map->size() == 0 ? true : false );
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+		if( map[i] != i )
+			return false;
+	return true;
 }
 
 bool Permutation::IsEqualTo( const Permutation& permutation ) const
 {
-#if 0
-	Permutation inverse;
-	if( !permutation.GetInverse( inverse ) )
-		return false;
-
-	Permutation product;
-	product.Multiply( *this, inverse );
-
-	return product.IsIdentity();
-#else
-	permutation.Prune();
-	Prune();
-
-	if( map->size() != permutation.map->size() )
-		return false;
-
-	for( Map::const_iterator iter = map->cbegin(); iter != map->cend(); iter++ )
-		if( permutation.Evaluate( iter->first ) != iter->second )
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+		if( map[i] != permutation.map[i] )
 			return false;
-
 	return true;
-#endif
 }
 
 bool Permutation::CommutesWith( const Permutation& permutation ) const
@@ -130,6 +123,15 @@ bool Permutation::CommutesWith( const Permutation& permutation ) const
 	return productA.IsEqualTo( productB );
 }
 
+uint Permutation::CycleOrder( void ) const
+{
+	uint cycleOrder = 0;
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+		if( map[i] != i )
+			cycleOrder++;
+	return cycleOrder;
+}
+
 uint Permutation::Order( void ) const
 {
 	PermutationList permutationList;
@@ -140,7 +142,7 @@ uint Permutation::Order( void ) const
 	for( PermutationList::iterator iter = permutationList.begin(); iter != permutationList.end(); iter++ )
 	{
 		const Permutation& permutation = *iter;
-		set.AddMember( ( uint )permutation.map->size() );
+		set.AddMember( permutation.CycleOrder() );
 	}
 
 	uint order = set.CalcLCM();
@@ -155,10 +157,8 @@ void Permutation::SetCopy( const Permutation& permutation )
 
 void Permutation::GetCopy( Permutation& permutation ) const
 {
-	permutation.map->clear();
-
-	for( Map::const_iterator iter = map->cbegin(); iter != map->cend(); iter++ )
-		permutation.map->insert( std::pair< uint, uint >( iter->first, iter->second ) );
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+		permutation.map[i] = map[i];
 }
 
 bool Permutation::SetInverse( const Permutation& permutation )
@@ -168,29 +168,13 @@ bool Permutation::SetInverse( const Permutation& permutation )
 
 bool Permutation::GetInverse( Permutation& permutation ) const
 {
-	Prune();
-
-	permutation.map->clear();
-
-	NaturalNumberSet inputSet, outputSet;
-
-	for( Map::const_iterator iter = map->cbegin(); iter != map->cend(); iter++ )
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
 	{
-		inputSet.AddMember( iter->first );
-		inputSet.AddMember( iter->second );
-	}
-
-	for( NaturalNumberSet::UintSet::iterator iter = inputSet.set.begin(); iter != inputSet.set.end(); iter++ )
-	{
-		uint input = *iter;
-		uint output = Evaluate( input );
-
-		if( outputSet.IsMember( output ) )
+		uint j = map[i];
+		if( j >= MAX_MAP_SIZE )
 			return false;
-		else
-			outputSet.AddMember( output );
 
-		permutation.map->insert( std::pair< uint, uint >( output, input ) );
+		permutation.map[j] = i;
 	}
 
 	return true;
@@ -198,24 +182,8 @@ bool Permutation::GetInverse( Permutation& permutation ) const
 
 void Permutation::Multiply( const Permutation& permutationA, const Permutation& permutationB )
 {
-	PruneInfo infoA, infoB;
-
-	permutationA.Prune( &infoA );
-	permutationB.Prune( &infoB );
-
-	uint smallestInput = ( infoA.smallestInput < infoB.smallestInput ) ? infoA.smallestInput : infoB.smallestInput;
-	uint largestInput = ( infoA.largestInput > infoB.largestInput ) ? infoA.largestInput : infoB.largestInput;
-
-	map->clear();
-
-	for( uint i = smallestInput; i <= largestInput; i++ )
-	{
-		uint j = permutationA.Evaluate(i);
-		uint k = permutationB.Evaluate(j);
-
-		if( i != k )
-			map->insert( std::pair< uint, uint >( i, k ) );
-	}
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+		map[i] = permutationB.Evaluate( permutationA.Evaluate(i) );
 }
 
 void Permutation::MultiplyOnRight( const Permutation& permutation )
@@ -238,9 +206,7 @@ bool Permutation::Factor( PermutationList& permutationList ) const
 		return false;
 
 	NaturalNumberSet inputSet;
-
-	for( Map::iterator iter = map->begin(); iter != map->end(); iter++ )
-		inputSet.AddMember( iter->first );
+	GetUnstableSet( inputSet );
 
 	while( inputSet.Cardinality() > 0 )
 	{
@@ -255,7 +221,7 @@ bool Permutation::Factor( PermutationList& permutationList ) const
 		do
 		{
 			uint k = Evaluate(j);
-			cycle.map->insert( std::pair< uint, uint >( j, k ) );
+			cycle.Define( j, k );
 			j = k;
 			inputSet.RemoveMember(j);
 		}
@@ -283,73 +249,37 @@ void Permutation::Print( std::ostream& ostream, bool isCycle /*= false*/ ) const
 	}
 	else
 	{
-		PruneInfo info;
-		Prune( &info );
-
-		ostream << "(";
-
-		uint i = info.smallestInput;
-		do
+		uint i;
+		for( i = 0; i < MAX_MAP_SIZE; i++ )
+			if( map[i] != i )
+				break;
+		
+		if( i < MAX_MAP_SIZE )
 		{
-			if( i != info.smallestInput )
-				ostream << ",";
-			ostream << i;
-			i = Evaluate(i);
-		}
-		while( i != info.smallestInput );
+			ostream << "(";
 
-		ostream << ")";
+			uint j = i;
+			do
+			{
+				ostream << j;
+				j = Evaluate(j);
+				if( j != i )
+					ostream << ",";
+			}
+			while( j != i );
+
+			ostream << ")";
+		}
 	}
 }
 
 void Permutation::GetUnstableSet( NaturalNumberSet& unstableSet ) const
 {
-	Prune();
-
 	unstableSet.RemoveAllMembers();
 
-	for( Map::const_iterator iter = map->cbegin(); iter != map->cend(); iter++ )
-		unstableSet.AddMember( iter->first );
-}
-
-void Permutation::Prune( PruneInfo* info /*= nullptr*/ ) const
-{
-	const_cast< Permutation* >( this )->Prune( info );
-}
-
-void Permutation::Prune( PruneInfo* info /*= nullptr*/ )
-{
-	if( info )
-	{
-		info->largestInput = 0;
-		info->smallestInput = -1;
-		info->largestOutput = 0;
-		info->smallestOutput = -1;
-	}
-
-	Map::iterator iter = map->begin();
-
-	while( iter != map->end() )
-	{
-		Map::iterator nextIter = iter;
-		nextIter++;
-
-		if( iter->first == iter->second )
-			map->erase( iter );
-		else if( info )
-		{
-			if( iter->first > info->largestInput )
-				info->largestInput = iter->first;
-			if( iter->first < info->smallestInput )
-				info->smallestInput = iter->first;
-			if( iter->second > info->largestOutput )
-				info->largestOutput = iter->second;
-			if( iter->second < info->smallestOutput )
-				info->smallestOutput = iter->second;
-		}
-
-		iter = nextIter;
-	}
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+		if( map[i] != i )
+			unstableSet.AddMember(i);
 }
 
 // Permutation.cpp

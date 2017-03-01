@@ -24,8 +24,8 @@ Element::~Element( void )
 
 void Element::Identity( void )
 {
-	word.termList.clear();
-	permutation.map->clear();
+	word.Clear();
+	permutation.DefineIdentity();
 }
 
 bool Element::operator==( const Element& element ) const

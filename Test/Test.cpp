@@ -45,8 +45,6 @@ int main( int argc, char** argv )
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
 	std::cout << "Time taken: " << elapsed_time << " sec\n";
 
-	// It takes 8 seconds currently.  How fast will it take once I rewrite the Permutation class?
-
 	getchar();
 
 	return 0;

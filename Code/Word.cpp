@@ -42,6 +42,11 @@ Word::Word( void )
 {
 }
 
+void Word::Clear( void )
+{
+	termList.clear();
+}
+
 void Word::SetName( const std::string& name )
 {
 	termList.clear();
