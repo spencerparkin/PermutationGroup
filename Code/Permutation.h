@@ -30,6 +30,8 @@ public:
 
 	uint Evaluate( uint input ) const;
 
+	void Define( uint input, uint output );
+
 	bool IsValid( void ) const;
 	bool IsEven( void ) const;
 	bool IsOdd( void ) const;
@@ -52,7 +54,7 @@ public:
 
 	std::size_t CalcHash( void ) const;
 
-	std::string Print( bool isCycle = false ) const;
+	void Print( std::ostream& ostream, bool isCycle = false ) const;
 
 	struct PruneInfo
 	{

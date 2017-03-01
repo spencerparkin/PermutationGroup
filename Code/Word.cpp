@@ -42,26 +42,36 @@ Word::Word( void )
 {
 }
 
+void Word::SetName( const std::string& name )
+{
+	termList.clear();
+
+	Term term;
+	term.name = name;
+	term.exponent = 1;
+	termList.push_back( term );
+}
+
 void Word::Multiply( const Word& wordA, const Word& wordB )
 {
 	termList.clear();
 
-	for( TermList::const_iterator iter = wordA.termList.cbegin(); iter != termList.cend(); iter++ )
+	for( TermList::const_iterator iter = wordA.termList.cbegin(); iter != wordA.termList.cend(); iter++ )
 		termList.push_back( *iter );
 
-	for( TermList::const_iterator iter = wordB.termList.cbegin(); iter != termList.cend(); iter++ )
+	for( TermList::const_iterator iter = wordB.termList.cbegin(); iter != wordB.termList.cend(); iter++ )
 		termList.push_back( *iter );
 }
 
 void Word::MultiplyOnRight( const Word& word )
 {
-	for( TermList::const_iterator iter = word.termList.cbegin(); iter != termList.cend(); iter++ )
+	for( TermList::const_iterator iter = word.termList.cbegin(); iter != word.termList.cend(); iter++ )
 		termList.push_back( *iter );
 }
 
 void Word::MultiplyOnLeft( const Word& word )
 {
-	for( TermList::const_reverse_iterator iter = word.termList.crbegin(); iter != termList.crend(); iter-- )
+	for( TermList::const_reverse_iterator iter = word.termList.crbegin(); iter != word.termList.crend(); iter-- )
 		termList.push_front( *iter );
 }
 
@@ -99,6 +109,22 @@ void Word::GetCopy( Word& word ) const
 bool Word::Compress( WordCompressor& compressor )
 {
 	return compressor.Compress( *this );
+}
+
+void Word::Print( std::ostream& ostream ) const
+{
+	if( termList.size() == 0 )
+		ostream << "e";
+	else
+	{
+		for( TermList::const_iterator iter = termList.cbegin(); iter != termList.cend(); iter++ )
+		{
+			const Term& term = *iter;
+			ostream << term.name;
+			if( term.exponent != 1 )
+				ostream << "^{" << term.exponent << "}";
+		}
+	}
 }
 
 // Word.cpp

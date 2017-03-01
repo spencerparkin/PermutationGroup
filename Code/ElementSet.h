@@ -6,6 +6,7 @@
 #include "Permutation.h"
 #include <unordered_set>
 #include <list>
+#include <ostream>
 
 //------------------------------------------------------------------------------------------
 //                                         Element
@@ -30,6 +31,7 @@ public:
 	bool SetInverse( const Element& element );
 	bool GetInverse( Element& element ) const;
 	std::size_t CalcHash( void ) const;
+	void Print( std::ostream& ostream ) const;
 
 	ElementCollection* collection;
 	Word word;
@@ -71,7 +73,9 @@ public:
 	bool AddElement( Element& element );
 	bool RemoveElement( Element& element );
 	void RemoveAllElements( void );
-	bool GenerateGroup( void );
+	bool GenerateGroup( std::ostream* ostream = nullptr );
+	void Print( std::ostream& ostream ) const;
+	uint Cardinality( void ) const;
 	
 	virtual std::size_t CalcHash( const Element& element ) const;
 	virtual bool AreEqual( const Element& elementA, const Element& elementB );

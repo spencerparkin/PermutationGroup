@@ -35,6 +35,11 @@ uint Permutation::Evaluate( uint input ) const
 	return output;
 }
 
+void Permutation::Define( uint input, uint output )
+{
+	map->insert( std::pair< uint, uint >( input, output ) );
+}
+
 std::size_t Permutation::CalcHash( void ) const
 {
 	PruneInfo info;
@@ -251,20 +256,18 @@ bool Permutation::Factor( PermutationList& permutationList ) const
 	return true;
 }
 
-std::string Permutation::Print( bool isCycle /*= false*/ ) const
+void Permutation::Print( std::ostream& ostream, bool isCycle /*= false*/ ) const
 {
-	std::string result;
-
 	if( !isCycle )
 	{
 		PermutationList permutationList;
 		if( !Factor( permutationList ) )
-			return "(invalid)";
+			ostream << "(invalid)";
 		else if( permutationList.size() == 0 )
-			result = "(1)";
+			ostream << "(1)";
 		else
 			for( PermutationList::iterator iter = permutationList.begin(); iter != permutationList.end(); iter++ )
-				result += ( *iter )->Print( true );
+				( *iter )->Print( ostream, true );
 
 		Delete( permutationList );
 	}
@@ -273,24 +276,20 @@ std::string Permutation::Print( bool isCycle /*= false*/ ) const
 		PruneInfo info;
 		Prune( &info );
 
-		std::stringstream stream;
-		stream << "(";
+		ostream << "(";
 
 		uint i = info.smallestInput;
 		do
 		{
 			if( i != info.smallestInput )
-				stream << ",";
-			stream << i;
+				ostream << ",";
+			ostream << i;
 			i = Evaluate(i);
 		}
 		while( i != info.smallestInput );
 
-		stream << ")";
-		result = stream.str();
+		ostream << ")";
 	}
-
-	return result;
 }
 
 void Permutation::GetUnstableSet( NaturalNumberSet& unstableSet ) const

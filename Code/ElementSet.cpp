@@ -13,6 +13,9 @@ Element::Element( void )
 
 Element::Element( const Element& element )
 {
+	collection = nullptr;
+	element.permutation.GetCopy( permutation );
+	element.word.GetCopy( word );
 }
 
 Element::~Element( void )
@@ -68,9 +71,17 @@ bool Element::GetInverse( Element& element ) const
 std::size_t Element::CalcHash( void ) const
 {
 	if( collection )
-		collection->CalcHash( *this );
+		return collection->CalcHash( *this );
 
 	return permutation.CalcHash();
+}
+
+void Element::Print( std::ostream& ostream ) const
+{
+	word.Print( ostream );
+	ostream << " = ";
+	permutation.Print( ostream );
+	ostream << "\n";
 }
 
 //------------------------------------------------------------------------------------------
@@ -130,7 +141,7 @@ bool ElementCollection::IsMember( Element& element, ElementSet::iterator* foundI
 	return element.permutation.CalcHash();
 }
 
-bool ElementCollection::GenerateGroup( void )
+bool ElementCollection::GenerateGroup( std::ostream* ostream /*= nullptr*/ )
 {
 	ElementSet elementQueue;
 	while( elementSet.size() > 0 )
@@ -171,9 +182,29 @@ bool ElementCollection::GenerateGroup( void )
 		}
 
 		elementSet.insert( newElement );
+
+		if( ostream )
+			*ostream << "SetSize: " << elementSet.size() << ", QueueSize: " << elementQueue.size() << "\n";
 	}
 
 	return true;
+}
+
+// Of course, if we're a group, then this is the order of the group.
+uint ElementCollection::Cardinality( void ) const
+{
+	return ( uint )elementSet.size();
+}
+
+void ElementCollection::Print( std::ostream& ostream ) const
+{
+	ostream << "Cardinality: " << Cardinality() << "\n";
+
+	for( ElementSet::const_iterator iter = elementSet.cbegin(); iter != elementSet.cend(); iter++ )
+	{
+		const Element& element = *iter;
+		element.Print( ostream );
+	}
 }
 
 //------------------------------------------------------------------------------------------

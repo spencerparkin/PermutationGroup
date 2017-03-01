@@ -52,6 +52,7 @@ public:
 	Word( void );
 	virtual ~Word( void );
 
+	void SetName( const std::string& name );
 	void Multiply( const Word& wordA, const Word& wordB );
 	void MultiplyOnRight( const Word& word );
 	void MultiplyOnLeft( const Word& word );
@@ -60,6 +61,7 @@ public:
 	void SetCopy( const Word& word );
 	void GetCopy( Word& word ) const;
 	bool Compress( WordCompressor& compressor );
+	void Print( std::ostream& ostream ) const;
 
 	TermList termList;
 };
