@@ -75,11 +75,9 @@ bool Permutation::IsEven( void ) const
 	for( PermutationList::iterator iter = permutationList.begin(); iter != permutationList.end(); iter++ )
 	{
 		// An N-cycle can be written as N-1 transpositions.
-		Permutation* permutation = *iter;
-		total += ( int )permutation->map->size() - 1;
+		const Permutation& permutation = *iter;
+		total += ( int )permutation.map->size() - 1;
 	}
-
-	Delete( permutationList );
 
 	return( total % 2 == 0 ? true : false );
 }
@@ -141,13 +139,11 @@ uint Permutation::Order( void ) const
 
 	for( PermutationList::iterator iter = permutationList.begin(); iter != permutationList.end(); iter++ )
 	{
-		Permutation* permutation = *iter;
-		set.AddMember( ( uint )permutation->map->size() );
+		const Permutation& permutation = *iter;
+		set.AddMember( ( uint )permutation.map->size() );
 	}
 
 	uint order = set.CalcLCM();
-
-	Delete( permutationList );
 
 	return order;
 }
@@ -252,22 +248,20 @@ bool Permutation::Factor( PermutationList& permutationList ) const
 		uint i = *iter;
 		inputSet.set.erase( iter );
 
-		Permutation* cycle = new Permutation();
+		Permutation cycle;
 
 		int j = i;
 
 		do
 		{
 			uint k = Evaluate(j);
-			cycle->map->insert( std::pair< uint, uint >( j, k ) );
+			cycle.map->insert( std::pair< uint, uint >( j, k ) );
 			j = k;
 			inputSet.RemoveMember(j);
 		}
 		while( j != i );
 
-		if( cycle->IsIdentity() )
-			delete cycle;
-		else
+		if( !cycle.IsIdentity() )
 			permutationList.push_back( cycle );
 	}
 
@@ -285,9 +279,7 @@ void Permutation::Print( std::ostream& ostream, bool isCycle /*= false*/ ) const
 			ostream << "(1)";
 		else
 			for( PermutationList::iterator iter = permutationList.begin(); iter != permutationList.end(); iter++ )
-				( *iter )->Print( ostream, true );
-
-		Delete( permutationList );
+				( *iter ).Print( ostream, true );
 	}
 	else
 	{
@@ -357,17 +349,6 @@ void Permutation::Prune( PruneInfo* info /*= nullptr*/ )
 		}
 
 		iter = nextIter;
-	}
-}
-
-/*static*/ void Permutation::Delete( PermutationList& permutationList )
-{
-	while( permutationList.size() > 0 )
-	{
-		PermutationList::iterator iter = permutationList.begin();
-		Permutation* permutation = *iter;
-		delete permutation;
-		permutationList.erase( iter );
 	}
 }
 

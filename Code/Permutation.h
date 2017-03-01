@@ -10,7 +10,7 @@
 
 class Permutation;
 
-typedef std::list< Permutation* > PermutationList;
+typedef std::list< Permutation > PermutationList;
 
 typedef unsigned int uint;
 
@@ -49,7 +49,6 @@ public:
 	void MultiplyOnRight( const Permutation& permutation );
 	void MultiplyOnleft( const Permutation& permutation );
 	bool Factor( PermutationList& permutationList ) const;
-	static void Delete( PermutationList& permutationList );
 	void GetUnstableSet( NaturalNumberSet& unstableSet ) const;
 
 	std::size_t CalcHash( void ) const;
