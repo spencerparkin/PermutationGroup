@@ -15,7 +15,7 @@ public:
 	StabilizerChainGroup( void );
 	~StabilizerChainGroup( void );
 
-	bool Generate( const NaturalNumberSet& domainSet );
+	bool Generate( const NaturalNumberSet& domainSet, std::ostream* ostream = nullptr );
 
 	// The given inverse element should be initialized to the identity element before this call.
 	bool Factor( const Element& element, Element& invElement ) const;

@@ -190,10 +190,16 @@ bool ElementCollection::GenerateGroup( std::ostream* ostream /*= nullptr*/ )
 			}
 		}
 
-		elementSet.insert( newElement );
+		if( elementSet.find( newElement ) == elementSet.end() )
+		{
+			elementSet.insert( newElement );
 
-		if( ostream )
-			*ostream << "SetSize: " << elementSet.size() << ", QueueSize: " << elementQueue.size() << "\n";
+			if( ostream )
+			{
+				*ostream << "Added: ";
+				newElement.Print( *ostream );
+			}
+		}
 	}
 
 	return true;
@@ -262,7 +268,7 @@ bool CosetCollection::IsInQuotientGroup( const Permutation& permutation ) const
 	if( cosetRepresentative )
 		return cosetRepresentative->CalcHash();
 
-	return element.CalcHash();
+	return element.permutation.CalcHash();
 }
 
 const Element* CosetCollection::FindCosetRepresentative( const Element& element ) const

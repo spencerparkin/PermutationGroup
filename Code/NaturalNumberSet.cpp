@@ -1,6 +1,7 @@
 // NaturalNumberSet.cpp
 
 #include "NaturalNumberSet.h"
+#include <ostream>
 
 //------------------------------------------------------------------------------------------
 //                                    NaturalNumberSet
@@ -133,7 +134,7 @@ uint NaturalNumberSet::CalcGCD( void ) const
 uint NaturalNumberSet::Max( void ) const
 {
 	uint maxMember = 0;
-	for( UintSet::iterator iter = set.cbegin(); iter != set.cend(); iter++ )
+	for( UintSet::const_iterator iter = set.cbegin(); iter != set.cend(); iter++ )
 		if( *iter > maxMember )
 			maxMember = *iter;
 	return maxMember;
@@ -142,20 +143,39 @@ uint NaturalNumberSet::Max( void ) const
 uint NaturalNumberSet::Min( void ) const
 {
 	uint minMember = -1;
-	for( UintSet::iterator iter = set.cbegin(); iter != set.cend(); iter++ )
+	for( UintSet::const_iterator iter = set.cbegin(); iter != set.cend(); iter++ )
 		if( *iter < minMember )
 			minMember = *iter;
 	return minMember;
 }
 
-bool NaturalNumberSet::IsSubsetOf( const NaturalNumberSet& set ) const
+bool NaturalNumberSet::IsSubsetOf( const NaturalNumberSet& givenSet ) const
 {
-	return false;
+	for( UintSet::const_iterator iter = set.cbegin(); iter != set.cend(); iter++ )
+		if( !givenSet.IsMember( *iter ) )
+			return false;
+	return true;
 }
 
-bool NaturalNumberSet::IsSupsetOf( const NaturalNumberSet& set ) const
+bool NaturalNumberSet::IsSupsetOf( const NaturalNumberSet& givenSet ) const
 {
-	return false;
+	return givenSet.IsSubsetOf( *this );
+}
+
+void NaturalNumberSet::Print( std::ostream& ostream ) const
+{
+	ostream << "{";
+	UintSet::const_iterator iter = set.cbegin();
+	while( iter != set.cend() )
+	{
+		ostream << *iter;
+		UintSet::const_iterator nextIter = iter;
+		nextIter++;
+		if( nextIter != set.cend() )
+			ostream << ",";
+		iter = nextIter;
+	}
+	ostream << "}";
 }
 
 // NaturalNumberSet.cpp

@@ -22,6 +22,7 @@ public:
 	void AddMember( uint x );
 	void RemoveMember( uint x );
 	void RemoveAllMembers( void );
+	void Print( std::ostream& ostream ) const;
 
 	uint Cardinality( void ) const;
 
@@ -29,8 +30,8 @@ public:
 	void Union( const NaturalNumberSet& setA, const NaturalNumberSet& setB );
 	void Intersect( const NaturalNumberSet& setA, const NaturalNumberSet& setB );
 
-	bool IsSubsetOf( const NaturalNumberSet& set ) const;
-	bool IsSupsetOf( const NaturalNumberSet& set ) const;
+	bool IsSubsetOf( const NaturalNumberSet& givenSet ) const;
+	bool IsSupsetOf( const NaturalNumberSet& givenSet ) const;
 
 	void GenerateDivisorsOf( uint x );
 
