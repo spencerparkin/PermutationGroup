@@ -4,6 +4,9 @@
 #include "NaturalNumberSet.h"
 #include <sstream>
 
+// TODO: A major optimization may be to re-impliment this class with a simple C-array.
+//       We might just hard code the array size to something reasonably useful.
+
 //------------------------------------------------------------------------------------------
 //                                        Permutation
 //------------------------------------------------------------------------------------------
@@ -35,9 +38,10 @@ uint Permutation::Evaluate( uint input ) const
 	return output;
 }
 
-void Permutation::Define( uint input, uint output )
+bool Permutation::Define( uint input, uint output )
 {
 	map->insert( std::pair< uint, uint >( input, output ) );
+	return true;
 }
 
 std::size_t Permutation::CalcHash( void ) const
@@ -94,6 +98,7 @@ bool Permutation::IsIdentity( void ) const
 
 bool Permutation::IsEqualTo( const Permutation& permutation ) const
 {
+#if 0
 	Permutation inverse;
 	if( !permutation.GetInverse( inverse ) )
 		return false;
@@ -102,6 +107,19 @@ bool Permutation::IsEqualTo( const Permutation& permutation ) const
 	product.Multiply( *this, inverse );
 
 	return product.IsIdentity();
+#else
+	permutation.Prune();
+	Prune();
+
+	if( map->size() != permutation.map->size() )
+		return false;
+
+	for( Map::const_iterator iter = map->cbegin(); iter != map->cend(); iter++ )
+		if( permutation.Evaluate( iter->first ) != iter->second )
+			return false;
+
+	return true;
+#endif
 }
 
 bool Permutation::CommutesWith( const Permutation& permutation ) const

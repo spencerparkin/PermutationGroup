@@ -34,6 +34,12 @@ int main( int argc, char** argv )
 	element.permutation.Define( 4, 0 );
 	group.AddElement( element );
 
+	element.Identity();
+	element.word.SetName( "z" );
+	element.permutation.Define( 1, 5 );
+	element.permutation.Define( 5, 1 );
+	group.AddElement( element );
+
 	group.GenerateGroup( &std::cout );
 
 	group.Print( std::cout );

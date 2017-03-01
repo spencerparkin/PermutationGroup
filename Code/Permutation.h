@@ -30,7 +30,7 @@ public:
 
 	uint Evaluate( uint input ) const;
 
-	void Define( uint input, uint output );
+	bool Define( uint input, uint output );
 
 	bool IsValid( void ) const;
 	bool IsEven( void ) const;
