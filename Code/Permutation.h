@@ -47,7 +47,7 @@ public:
 	bool GetInverse( Permutation& permutation ) const;
 	void Multiply( const Permutation& permutationA, const Permutation& permutationB );
 	void MultiplyOnRight( const Permutation& permutation );
-	void MultiplyOnleft( const Permutation& permutation );
+	void MultiplyOnLeft( const Permutation& permutation );
 	bool Factor( PermutationList& permutationList ) const;
 	void GetUnstableSet( NaturalNumberSet& unstableSet ) const;
 

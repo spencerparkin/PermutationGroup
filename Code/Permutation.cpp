@@ -225,7 +225,7 @@ void Permutation::MultiplyOnRight( const Permutation& permutation )
 	SetCopy( product );
 }
 
-void Permutation::MultiplyOnleft( const Permutation& permutation )
+void Permutation::MultiplyOnLeft( const Permutation& permutation )
 {
 	Permutation product;
 	product.Multiply( permutation, *this );
