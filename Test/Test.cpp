@@ -22,6 +22,18 @@ int main( int argc, char** argv )
 	element.permutation.Define( 0, 2 );
 	group.AddElement( element );
 
+	element.Identity();
+	element.word.SetName( "c" );
+	element.permutation.Define( 0, 3 );
+	element.permutation.Define( 3, 0 );
+	group.AddElement( element );
+
+	element.Identity();
+	element.word.SetName( "d" );
+	element.permutation.Define( 0, 4 );
+	element.permutation.Define( 4, 0 );
+	group.AddElement( element );
+
 	group.GenerateGroup( &std::cout );
 
 	group.Print( std::cout );

@@ -169,31 +169,35 @@ bool ElementCollection::GenerateGroup( std::ostream* ostream /*= nullptr*/ )
 		Element newElement = *queueIter;
 		elementQueue.erase( queueIter );
 
-		for( ElementSet::const_iterator iter = elementSet.cbegin(); iter != elementSet.cend(); iter++ )
+		// TODO: Despite this conditional, can I prove the correctness of this algorithm?
+		if( !IsMember( newElement ) )
 		{
-			const Element& element = *iter;
-
-			for( int i = 0; i < 2; i++ )
+			for( ElementSet::const_iterator iter = elementSet.cbegin(); iter != elementSet.cend(); iter++ )
 			{
-				Element product;
+				const Element& element = *iter;
 
-				if( i == 0 )
-					product.Multiply( newElement, element );
-				else
-					product.Multiply( element, newElement );
+				for( int i = 0; i < 2; i++ )
+				{
+					Element product;
 
-				bool foundInSet = IsMember( product );
-				bool foundInQueue = ( elementQueue.find( product ) == elementQueue.end() ) ? false : true;
+					if( i == 0 )
+						product.Multiply( newElement, element );
+					else
+						product.Multiply( element, newElement );
 
-				if( !( foundInSet || foundInQueue ) )
-					elementQueue.insert( product );
+					bool foundInSet = IsMember( product );
+					bool foundInQueue = ( elementQueue.find( product ) == elementQueue.end() ) ? false : true;
+
+					if( !( foundInSet || foundInQueue ) )
+						elementQueue.insert( product );
+				}
 			}
+
+			elementSet.insert( newElement );
+
+			if( ostream )
+				*ostream << "SetSize: " << elementSet.size() << ", QueueSize: " << elementQueue.size() << "\n";
 		}
-
-		elementSet.insert( newElement );
-
-		if( ostream )
-			*ostream << "SetSize: " << elementSet.size() << ", QueueSize: " << elementQueue.size() << "\n";
 	}
 
 	return true;
