@@ -22,6 +22,12 @@ Element::~Element( void )
 {
 }
 
+void Element::Identity( void )
+{
+	word.termList.clear();
+	permutation.map->clear();
+}
+
 bool Element::operator==( const Element& element ) const
 {
 	if( collection )
@@ -147,7 +153,10 @@ bool ElementCollection::GenerateGroup( std::ostream* ostream /*= nullptr*/ )
 	while( elementSet.size() > 0 )
 	{
 		ElementSet::iterator iter = elementSet.begin();
-		elementQueue.insert( *iter );
+		const Element& element = *iter;
+		if( !element.permutation.IsValid() )
+			return false;
+		elementQueue.insert( element );
 		elementSet.erase( iter );
 	}
 

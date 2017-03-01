@@ -9,7 +9,7 @@ int main( int argc, char** argv )
 
 	Element element;
 	
-	// BUG: This should generate a subgroup of S_4 which has order 4!=24,
+	// BUG: This should generate a subgroup of S_4 which has order 4! = 24,
 	//      yet I'm finding an unending number of elements during generation.
 
 	element.word.SetName( "a" );
@@ -18,6 +18,7 @@ int main( int argc, char** argv )
 	element.permutation.Define( 2, 0 );
 	group.AddElement( element );
 
+	element.Identity();
 	element.word.SetName( "b" );
 	element.permutation.Define( 2, 3 );
 	element.permutation.Define( 3, 0 );

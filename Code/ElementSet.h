@@ -25,6 +25,7 @@ public:
 	bool operator==( const Element& element ) const;
 	void operator=( const Element& element );
 
+	void Identity( void );
 	bool Multiply( const Element& elementA, const Element& elementB );
 	bool MultiplyOnRight( const Element& element );
 	bool MultiplyOnLeft( const Element& element );
