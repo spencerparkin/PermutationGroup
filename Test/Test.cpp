@@ -1,10 +1,13 @@
 // Test.cpp
 
 #include <iostream>
+#include <time.h>
 #include "ElementSet.h"
 
 int main( int argc, char** argv )
 {
+	clock_t t = clock();
+
 	ElementCollection group;
 
 	Element element;
@@ -34,15 +37,15 @@ int main( int argc, char** argv )
 	element.permutation.Define( 4, 0 );
 	group.AddElement( element );
 
-	element.Identity();
-	element.word.SetName( "z" );
-	element.permutation.Define( 1, 5 );
-	element.permutation.Define( 5, 1 );
-	group.AddElement( element );
-
 	group.GenerateGroup( &std::cout );
 
 	group.Print( std::cout );
+
+	t = clock() - t;
+	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
+	std::cout << "Time taken: " << elapsed_time << " sec\n";
+
+	// It takes 8 seconds currently.  How fast will it take once I rewrite the Permutation class?
 
 	getchar();
 
