@@ -169,44 +169,31 @@ bool ElementCollection::GenerateGroup( std::ostream* ostream /*= nullptr*/ )
 		Element newElement = *queueIter;
 		elementQueue.erase( queueIter );
 
-		// TODO: Despite this conditional, can I prove the correctness of this algorithm?
-		//       One approach is to use an inductive argument on the size of the generating
-		//       set under the condition that our queue be a stack.  I just can't quite see
-		//       the final argument.  We have H<G, and g in G-H.  Will we take H to G using g?
-		//       I think we can argue that we'll get H, gH, ..., g^{|g|-1}H, but the index of
-		//       H in G is not necessarily |g|.  Here's a better argument.  We know the algorithm
-		//       terminates.  Fine.  Now consider the result as an array of elements.  Can we
-		//       argue that for any element in that array, it has been compared with all elements
-		//       left of it and all elements right of it in the array?  I think we can, but that's
-		//       not quite enough.
-		if( !IsMember( newElement ) )
+		for( ElementSet::const_iterator iter = elementSet.cbegin(); iter != elementSet.cend(); iter++ )
 		{
-			for( ElementSet::const_iterator iter = elementSet.cbegin(); iter != elementSet.cend(); iter++ )
+			const Element& element = *iter;
+
+			for( int i = 0; i < 2; i++ )
 			{
-				const Element& element = *iter;
+				Element product;
 
-				for( int i = 0; i < 2; i++ )
-				{
-					Element product;
+				if( i == 0 )
+					product.Multiply( newElement, element );
+				else
+					product.Multiply( element, newElement );
 
-					if( i == 0 )
-						product.Multiply( newElement, element );
-					else
-						product.Multiply( element, newElement );
+				bool foundInSet = IsMember( product );
+				bool foundInQueue = ( elementQueue.find( product ) == elementQueue.end() ) ? false : true;
 
-					bool foundInSet = IsMember( product );
-					bool foundInQueue = ( elementQueue.find( product ) == elementQueue.end() ) ? false : true;
-
-					if( !( foundInSet || foundInQueue ) )
-						elementQueue.insert( product );
-				}
+				if( !( foundInSet || foundInQueue ) )
+					elementQueue.insert( product );
 			}
-
-			elementSet.insert( newElement );
-
-			if( ostream )
-				*ostream << "SetSize: " << elementSet.size() << ", QueueSize: " << elementQueue.size() << "\n";
 		}
+
+		elementSet.insert( newElement );
+
+		if( ostream )
+			*ostream << "SetSize: " << elementSet.size() << ", QueueSize: " << elementQueue.size() << "\n";
 	}
 
 	return true;
