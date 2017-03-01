@@ -19,11 +19,9 @@
 \begin{document}
 \maketitle
 
-While this paper does not extend the frontier of the subject in question, it does
-present the material in a manner suitable for novices, such as myself.  On that basis
-alone I believe the paper has merit.
+\section*{The Problem And Solution}
 
-That being said, for any given element $g$ of a finite permutation group $G$ generated
+For any given element $g$ of a finite permutation group $G$ generated
 by a set of permutation $S$, we wish to factor $g^{-1}$ in terms of $S$.
 Since $g\in G=\langle S\rangle$, it is clear that for some positive integer $k$, there exists
 a sequence of $k$ elements $\{s_i\}_{i=1}^k$ taken from $S$ such that
@@ -100,5 +98,21 @@ That being said, the stabilizer-chain approach may have its own, similar problem
 of large order, how big is the order of a factor group likely to get?  How big is a set of generators
 likely to get?  I'll have to give it a try.  I believe it can also be shown that this method does not
 produce solution sequences anywhere near minimal length.
+
+\section*{Generating Groups}
+
+For a finite group $G=\langle S\rangle$, how do we go about generating all elements of $G$ using that of $S$?
+Letting $G=\{e\}$, we proceed until $S$ is empty.  Remove $s$ from $S$ and then, for each $g\in G$,
+add $gs$ or $sg$ to $S$ if they're not found in $G$ or $S$, then add $s$ to $G$.
+
+Clearly this algorithm will terminate, but is it correct?  As elements are added to $G$, keep them in order so
+that in the end, we have $G$ as an array of elements showing the order that they were added.  Then for any $g\in G$,
+we know that $G$ also contains $rg$ and $gr$ for every $r\in G$ left of $g$.  We also know that this is true for
+all $r\in G$ right of $g$.  In fine, we should have closure in $G$.  Now since $G$ is a finite subset of a larger group (since
+the original $S$ was a subset of that larger group),
+it must be a subgroup of that group.  Lastly, can we claim that $G$ is the smallest group containing all original elements of $S$?
+Well, since we never added any elements to $G$ unnecessarily, I would have to think so.
+
+This line of reasoning is not terribly rigorous, but it is the best I can come up with for now.
 
 \end{document}
