@@ -199,7 +199,7 @@ void Permutation::Multiply( const Permutation& permutationA, const Permutation& 
 		uint j = permutationA.Evaluate(i);
 		uint k = permutationB.Evaluate(j);
 
-		if( i != j )
+		if( i != k )
 			map->insert( std::pair< uint, uint >( i, k ) );
 	}
 }

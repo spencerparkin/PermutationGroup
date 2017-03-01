@@ -8,9 +8,6 @@ int main( int argc, char** argv )
 	ElementCollection group;
 
 	Element element;
-	
-	// BUG: This should generate a subgroup of S_4 which has order 4! = 24,
-	//      yet I'm finding an unending number of elements during generation.
 
 	element.word.SetName( "a" );
 	element.permutation.Define( 0, 1 );
