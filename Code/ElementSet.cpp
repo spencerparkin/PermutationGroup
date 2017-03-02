@@ -27,6 +27,21 @@ ElementSet::ElementSet( void )
 	Clear();
 }
 
+/*virtual*/ Element* ElementSet::Multiply( const Element* elementA, const Element* elementB ) const
+{
+	return elementA->MultiplyOnRight( elementB );
+}
+
+/*virtual*/ Element* ElementSet::Invert( const Element* element ) const
+{
+	return element->Invert();
+}
+
+/*virtual*/ bool ElementSet::AreEqual( const Element* elementA, const Element* elementB ) const
+{
+	return elementA->IsEqualTo( elementB );
+}
+
 /*virtual*/ ElementSet* ElementSet::Clone( void ) const
 {
 	ElementSet* set = New();

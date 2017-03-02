@@ -22,6 +22,10 @@ public:
 	Element( void );
 	virtual ~Element( void );
 
+	virtual Element* MultiplyOnRight( const Element* element ) const { return nullptr; }
+	virtual Element* MultiplyOnLeft( const Element* element ) const { return nullptr; }
+	virtual bool IsEqualTo( const Element* element ) const { return false; }
+	virtual Element* Invert( void ) const { return nullptr; }
 	virtual Element* Clone( void ) const = 0;
 	virtual uint Order( void ) const = 0;
 	virtual void Print( std::ostream& ostream ) const = 0;
@@ -44,9 +48,9 @@ public:
 	virtual ElementSet* New( void ) const = 0;
 	virtual ElementSet* Clone( void ) const;
 	virtual Element* Identity( void ) const = 0;
-	virtual Element* Multiply( const Element* elementA, const Element* elementB ) const = 0;
-	virtual Element* Invert( const Element* element ) const = 0;
-	virtual bool AreEqual( const Element* elementA, const Element* elementB ) const = 0;
+	virtual Element* Multiply( const Element* elementA, const Element* elementB ) const;
+	virtual Element* Invert( const Element* element ) const;
+	virtual bool AreEqual( const Element* elementA, const Element* elementB ) const;
 
 	uint Cardinality( void ) const;
 	bool GenerateGroup( std::ostream* ostream = nullptr );
