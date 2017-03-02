@@ -9,6 +9,7 @@ int main( int argc, char** argv )
 {
 	clock_t t = clock();
 
+#if 0
 	std::cout << "Generating stabilizer chain...\n";
 
 	StabilizerChainGroup* chainGroup = new StabilizerChainGroup();
@@ -47,14 +48,13 @@ int main( int argc, char** argv )
 		domainSet.AddMember(i);
 
 	chainGroup->Generate( domainSet, &std::cout );
+#endif
 
 	t = clock() - t;
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
 	std::cout << "Time taken: " << elapsed_time << " sec\n";
 
 	getchar();
-
-	delete chainGroup;
 
 	return 0;
 }

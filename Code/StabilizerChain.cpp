@@ -2,6 +2,8 @@
 
 #include "StabilizerChain.h"
 
+#if 0
+
 //------------------------------------------------------------------------------------------
 //                                   StabilizerChainGroup
 //------------------------------------------------------------------------------------------
@@ -101,5 +103,7 @@ bool StabilizerChainGroup::Factor( const Element& element, Element& invElement )
 
 	return subGroup->Factor( reducedElement, invElement );
 }
+
+#endif
 
 // StabilizerChain.cpp

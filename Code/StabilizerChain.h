@@ -8,6 +8,8 @@
 //                                   StabilizerChainGroup
 //------------------------------------------------------------------------------------------
 
+#if 0
+
 class StabilizerChainGroup
 {
 public:
@@ -25,5 +27,7 @@ public:
 
 	StabilizerChainGroup* subGroup;
 };
+
+#endif
 
 // StabilizerChain.h

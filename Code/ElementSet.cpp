@@ -3,86 +3,161 @@
 #include "ElementSet.h"
 
 //------------------------------------------------------------------------------------------
-//									         Element
+//                                         Element
 //------------------------------------------------------------------------------------------
 
 Element::Element( void )
 {
-	collection = nullptr;
 }
 
-Element::Element( const Element& element )
-{
-	collection = nullptr;
-	element.permutation.GetCopy( permutation );
-	element.word.GetCopy( word );
-}
-
-Element::~Element( void )
+/*virtual*/ Element::~Element( void )
 {
 }
 
-void Element::Identity( void )
+//------------------------------------------------------------------------------------------
+//									       ElementSet
+//------------------------------------------------------------------------------------------
+
+ElementSet::ElementSet( void )
 {
-	word.Clear();
-	permutation.DefineIdentity();
 }
 
-bool Element::operator==( const Element& element ) const
+/*virtual*/ ElementSet::~ElementSet( void )
 {
-	if( collection )
-		return collection->AreEqual( *this, element );
-
-	return permutation.IsEqualTo( element.permutation );
+	Clear();
 }
 
-void Element::operator=( const Element& element )
+/*virtual*/ ElementSet* ElementSet::Clone( void ) const
 {
-	element.word.GetCopy( word );
-	element.permutation.GetCopy( permutation );
+	ElementSet* set = New();
+
+	for( ElementList::const_iterator iter = elementList.cbegin(); iter != elementList.cend(); iter++ )
+	{
+		const Element* element = *iter;
+		set->elementList.push_back( element->Clone() );
+	}
+
+	return set;
 }
 
-bool Element::Multiply( const Element& elementA, const Element& elementB )
+bool ElementSet::GenerateGroup( std::ostream* ostream /*= nullptr*/ )
 {
-	word.Multiply( elementA.word, elementB.word );
-	permutation.Multiply( elementA.permutation, elementB.permutation );
+	ElementSet* elementQueue = Clone();
+	
+	Clear();
+
+	AddNewMember( Identity() );
+
+	while( elementQueue->Cardinality() > 0 )
+	{
+		ElementList::iterator queueIter = elementQueue->elementList.begin();
+		Element* newElement = *queueIter;
+		elementQueue->elementList.erase( queueIter );
+
+		for( ElementList::const_iterator iter = elementList.cbegin(); iter != elementList.cend(); iter++ )
+		{
+			const Element* oldElement = *iter;
+
+			for( int i = 0; i < 2; i++ )
+			{
+				Element* product = nullptr;
+
+				if( i == 0 )
+					product = Multiply( newElement, oldElement );
+				else
+					product = Multiply( oldElement, newElement );
+
+				bool foundInSet = IsMember( product );
+				bool foundInQueue = elementQueue->IsMember( product );
+
+				if( !( foundInSet || foundInQueue ) )
+					elementQueue->AddNewMember( product );
+				else
+					delete product;
+			}
+		}
+
+		if( !AddNewMember( newElement ) )
+			delete newElement;
+		else if( ostream )
+			newElement->Print( *ostream );
+	}
+
 	return true;
 }
 
-bool Element::MultiplyOnRight( const Element& element )
+uint ElementSet::Cardinality( void ) const
 {
-	word.MultiplyOnRight( element.word );
-	permutation.MultiplyOnRight( element.permutation );
+	return elementList.size();
+}
+
+void ElementSet::Clear( void )
+{
+	DeleteList( elementList );
+}
+
+/*static*/ void ElementSet::DeleteList( ElementList& elementList )
+{
+	while( elementList.size() > 0 )
+	{
+		ElementList::iterator iter = elementList.begin();
+		Element* element = *iter;
+		delete element;
+		elementList.erase( iter );
+	}
+}
+
+bool ElementSet::IsMember( const Element* element, ElementList::iterator* foundIter /*= nullptr*/ )
+{
+	for( ElementList::iterator iter = elementList.begin(); iter != elementList.end(); iter++ )
+	{
+		Element* member = *iter;
+		if( AreEqual( member, element ) )
+		{
+			if( foundIter )
+				*foundIter = iter;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool ElementSet::AddNewMember( Element* element )
+{
+	if( IsMember( element ) )
+		return false;
+
+	elementList.push_back( element );
 	return true;
 }
 
-bool Element::MultiplyOnLeft( const Element& element )
+//------------------------------------------------------------------------------------------
+//                                  PermutationElement
+//------------------------------------------------------------------------------------------
+
+PermutationElement::PermutationElement( void )
 {
-	word.MultiplyOnLeft( element.word );
-	permutation.MultiplyOnLeft( element.permutation );
-	return true;
 }
 
-bool Element::SetInverse( const Element& element )
+/*virtual*/ PermutationElement::~PermutationElement( void )
 {
-	return element.GetInverse( *this );
 }
 
-bool Element::GetInverse( Element& element ) const
+/*virtual*/ Element* PermutationElement::Clone( void ) const
 {
-	word.GetInverse( element.word );
-	return permutation.GetInverse( element.permutation );
+	PermutationElement* element = new PermutationElement();
+	element->word.SetCopy( word );
+	element->permutation.SetCopy( permutation );
+	return element;
 }
 
-std::size_t Element::CalcHash( void ) const
+/*virtual*/ uint PermutationElement::Order( void ) const
 {
-	if( collection )
-		return collection->CalcHash( *this );
-
-	return permutation.CalcHash();
+	return permutation.Order();
 }
 
-void Element::Print( std::ostream& ostream ) const
+/*virtual*/ void PermutationElement::Print( std::ostream& ostream ) const
 {
 	word.Print( ostream );
 	ostream << " = ";
@@ -91,196 +166,103 @@ void Element::Print( std::ostream& ostream ) const
 }
 
 //------------------------------------------------------------------------------------------
-//									   ElementCollection
+//                                     PermutationSet
 //------------------------------------------------------------------------------------------
 
-ElementCollection::ElementCollection( void )
+PermutationSet::PermutationSet( void )
 {
 }
 
-/*virtual*/ ElementCollection::~ElementCollection( void )
+/*virtual*/ PermutationSet::~PermutationSet( void )
 {
 }
 
-bool ElementCollection::AddElement( Element& element )
+/*virtual*/ ElementSet* PermutationSet::New( void ) const
 {
-	ElementSet::iterator iter;
-	if( IsMember( element, &iter ) )
+	return new PermutationSet();
+}
+
+/*virtual*/ Element* PermutationSet::Identity( void ) const
+{
+	return new PermutationElement();
+}
+
+/*virtual*/ Element* PermutationSet::Multiply( const Element* elementA, const Element* elementB ) const
+{
+	const PermutationElement* permElementA = dynamic_cast< const PermutationElement* >( elementA );
+	const PermutationElement* permElementB = dynamic_cast< const PermutationElement* >( elementB );
+
+	if( !( permElementA && permElementB ) )
+		return nullptr;
+
+	PermutationElement* product = new PermutationElement();
+
+	product->word.Multiply( permElementA->word, permElementB->word );
+	product->permutation.Multiply( permElementA->permutation, permElementB->permutation );
+
+	return product;
+}
+
+/*virtual*/ Element* PermutationSet::Invert( const Element* element ) const
+{
+	const PermutationElement* permElement = dynamic_cast< const PermutationElement* >( element );
+	if( !permElement )
+		return nullptr;
+
+	PermutationElement* invPermElement = new PermutationElement();
+
+	invPermElement->word.SetInverse( permElement->word );
+	invPermElement->permutation.SetInverse( permElement->permutation );
+
+	return invPermElement;
+}
+
+/*virtual*/ bool PermutationSet::AreEqual( const Element* elementA, const Element* elementB ) const
+{
+	const PermutationElement* permElementA = dynamic_cast< const PermutationElement* >( elementA );
+	const PermutationElement* permElementB = dynamic_cast< const PermutationElement* >( elementB );
+
+	if( !( permElementA && permElementB ) )
 		return false;
-	element.collection = this;
-	elementSet.insert( element );
-	return true;
-}
 
-bool ElementCollection::RemoveElement( Element& element )
-{
-	ElementSet::iterator iter;
-	if( !IsMember( element, &iter ) )
-		return false;
-	element.collection = nullptr;
-	elementSet.erase( iter );
-	return true;
-}
-
-void ElementCollection::RemoveAllElements( void )
-{
-	elementSet.clear();
-}
-
-bool ElementCollection::IsMember( Element& element, ElementSet::iterator* foundIter /*= nullptr*/ )
-{
-	ElementSet::iterator iter = elementSet.find( element );
-	if( iter == elementSet.end() )
-		return false;
-	if( foundIter )
-		*foundIter = iter;
-	return true;
-}
-
-/*virtual*/ bool ElementCollection::AreEqual( const Element& elementA, const Element& elementB )
-{
-	return elementA.permutation.IsEqualTo( elementB.permutation );
-}
-
-/*virtual*/ std::size_t ElementCollection::CalcHash( const Element& element ) const
-{
-	return element.permutation.CalcHash();
-}
-
-bool ElementCollection::GenerateGroup( std::ostream* ostream /*= nullptr*/ )
-{
-	ElementSet elementQueue;
-	while( elementSet.size() > 0 )
-	{
-		ElementSet::iterator iter = elementSet.begin();
-		const Element& element = *iter;
-		if( !element.permutation.IsValid() )
-			return false;
-		elementQueue.insert( element );
-		elementSet.erase( iter );
-	}
-
-	Element identity;
-	elementSet.insert( identity );
-
-	while( elementQueue.size() > 0 )
-	{
-		ElementSet::iterator queueIter = elementQueue.begin();
-		Element newElement = *queueIter;
-		elementQueue.erase( queueIter );
-
-		for( ElementSet::const_iterator iter = elementSet.cbegin(); iter != elementSet.cend(); iter++ )
-		{
-			const Element& element = *iter;
-
-			for( int i = 0; i < 2; i++ )
-			{
-				Element product;
-
-				if( i == 0 )
-					product.Multiply( newElement, element );
-				else
-					product.Multiply( element, newElement );
-
-				bool foundInSet = IsMember( product );
-				bool foundInQueue = ( elementQueue.find( product ) == elementQueue.end() ) ? false : true;
-
-				if( !( foundInSet || foundInQueue ) )
-					elementQueue.insert( product );
-			}
-		}
-
-		if( elementSet.find( newElement ) == elementSet.end() )
-		{
-			elementSet.insert( newElement );
-
-			if( ostream )
-			{
-				*ostream << "Added: ";
-				newElement.Print( *ostream );
-			}
-		}
-	}
-
-	return true;
-}
-
-// Of course, if we're a group, then this is the order of the group.
-uint ElementCollection::Cardinality( void ) const
-{
-	return ( uint )elementSet.size();
-}
-
-void ElementCollection::Print( std::ostream& ostream ) const
-{
-	ostream << "Cardinality: " << Cardinality() << "\n";
-
-	for( ElementSet::const_iterator iter = elementSet.cbegin(); iter != elementSet.cend(); iter++ )
-	{
-		const Element& element = *iter;
-		element.Print( ostream );
-	}
+	return permElementA->permutation.IsEqualTo( permElementB->permutation );
 }
 
 //------------------------------------------------------------------------------------------
-//									     CosetCollection
+//                                 CosetRepresentativeSet
 //------------------------------------------------------------------------------------------
 
-CosetCollection::CosetCollection( void )
+CosetRepresentativeSet::CosetRepresentativeSet( void )
 {
 }
 
-/*virtual*/ CosetCollection::~CosetCollection( void )
+/*virtual*/ CosetRepresentativeSet::~CosetRepresentativeSet( void )
 {
 }
 
-bool CosetCollection::AreInSameCoset( const Permutation& permutationA, const Permutation& permutationB ) const
+/*virtual*/ ElementSet* CosetRepresentativeSet::New( void ) const
 {
-	Permutation invPermutationA;
-	permutationA.GetInverse( invPermutationA );
+	return new CosetRepresentativeSet();
+}
+
+/*virtual*/ bool CosetRepresentativeSet::AreEqual( const Element* elementA, const Element* elementB ) const
+{
+	const PermutationElement* permElementA = dynamic_cast< const PermutationElement* >( elementA );
+	const PermutationElement* permElementB = dynamic_cast< const PermutationElement* >( elementB );
+
+	if( !( permElementA && permElementB ) )
+		return false;
+
+	Permutation invPermA;
+	invPermA.SetInverse( permElementA->permutation );
 
 	Permutation product;
-	product.Multiply( invPermutationA, permutationB );
+	product.Multiply( invPermA, permElementB->permutation );
 
-	return IsInQuotientGroup( product );
-}
+	NaturalNumberSet productUnstableSet;
+	product.GetUnstableSet( productUnstableSet );
 
-bool CosetCollection::IsInQuotientGroup( const Permutation& permutation ) const
-{
-	NaturalNumberSet permUnstableSet;
-	permutation.GetUnstableSet( permUnstableSet );
-
-	return permUnstableSet.IsSubsetOf( unstableSet );
-}
-
-/*virtual*/ bool CosetCollection::AreEqual( const Element& elementA, const Element& elementB )
-{
-	return AreInSameCoset( elementA.permutation, elementB.permutation );
-}
-
-/*virtual*/ std::size_t CosetCollection::CalcHash( const Element& element ) const
-{
-	// Unfortunately, I'm not sure how to get around doing this linear search.
-	// What it means is that we're essentially defeating the purpose of using a hash table.
-	// What we would have to do to fix this is make sure that elements that would fall
-	// under the same coset always hash to the same value.  I'm not sure how to do that.
-	const Element* cosetRepresentative = FindCosetRepresentative( element );
-	if( cosetRepresentative )
-		return cosetRepresentative->CalcHash();
-
-	return element.permutation.CalcHash();
-}
-
-const Element* CosetCollection::FindCosetRepresentative( const Element& element ) const
-{
-	for( ElementSet::const_iterator iter = elementSet.cbegin(); iter != elementSet.cend(); iter++ )
-	{
-		const Element& existingElement = *iter;
-		if( AreInSameCoset( existingElement.permutation, element.permutation ) )
-			return &existingElement;
-	}
-
-	return nullptr;
+	return productUnstableSet.IsSubsetOf( unstableSet );
 }
 
 // ElementSet.cpp
