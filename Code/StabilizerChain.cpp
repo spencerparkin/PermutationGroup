@@ -1,8 +1,7 @@
 // StabilizerChain.cpp
 
 #include "StabilizerChain.h"
-
-#if 0
+#include <memory>
 
 //------------------------------------------------------------------------------------------
 //                                   StabilizerChainGroup
@@ -24,11 +23,10 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, std::ost
 	NaturalNumberSet::UintSet::iterator iter = factorGroup.unstableSet.set.begin();
 	factorGroup.unstableSet.RemoveMember( *iter );
 
-	for( ElementSet::const_iterator iter = generatorSet.elementSet.cbegin(); iter != generatorSet.elementSet.cend(); iter++ )
+	for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
 	{
-		const Element& generator = *iter;
-		Element element( generator );
-		factorGroup.AddElement( element );
+		const Element* generator = *iter;
+		factorGroup.AddNewMember( generator->Clone() );
 	}
 
 	if( ostream )
@@ -49,28 +47,25 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, std::ost
 			*ostream << "Generating generators for stabilizer subgroup...\n";
 
 		// Use Streier's lemma here to find generators for the subgroup.
-		for( ElementSet::const_iterator iter = generatorSet.elementSet.cbegin(); iter != generatorSet.elementSet.cend(); iter++ )
+		for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
 		{
-			const Element& generator = *iter;
+			const Element* generator = *iter;
 
-			for( ElementSet::const_iterator cosetIter = factorGroup.elementSet.cbegin(); cosetIter != factorGroup.elementSet.cend(); cosetIter++ )
+			for( ElementList::const_iterator cosetIter = factorGroup.elementList.cbegin(); cosetIter != factorGroup.elementList.cend(); cosetIter++ )
 			{
-				const Element& cosetRepresentative = *cosetIter;
+				const Element* cosetRepresentative = *cosetIter;
 
-				Element product;
-				product.Multiply( generator, cosetRepresentative );
+				std::auto_ptr< Element > product( subGroup->generatorSet.Multiply( generator, cosetRepresentative ) );
 
-				const Element* cosetRepresentativeForProduct = factorGroup.FindCosetRepresentative( product );
-				if( !cosetRepresentativeForProduct )
+				ElementList::iterator memberIter;
+				if( !factorGroup.IsMember( product.get(), &memberIter ) )
 					return false;
 
-				Element invCosetRepresentativeForProduct;
-				invCosetRepresentativeForProduct.SetInverse( *cosetRepresentativeForProduct );
-
-				Element newGenerator;
-				newGenerator.Multiply( product, invCosetRepresentativeForProduct );
-
-				subGroup->generatorSet.AddElement( newGenerator );
+				const Element* cosetRepresentativeForProduct = *memberIter;
+				std::auto_ptr< Element > invCosetRepresentativeForProduct( subGroup->generatorSet.Invert( cosetRepresentativeForProduct ) );
+				
+				Element* newGenerator = subGroup->generatorSet.Multiply( product.get(), invCosetRepresentativeForProduct.get() );
+				subGroup->generatorSet.AddNewMember( newGenerator );
 			}
 		}
 
@@ -81,29 +76,27 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, std::ost
 	return true;
 }
 
-bool StabilizerChainGroup::Factor( const Element& element, Element& invElement ) const
+bool StabilizerChainGroup::Factor( const PermutationElement& permElement, PermutationElement& invPermElement ) const
 {
 	if( !subGroup )
 		return true;
 
-	if( factorGroup.IsInQuotientGroup( element.permutation ) )
-		return subGroup->Factor( element, invElement );
+	if( factorGroup.IsInDivsorGroup( permElement.permutation ) )
+		return subGroup->Factor( permElement, invPermElement );
 
-	const Element* cosetRepresentative = factorGroup.FindCosetRepresentative( element );
-	if( !cosetRepresentative )
+	ElementList::iterator memberIter;
+	if( !const_cast< CosetRepresentativeSet* >( &factorGroup )->IsMember( &permElement, &memberIter ) )
 		return false;
 
-	Element invCosetRepresentative;
-	invCosetRepresentative.SetInverse( *cosetRepresentative );
+	const Element* cosetRepresentative = *memberIter;
 
-	invElement.MultiplyOnRight( invCosetRepresentative );
+	std::auto_ptr< Element > invCosetRepresentative( factorGroup.Invert( cosetRepresentative ) );
+	
+	invPermElement.MultiplyOnRight( invCosetRepresentative.get() );
 
-	Element reducedElement;
-	reducedElement.Multiply( element, invCosetRepresentative );
-
-	return subGroup->Factor( reducedElement, invElement );
+	std::auto_ptr< Element > reducedElement( factorGroup.Multiply( &permElement, invCosetRepresentative.get() ) );
+	
+	return subGroup->Factor( *dynamic_cast< PermutationElement* >( reducedElement.get() ), invPermElement );
 }
-
-#endif
 
 // StabilizerChain.cpp

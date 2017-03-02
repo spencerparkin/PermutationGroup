@@ -260,6 +260,14 @@ CosetRepresentativeSet::CosetRepresentativeSet( void )
 	return new CosetRepresentativeSet();
 }
 
+bool CosetRepresentativeSet::IsInDivsorGroup( const Permutation& permutation ) const
+{
+	NaturalNumberSet permUnstableSet;
+	permutation.GetUnstableSet( permUnstableSet );
+
+	return permUnstableSet.IsSubsetOf( unstableSet );
+}
+
 /*virtual*/ bool CosetRepresentativeSet::AreEqual( const Element* elementA, const Element* elementB ) const
 {
 	const PermutationElement* permElementA = dynamic_cast< const PermutationElement* >( elementA );
@@ -274,10 +282,7 @@ CosetRepresentativeSet::CosetRepresentativeSet( void )
 	Permutation product;
 	product.Multiply( invPermA, permElementB->permutation );
 
-	NaturalNumberSet productUnstableSet;
-	product.GetUnstableSet( productUnstableSet );
-
-	return productUnstableSet.IsSubsetOf( unstableSet );
+	return IsInDivsorGroup( product );
 }
 
 // ElementSet.cpp

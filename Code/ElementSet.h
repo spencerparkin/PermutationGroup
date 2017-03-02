@@ -115,6 +115,8 @@ public:
 	virtual ElementSet* New( void ) const override;
 	virtual bool AreEqual( const Element* elementA, const Element* elementB ) const override;
 
+	bool IsInDivsorGroup( const Permutation& permutation ) const;
+
 	NaturalNumberSet unstableSet;
 };
 

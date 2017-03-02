@@ -8,8 +8,6 @@
 //                                   StabilizerChainGroup
 //------------------------------------------------------------------------------------------
 
-#if 0
-
 class StabilizerChainGroup
 {
 public:
@@ -18,16 +16,12 @@ public:
 	~StabilizerChainGroup( void );
 
 	bool Generate( const NaturalNumberSet& domainSet, std::ostream* ostream = nullptr );
+	bool Factor( const PermutationElement& permElement, PermutationElement& invPermElement ) const;
 
-	// The given inverse element should be initialized to the identity element before this call.
-	bool Factor( const Element& element, Element& invElement ) const;
-
-	ElementCollection generatorSet;
-	CosetCollection factorGroup;
+	PermutationSet generatorSet;
+	CosetRepresentativeSet factorGroup;
 
 	StabilizerChainGroup* subGroup;
 };
-
-#endif
 
 // StabilizerChain.h
