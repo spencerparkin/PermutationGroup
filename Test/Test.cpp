@@ -9,46 +9,45 @@ int main( int argc, char** argv )
 {
 	clock_t t = clock();
 
-#if 0
 	std::cout << "Generating stabilizer chain...\n";
 
 	StabilizerChainGroup* chainGroup = new StabilizerChainGroup();
 
-	Element element;
+	PermutationElement* element = nullptr;
 
-	element.word.SetName( "a" );
-	element.permutation.Define( 0, 4 );
-	element.permutation.Define( 4, 7 );
-	element.permutation.Define( 7, 0 );
-	chainGroup->generatorSet.AddElement( element );
+	element = new PermutationElement();
+	element->word.SetName( "a" );
+	element->permutation.Define( 0, 4 );
+	element->permutation.Define( 4, 7 );
+	element->permutation.Define( 7, 0 );
+	chainGroup->generatorSet.AddNewMember( element );
 
-	element.Identity();
-	element.word.SetName( "b" );
-	element.permutation.Define( 1, 5 );
-	element.permutation.Define( 5, 4 );
-	element.permutation.Define( 4, 1 );
-	chainGroup->generatorSet.AddElement( element );
+	element = new PermutationElement();
+	element->word.SetName( "b" );
+	element->permutation.Define( 1, 5 );
+	element->permutation.Define( 5, 4 );
+	element->permutation.Define( 4, 1 );
+	chainGroup->generatorSet.AddNewMember( element );
 
-	element.Identity();
-	element.word.SetName( "c" );
-	element.permutation.Define( 2, 6 );
-	element.permutation.Define( 6, 5 );
-	element.permutation.Define( 5, 2 );
-	chainGroup->generatorSet.AddElement( element );
+	element = new PermutationElement();
+	element->word.SetName( "c" );
+	element->permutation.Define( 2, 6 );
+	element->permutation.Define( 6, 5 );
+	element->permutation.Define( 5, 2 );
+	chainGroup->generatorSet.AddNewMember( element );
 
-	element.Identity();
-	element.word.SetName( "d" );
-	element.permutation.Define( 3, 7 );
-	element.permutation.Define( 7, 6 );
-	element.permutation.Define( 6, 3 );
-	chainGroup->generatorSet.AddElement( element );
+	element = new PermutationElement();
+	element->word.SetName( "d" );
+	element->permutation.Define( 3, 7 );
+	element->permutation.Define( 7, 6 );
+	element->permutation.Define( 6, 3 );
+	chainGroup->generatorSet.AddNewMember( element );
 
 	NaturalNumberSet domainSet;
 	for( uint i = 0; i < 8; i++ )
 		domainSet.AddMember(i);
 
 	chainGroup->Generate( domainSet, &std::cout );
-#endif
 
 	t = clock() - t;
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
