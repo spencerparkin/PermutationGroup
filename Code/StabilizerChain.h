@@ -8,6 +8,8 @@
 //                                   StabilizerChainGroup
 //------------------------------------------------------------------------------------------
 
+class WordCompressor;
+
 class StabilizerChainGroup
 {
 public:
@@ -15,7 +17,7 @@ public:
 	StabilizerChainGroup( void );
 	~StabilizerChainGroup( void );
 
-	bool Generate( const NaturalNumberSet& domainSet, std::ostream* ostream = nullptr );
+	bool Generate( const NaturalNumberSet& domainSet, WordCompressor* wordCompressor = nullptr, std::ostream* ostream = nullptr );
 	bool Factor( const PermutationElement& permElement, PermutationElement& invPermElement ) const;
 
 	PermutationSet generatorSet;

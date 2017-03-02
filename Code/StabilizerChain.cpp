@@ -17,11 +17,17 @@ StabilizerChainGroup::~StabilizerChainGroup( void )
 	delete subGroup;
 }
 
-bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, std::ostream* ostream /*= nullptr*/ )
+bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, WordCompressor* wordCompressor /*= nullptr*/, std::ostream* ostream /*= nullptr*/ )
 {
 	factorGroup.unstableSet.Copy( domainSet );
 	NaturalNumberSet::UintSet::iterator iter = factorGroup.unstableSet.set.begin();
 	factorGroup.unstableSet.RemoveMember( *iter );
+
+	if( ostream )
+		*ostream << "Compressing generator set...\n";
+
+	if( wordCompressor )
+		wordCompressor->Compress( generatorSet );
 
 	if( ostream )
 		*ostream << "Generators for subgroup in stabilizer chain...\n";
@@ -75,7 +81,7 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, std::ost
 			}
 		}
 
-		if( !subGroup->Generate( factorGroup.unstableSet, ostream ) )
+		if( !subGroup->Generate( factorGroup.unstableSet, wordCompressor, ostream ) )
 			return false;
 	}
 

@@ -130,6 +130,9 @@ void ElementSet::Clear( void )
 
 bool ElementSet::IsMember( const Element* element, ElementList::iterator* foundIter /*= nullptr*/ )
 {
+	// This linear search is the main innefficiency in my design.
+	// If elements have a unique representation, then we can use a hash table to get better performance.
+	// In the case of factor groups, however, I do not know how to do better than this linear search.
 	for( ElementList::iterator iter = elementList.begin(); iter != elementList.end(); iter++ )
 	{
 		Element* member = *iter;
@@ -176,6 +179,15 @@ PermutationElement::PermutationElement( void )
 /*virtual*/ uint PermutationElement::Order( void ) const
 {
 	return permutation.Order();
+}
+
+/*virtual*/ std::string PermutationElement::Name( void ) const
+{
+	if( word.termList.size() != 1 )
+		return "";
+
+	const Term& term = word.termList.front();
+	return term.name;
 }
 
 /*virtual*/ void PermutationElement::Print( std::ostream& ostream ) const

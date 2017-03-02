@@ -6,6 +6,7 @@
 #include "Permutation.h"
 #include <list>
 #include <ostream>
+#include <map>
 
 typedef unsigned int uint;
 
@@ -27,7 +28,9 @@ public:
 	virtual bool IsEqualTo( const Element* element ) const { return false; }
 	virtual Element* Invert( void ) const { return nullptr; }
 	virtual Element* Clone( void ) const = 0;
+	virtual std::string Name( void ) const = 0;
 	virtual uint Order( void ) const = 0;
+	virtual Word* GetWord( void ) { return nullptr; }
 	virtual void Print( std::ostream& ostream ) const = 0;
 };
 
@@ -75,9 +78,11 @@ public:
 	PermutationElement( void );
 	virtual ~PermutationElement( void );
 
+	virtual std::string Name( void ) const override;
 	virtual Element* Clone( void ) const override;
 	virtual uint Order( void ) const override;
 	virtual void Print( std::ostream& ostream ) const override;
+	virtual Word* GetWord( void ) override { return &word; }
 
 	Word word;
 	Permutation permutation;

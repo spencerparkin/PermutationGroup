@@ -4,12 +4,14 @@
 
 #include <set>
 #include <list>
+#include <map>
 #include <string>
 #include "NaturalNumberSet.h"
 
 class Permutation;
 
 typedef std::list< Permutation > PermutationList;
+typedef std::map< std::string, Permutation > PermutationMap;
 
 typedef unsigned int uint;
 

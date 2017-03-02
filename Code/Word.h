@@ -4,6 +4,7 @@
 
 #include <string>
 #include <list>
+#include "Permutation.h"
 
 typedef unsigned int uint;
 
@@ -26,6 +27,7 @@ typedef std::list< Term > TermList;
 //------------------------------------------------------------------------------------------
 
 class Word;
+class ElementSet;
 
 class WordCompressor
 {
@@ -34,10 +36,39 @@ public:
 	WordCompressor( void );
 	virtual ~WordCompressor( void );
 
+	bool Compress( ElementSet& elementSet );
 	bool Compress( Word& word );
 
+	TermList::iterator FindCombineTerm( TermList::iterator& iter, TermList& termList );
+	
+	virtual bool CanCombineTerms( const Term& termA, const Term& termB );
 	virtual bool TermsCommute( const Term& termA, const Term& termB ) = 0;
 	virtual uint TermOrder( const Term& term ) = 0;
+};
+
+//------------------------------------------------------------------------------------------
+//                                  ConfiguredWordCompressor
+//------------------------------------------------------------------------------------------
+
+class ConfiguredWordCompressor : public WordCompressor
+{
+public:
+
+	ConfiguredWordCompressor( void );
+	virtual ~ConfiguredWordCompressor( void );
+
+	bool Configure( const ElementSet& elementSet );
+
+	virtual bool TermsCommute( const Term& termA, const Term& termB ) override;
+	virtual uint TermOrder( const Term& term ) override;
+
+	std::string MakeCommuteMapKey( const std::string& nameA, const std::string& nameB );
+
+	typedef std::map< std::string, uint > OrderMap;
+	OrderMap orderMap;
+
+	typedef std::map< std::string, bool > CommuteMap;
+	CommuteMap commuteMap;
 };
 
 //------------------------------------------------------------------------------------------
