@@ -69,6 +69,12 @@ bool ElementSet::GenerateGroup( std::ostream* ostream /*= nullptr*/ )
 		Element* newElement = *queueIter;
 		elementQueue->elementList.erase( queueIter );
 
+		if( ostream )
+		{
+			*ostream << "QueueSize: " << elementQueue->Cardinality() << "\n";
+			*ostream << "GroupSize: " << Cardinality() << "\n";
+		}
+
 		for( ElementList::const_iterator iter = elementList.cbegin(); iter != elementList.cend(); iter++ )
 		{
 			const Element* oldElement = *iter;

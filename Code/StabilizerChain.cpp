@@ -23,9 +23,15 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, std::ost
 	NaturalNumberSet::UintSet::iterator iter = factorGroup.unstableSet.set.begin();
 	factorGroup.unstableSet.RemoveMember( *iter );
 
+	if( ostream )
+		*ostream << "Generators for subgroup in stabilizer chain...\n";
+
 	for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
 	{
 		const Element* generator = *iter;
+		if( ostream )
+			generator->Print( *ostream );
+
 		factorGroup.AddNewMember( generator->Clone() );
 	}
 
@@ -46,7 +52,7 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, std::ost
 		if( ostream )
 			*ostream << "Generating generators for stabilizer subgroup...\n";
 
-		// Use Streier's lemma here to find generators for the subgroup.
+		// Use Schreier's lemma here to find generators for the subgroup.
 		for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
 		{
 			const Element* generator = *iter;
@@ -55,7 +61,7 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, std::ost
 			{
 				const Element* cosetRepresentative = *cosetIter;
 
-				std::auto_ptr< Element > product( subGroup->generatorSet.Multiply( generator, cosetRepresentative ) );
+				std::auto_ptr< Element > product( subGroup->generatorSet.Multiply( cosetRepresentative, generator ) );
 
 				ElementList::iterator memberIter;
 				if( !factorGroup.IsMember( product.get(), &memberIter ) )
@@ -69,7 +75,7 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, std::ost
 			}
 		}
 
-		if( !subGroup->Generate( factorGroup.unstableSet ) )
+		if( !subGroup->Generate( factorGroup.unstableSet, ostream ) )
 			return false;
 	}
 
