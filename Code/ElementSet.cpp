@@ -75,9 +75,9 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 
 	CaylayBlock block;
 	block.minRow = 0;
-	block.maxRow = data->caylayTableHeaderArray.size();
+	block.maxRow = data->caylayTableHeaderArray.size() - 1;
 	block.minCol = 0;
-	block.maxCol = data->caylayTableHeaderArray.size();
+	block.maxCol = data->caylayTableHeaderArray.size() - 1;
 
 	CaylayBlockList blockList;
 	blockList.push_back( block );
@@ -227,7 +227,7 @@ void ElementSet::ChopUpBlockList( CaylayBlockList& blockList, uint maxThreadCoun
 		rightBlock.minRow = block.minRow;
 		rightBlock.maxRow = block.maxRow;
 		rightBlock.minCol = leftBlock.maxCol + 1;
-		rightBlock.minCol = block.maxCol;
+		rightBlock.maxCol = block.maxCol;
 
 		blockList.erase( foundIter );
 		blockList.push_back( leftBlock );
@@ -237,11 +237,11 @@ void ElementSet::ChopUpBlockList( CaylayBlockList& blockList, uint maxThreadCoun
 
 void ElementSet::Thread::Generate( void )
 {
-	for( uint i = block.minRow; i <= block.minRow; i++ )
+	for( uint i = block.minRow; i <= block.maxRow; i++ )
 	{
 		const Element* elementA = data->caylayTableHeaderArray[i];
 
-		for( uint j = block.minCol; j <= block.minCol; j++ )
+		for( uint j = block.minCol; j <= block.maxCol; j++ )
 		{
 			const Element* elementB = data->caylayTableHeaderArray[j];
 
