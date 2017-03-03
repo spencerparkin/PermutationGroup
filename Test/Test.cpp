@@ -73,24 +73,22 @@ void GroupGenerationTest( void )
 
 	element = new PermutationElement();
 	element->word.SetName( "a" );
-	element->permutation.Define( 0, 4 );
-	element->permutation.Define( 4, 3 );
-	element->permutation.Define( 3, 0 );
+	element->permutation.Define( 0, 1 );
+	element->permutation.Define( 1, 0 );
 	generatorSet.AddNewMember( element );
 
 	element = new PermutationElement();
 	element->word.SetName( "b" );
-	element->permutation.Define( 4, 1 );
-	element->permutation.Define( 1, 5 );
-	element->permutation.Define( 5, 4 );
+	element->permutation.Define( 1, 2 );
+	element->permutation.Define( 2, 1 );
 	generatorSet.AddNewMember( element );
 
-	element = new PermutationElement();
+	/*element = new PermutationElement();
 	element->word.SetName( "c" );
 	element->permutation.Define( 3, 5 );
 	element->permutation.Define( 5, 2 );
 	element->permutation.Define( 2, 3 );
-	generatorSet.AddNewMember( element );
+	generatorSet.AddNewMember( element );*/
 
 	ConfiguredWordCompressor wordCompressor;
 	wordCompressor.Configure( generatorSet );

@@ -117,6 +117,7 @@ public:
 	uint Cardinality( void ) const;
 	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr, bool multiThreaded = true );
 	void Clear( void );
+	void AbsorbSet( ElementSet& set, ElementArray* elementArray = nullptr );
 
 	static void DeleteList( ElementList& elementList );
 
@@ -139,14 +140,12 @@ public:
 
 	struct CaylayTableData
 	{
-		std::mutex caylayTableHeaderArrayMutex;	// This is used to protect write access to the header array.
-		ElementArray caylayTableHeaderArray;	// This is a shared resource, but I don't think we need to lock for read access.
-		ElementHashMapArray caylayColumnCheckArray;	// No lock is needed for this shared resource, because no blocks overlap vertically.
+		ElementArray caylayTableHeaderArray;
 	};
 
 	void ChopUpBlockList( CaylayBlockList& blockList, uint maxThreadCount, uint minBlockSize );
 
-	struct Thread
+	struct CaylayTableThread
 	{
 		void Generate( void );
 
@@ -154,8 +153,21 @@ public:
 		CaylayTableData* data;
 		ElementSet* set;
 		std::thread* thread;
+		std::ostream* ostream;
+		ElementSet* newElementSet;
+	};
+
+	struct UnionThread
+	{
+		void Unionize( void );
+
+		ElementSet* setTarget;
+		ElementSet* setSource;
+		std::thread* thread;
 	};
 };
+
+typedef std::list< ElementSet* > ElementSetList;
 
 //------------------------------------------------------------------------------------------
 //                                  PermutationElement

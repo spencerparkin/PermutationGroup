@@ -59,17 +59,12 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 {
 	std::auto_ptr< CaylayTableData > data( new CaylayTableData() );
 
+	Clear();
 	for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
-		data->caylayTableHeaderArray.push_back( ( *iter )->Clone() );
+		elementList.push_back( ( *iter )->Clone() );
 
-	for( uint i = 0; i < data->caylayTableHeaderArray.size(); i++ )
-	{
-		ElementHashMap* elementHashMap = new ElementHashMap();
-		data->caylayColumnCheckArray.push_back( elementHashMap );
-
-		for( uint j = 0; j < data->caylayTableHeaderArray.size(); j++ )
-			elementHashMap->insert( data->caylayTableHeaderArray[j] );
-	}
+	for( ElementList::iterator iter = elementList.begin(); iter != elementList.end(); iter++ )
+		data->caylayTableHeaderArray.push_back( *iter );
 
 	uint maxThreadCount = std::thread::hardware_concurrency();
 
@@ -91,50 +86,165 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 		if( *ostream )
 			*ostream << "Current group order: " << oldGroupOrder << "\n";
 		
-		std::list< Thread* > threadList;
+		std::list< CaylayTableThread* > tableThreadList;
 
 		for( CaylayBlockList::iterator iter = blockList.begin(); iter != blockList.end(); iter++ )
 		{
-			Thread* thread = new Thread();
+			CaylayTableThread* thread = new CaylayTableThread();
 			thread->set = this;
 			thread->data = data.get();
 			thread->block = *iter;
 			thread->thread = nullptr;
-			threadList.push_back( thread );
+			thread->ostream = ostream;
+			thread->newElementSet = New();
+			tableThreadList.push_back( thread );
 		}
 
 		if( multiThreaded )
 		{
 			if( ostream )
-				*ostream << "Kicking off " << threadList.size() << " thread(s)!\n";
+				*ostream << "Kicking off " << tableThreadList.size() << " thread(s)!\n";
 
-			for( std::list< Thread* >::iterator iter = threadList.begin(); iter != threadList.end(); iter++ )
+			for( std::list< CaylayTableThread* >::iterator iter = tableThreadList.begin(); iter != tableThreadList.end(); iter++ )
 			{
-				Thread* thread = *iter;
-				thread->thread = new std::thread( &ElementSet::Thread::Generate, thread );
+				CaylayTableThread* thread = *iter;
+				thread->thread = new std::thread( &ElementSet::CaylayTableThread::Generate, thread );
 			}
 		}
 		else
 		{
-			for( std::list< Thread* >::iterator iter = threadList.begin(); iter != threadList.end(); iter++ )
+			for( std::list< CaylayTableThread* >::iterator iter = tableThreadList.begin(); iter != tableThreadList.end(); iter++ )
 			{
-				Thread* thread = *iter;
+				CaylayTableThread* thread = *iter;
 				thread->Generate();
 			}
 		}
 
-		while( threadList.size() > 0 )
+		ElementSetList elementSetList;
+
+		while( tableThreadList.size() > 0 )
 		{
-			std::list< Thread* >::iterator iter = threadList.begin();
-			Thread* thread = *iter;
+			std::list< CaylayTableThread* >::iterator iter = tableThreadList.begin();
+			CaylayTableThread* thread = *iter;
 			if( multiThreaded )
 				thread->thread->join();
+			elementSetList.push_back( thread->newElementSet );
 			delete thread->thread;
 			delete thread;
-			threadList.erase( iter );
+			tableThreadList.erase( iter );
 
 			if( ostream && multiThreaded )
-				*ostream << "Thread joined.  " << threadList.size() << " thread(s) remaining.\n";
+				*ostream << "Thread joined.  " << tableThreadList.size() << " thread(s) remaining.\n";
+		}
+
+		std::list< UnionThread* > unionThreadList;
+		ElementSetList::iterator setIter = elementSetList.begin();
+		while( setIter != elementSetList.end() )
+		{
+			ElementSetList::iterator nextIter = setIter;
+			nextIter++;
+
+			UnionThread* thread = new UnionThread();
+			thread->setTarget = *setIter;
+			thread->setSource = ( nextIter == elementSetList.end() ) ? nullptr : *nextIter;
+			thread->thread = nullptr;
+			if( multiThreaded && thread->setSource )
+				thread->thread = new std::thread( &UnionThread::Unionize, thread );
+			unionThreadList.push_back( thread );
+
+			setIter = nextIter;
+			setIter++;
+		}
+
+		while( unionThreadList.size() > 1 )
+		{
+			if( !multiThreaded )
+			{
+				for( std::list< UnionThread* >::iterator iter = unionThreadList.begin(); iter != unionThreadList.end(); iter++ )
+				{
+					UnionThread* thread = *iter;
+					if( thread->setSource )
+					{
+						thread->Unionize();
+						delete thread->setSource;
+						thread->setSource = nullptr;
+					}
+				}
+			}
+
+			bool combined = false;
+			do
+			{
+				combined = false;
+
+				for( std::list< UnionThread* >::iterator iterA = unionThreadList.begin(); iterA != unionThreadList.end(); iterA++ )
+				{
+					UnionThread* threadA = *iterA;
+					if( threadA->setSource )
+						continue;
+
+					for( std::list< UnionThread* >::iterator iterB = iterA; iterB != unionThreadList.end(); iterB++ )
+					{
+						UnionThread* threadB = *iterB;
+						if( threadA == threadB || threadB->setSource )
+							continue;
+
+						if( multiThreaded )
+						{
+							// This should be near instantaneous, because the threads have no more work to do.
+							threadA->thread->join();
+							threadB->thread->join();
+							delete threadA->thread;
+							delete threadB->thread;
+						}
+
+						UnionThread* thread = new UnionThread();
+						thread->setTarget = threadA->setTarget;
+						thread->setSource = threadB->setTarget;
+						thread->thread = nullptr;
+						unionThreadList.push_back( thread );
+
+						if( multiThreaded )
+							thread->thread = new std::thread( &UnionThread::Unionize, thread );
+
+						unionThreadList.erase( iterA );
+						unionThreadList.erase( iterB );
+
+						delete threadA;
+						delete threadB;
+
+						combined = true;
+						break;
+					}
+
+					if( combined )
+						break;
+				}
+			}
+			while( combined );
+		}
+
+		ElementSet* setUnion = nullptr;
+
+		if( unionThreadList.size() > 1 )
+		{
+			UnionThread* thread = *unionThreadList.begin();
+			if( multiThreaded )
+			{
+				thread->thread->join();
+				delete thread->thread;
+			}
+			
+			setUnion = thread->setTarget;
+			delete thread;
+			unionThreadList.clear();
+		}
+
+		if( setUnion )
+		{
+			// This is probably where we'll be spending most of our time.  :(
+			AbsorbSet( *setUnion, &data->caylayTableHeaderArray );
+			delete setUnion;
 		}
 
 		uint newGroupOrder = data->caylayTableHeaderArray.size();
@@ -160,40 +270,14 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 			block.minCol = oldGroupOrder;
 			block.maxCol = newGroupOrder - 1;
 			blockList.push_back( block );
-
-			for( uint i = 0; i < newGroupOrder; i++ )
-			{
-				uint k = oldGroupOrder;
-				if( i >= data->caylayColumnCheckArray.size() )
-				{
-					data->caylayColumnCheckArray.push_back( new ElementHashMap() );
-					k = 0;
-				}
-
-				ElementHashMap* elementHashMap = data->caylayColumnCheckArray[i];
-				for( uint j = k; j < newGroupOrder; j++ )
-					elementHashMap->insert( data->caylayTableHeaderArray[j] );
-			}
 		}
 	}
-
-	Clear();
-
-	for( uint i = 0; i < data->caylayTableHeaderArray.size(); i++ )
-		elementList.push_back( data->caylayTableHeaderArray[i] );
-
-	for( uint i = 0; i < data->caylayColumnCheckArray.size(); i++ )
-		delete data->caylayColumnCheckArray[i];
 
 	return true;
 }
 
-// TODO: We might get better net performance by allowing horizontal splits and then adding more locking?
 void ElementSet::ChopUpBlockList( CaylayBlockList& blockList, uint maxThreadCount, uint minBlockSize )
 {
-	// Notice that we do not let any block contain an element of the table
-	// that sits above or below any element in any other block.  This is
-	// so that we don't have to share the column check array resource among threads.
 	while( blockList.size() < maxThreadCount )
 	{
 		uint maxArea = 0;
@@ -212,30 +296,51 @@ void ElementSet::ChopUpBlockList( CaylayBlockList& blockList, uint maxThreadCoun
 			break;
 
 		const CaylayBlock& block = *foundIter;
-		if( block.Width() < 4 )
-			break;
-	
-		CaylayBlock leftBlock, rightBlock;
+		
+		if( block.Width() > block.Height() )
+		{
+			CaylayBlock leftBlock, rightBlock;
 
-		uint halfWidth = block.Width() / 2;
+			uint halfWidth = block.Width() / 2;
 
-		leftBlock.minRow = block.minRow;
-		leftBlock.maxRow = block.maxRow;
-		leftBlock.minCol = block.minCol;
-		leftBlock.maxCol = block.minCol + halfWidth;
+			leftBlock.minRow = block.minRow;
+			leftBlock.maxRow = block.maxRow;
+			leftBlock.minCol = block.minCol;
+			leftBlock.maxCol = block.minCol + halfWidth;
 
-		rightBlock.minRow = block.minRow;
-		rightBlock.maxRow = block.maxRow;
-		rightBlock.minCol = leftBlock.maxCol + 1;
-		rightBlock.maxCol = block.maxCol;
+			rightBlock.minRow = block.minRow;
+			rightBlock.maxRow = block.maxRow;
+			rightBlock.minCol = leftBlock.maxCol + 1;
+			rightBlock.maxCol = block.maxCol;
+		
+			blockList.push_back( leftBlock );
+			blockList.push_back( rightBlock );
+		}
+		else
+		{
+			CaylayBlock topBlock, bottomBlock;
+
+			uint halfHeight = block.Height() / 2;
+
+			topBlock.minRow = block.minRow;
+			topBlock.maxRow = block.minRow + halfHeight;
+			topBlock.minCol = block.minCol;
+			topBlock.maxCol = block.maxCol;
+
+			bottomBlock.minRow = topBlock.maxRow + 1;
+			bottomBlock.maxRow = block.maxRow;
+			bottomBlock.minCol = block.minCol;
+			bottomBlock.maxCol = block.maxCol;
+
+			blockList.push_back( topBlock );
+			blockList.push_back( bottomBlock );
+		}
 
 		blockList.erase( foundIter );
-		blockList.push_back( leftBlock );
-		blockList.push_back( rightBlock );
 	}
 }
 
-void ElementSet::Thread::Generate( void )
+void ElementSet::CaylayTableThread::Generate( void )
 {
 	for( uint i = block.minRow; i <= block.maxRow; i++ )
 	{
@@ -247,37 +352,34 @@ void ElementSet::Thread::Generate( void )
 
 			Element* product = set->Multiply( elementA, elementB );
 
-			ElementHashMap* elementHashMap = data->caylayColumnCheckArray[j];
-
-			// This is the painful linear search we must do because elements of the group do not necessarily have unique representation.
-			Element* foundElement = nullptr;
-			for( ElementHashMap::iterator iter = elementHashMap->begin(); iter != elementHashMap->end(); iter++ )
-			{
-				Element* element = ( *iter ).element;
-				if( set->AreEqual( product, element ) )
-				{
-					foundElement = element;
-					break;
-				}
-			}
-
-			if( foundElement )
-			{
+			if( !set->IsMember( product ) || !newElementSet->AddNewMember( product ) )
 				delete product;
-
-				// For the remainder of the algorithm, if any product is computed in this column,
-				// we don't have to do our linear search against this element!  This is exploiting
-				// the property of every Caylay table that no element will appear more than once
-				// in any row or column.  I don't think we're fully exploiting this property, but
-				// we're at least not ignoring it.
-				elementHashMap->erase( foundElement );
-			}
-			else
-			{
-				std::lock_guard< std::mutex > guard( data->caylayTableHeaderArrayMutex );
-				data->caylayTableHeaderArray.push_back( product );
-			}
 		}
+	}
+}
+
+void ElementSet::UnionThread::Unionize( void )
+{
+	if( setSource )
+	{
+		setTarget->AbsorbSet( *setSource );
+		delete setSource;
+		setSource = nullptr;
+	}
+}
+
+void ElementSet::AbsorbSet( ElementSet& set, ElementArray* elementArray /*= nullptr*/ )
+{
+	while( set.Cardinality() > 0 )
+	{
+		ElementList::iterator iter = set.elementList.begin();
+		Element* element = *iter;
+		set.elementList.erase( iter );
+
+		if( !AddNewMember( element ) )
+			delete element;
+		else if( elementArray )
+			elementArray->push_back( element );
 	}
 }
 
