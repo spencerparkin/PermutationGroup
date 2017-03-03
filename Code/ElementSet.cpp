@@ -154,7 +154,12 @@ with eliminating any unnecessary multiplications, we may also reduce the number 
 such searces.
 
 Actually, there is no advantage to this.  But it would lend itself well to being
-farmed out to multiple threads!
+farmed out to multiple threads!  Another optimization that can be made is that
+when we're checking that a newly calculated element in the Caylay table is not
+in a row (or column) header, we don't have to check against the header elements
+that match was is in the row or column of the new element.  So for each slot in
+the Caylay table, we could maintain the subset of header elements we need to check
+against.  Coming up with those initial subsets can be done using hash table lookups.
 
 */
 
