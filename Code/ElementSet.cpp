@@ -127,7 +127,10 @@ bool ElementSet::GenerateGroupResursive( const ElementSet& generatorSet, std::os
 
 bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/ )
 {
-	ElementSet* elementQueue = generatorSet.Clone();
+	ElementSet* elementQueue = New();
+
+	for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
+		elementQueue->elementList.push_back( ( *iter )->Clone() );
 	
 	Clear();
 	AddNewMember( Identity() );
