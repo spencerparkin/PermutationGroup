@@ -5,7 +5,7 @@
 #include "ElementSet.h"
 #include "StabilizerChain.h"
 
-int main( int argc, char** argv )
+void StabilizerChainTest( void )
 {
 	clock_t t = clock();
 
@@ -45,6 +45,71 @@ int main( int argc, char** argv )
 	chainGroup->Print( std::cout );
 
 	getchar();
+}
+
+void GroupGenerationTest( void )
+{
+	// TODO: Also test this with a factor group.
+
+	clock_t t = clock();
+
+	PermutationSet generatorSet;
+
+	PermutationElement* element = nullptr;
+
+	element = new PermutationElement();
+	element->word.SetName( "a" );
+	element->permutation.Define( 0, 4 );
+	element->permutation.Define( 4, 3 );
+	element->permutation.Define( 3, 0 );
+	generatorSet.AddNewMember( element );
+
+	element = new PermutationElement();
+	element->word.SetName( "b" );
+	element->permutation.Define( 4, 1 );
+	element->permutation.Define( 1, 5 );
+	element->permutation.Define( 5, 4 );
+	generatorSet.AddNewMember( element );
+
+	element = new PermutationElement();
+	element->word.SetName( "c" );
+	element->permutation.Define( 3, 5 );
+	element->permutation.Define( 5, 2 );
+	element->permutation.Define( 2, 3 );
+	generatorSet.AddNewMember( element );
+
+	ConfiguredWordCompressor wordCompressor;
+	wordCompressor.Configure( generatorSet );
+
+	PermutationSet group;
+
+	bool generated = false;
+	
+	if( false )
+		generated = group.GenerateGroupResursive( generatorSet, &std::cout );
+	else
+		generated = group.GenerateGroup( generatorSet, &std::cout );
+
+	if( !generated )
+		std::cout << "Fail!\n";
+	else
+	{
+		wordCompressor.Compress( group );
+		group.Print( std::cout );
+	}
+
+	t = clock() - t;
+	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
+	std::cout << "Time taken: " << elapsed_time << " sec\n";
+
+	getchar();
+}
+
+int main( int argc, char** argv )
+{
+	//GroupGenerationTest();
+
+	StabilizerChainTest();
 
 	return 0;
 }

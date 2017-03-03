@@ -24,32 +24,35 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, WordComp
 	factorGroup.unstableSet.RemoveMember( *iter );
 
 	if( ostream )
-		*ostream << "Compressing generator set...\n";
+		*ostream << "Compressing word in generator set...\n";
 
 	if( wordCompressor )
 		wordCompressor->Compress( generatorSet );
 
 	if( ostream )
+	{
 		*ostream << "Generators for subgroup in stabilizer chain...\n";
 
-	for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
-	{
-		const Element* generator = *iter;
-		if( ostream )
-			generator->Print( *ostream );
+		for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
+		{
+			const Element* generator = *iter;
+			if( ostream )
+				generator->Print( *ostream );
+		}
 
-		factorGroup.AddNewMember( generator->Clone() );
-	}
-
-	if( ostream )
-	{
 		*ostream << "Generating factor group for unstable set...\n";
 		factorGroup.unstableSet.Print( *ostream );
 		*ostream << "\n";
 	}
 
-	if( !factorGroup.GenerateGroup( ostream ) )
+#if 0
+	// TODO: There may be a bug here in this method such that it doesn't work for factor groups.  Why?  What have I missed?
+	if( !factorGroup.GenerateGroupResursive( generatorSet, ostream ) )
 		return false;
+#else
+	if( !factorGroup.GenerateGroup( generatorSet, ostream ) )
+		return false;
+#endif
 
 	if( !factorGroup.unstableSet.IsEmpty() )
 	{

@@ -58,7 +58,9 @@ public:
 	virtual bool AreEqual( const Element* elementA, const Element* elementB ) const;
 
 	uint Cardinality( void ) const;
-	bool GenerateGroup( std::ostream* ostream = nullptr );
+	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr );
+	bool GenerateGroupResursive( const ElementSet& generatorSet, std::ostream* ostream = nullptr );
+	bool ProcessElementQueue( ElementSet* elementQueue, std::ostream* ostream = nullptr );
 	void Clear( void );
 
 	static void DeleteList( ElementList& elementList );

@@ -55,14 +55,91 @@ ElementSet::ElementSet( void )
 	return set;
 }
 
-bool ElementSet::GenerateGroup( std::ostream* ostream /*= nullptr*/ )
+bool ElementSet::GenerateGroupResursive( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/ )
 {
-	ElementSet* elementQueue = Clone();
-	
+	if( generatorSet.Cardinality() == 0 )
+	{
+		Clear();
+		AddNewMember( Identity() );
+		return true;
+	}
+
+	std::auto_ptr< ElementSet > subGeneratorSet( generatorSet.Clone() );
+
+	ElementList::iterator iter = subGeneratorSet->elementList.begin();
+	Element* lastGenerator = *iter;
+	subGeneratorSet->elementList.erase( iter );
+
+	std::auto_ptr< ElementSet > subGroup( New() );
+	if( !subGroup->GenerateGroupResursive( *subGeneratorSet, ostream ) )
+		return false;
+
 	Clear();
 
+	uint order = lastGenerator->Order();
+
+	Element* multiplierElement = nullptr;
+
+	for( uint i = 0; i < order; i++ )
+	{
+		for( iter = subGroup->elementList.begin(); iter != subGroup->elementList.end(); iter++ )
+		{
+			Element* newElement = ( *iter )->Clone();
+
+			if( multiplierElement )
+			{
+				Element* deleteMe = newElement;
+				newElement = Multiply( multiplierElement, deleteMe );
+				delete deleteMe;
+			}
+
+			// This is what I'm hoping is a major optimization.
+			// I know that I can unconditionally add these elements to the set,
+			// because I know that they're all unique.
+			elementList.push_back( newElement );
+		}
+
+		if( !multiplierElement )
+			multiplierElement = lastGenerator->Clone();
+		else
+		{
+			Element* deleteMe = multiplierElement;
+			multiplierElement = Multiply( lastGenerator, deleteMe );
+			delete deleteMe;
+		}
+	}
+
+	delete multiplierElement;
+
+	// Interestingly, if we knew the subgroup was normal,
+	// then this last step would be unecessary.  This is where
+	// we're sure to be spending most of our time.  Fortunately,
+	// if the subgroup really is normal, this should be very fast.
+
+	ElementSet* elementQueue = New();
+	elementQueue->AddNewMember( lastGenerator );
+
+	ProcessElementQueue( elementQueue, ostream );
+	delete elementQueue;
+
+	return true;
+}
+
+bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/ )
+{
+	ElementSet* elementQueue = generatorSet.Clone();
+	
+	Clear();
 	AddNewMember( Identity() );
 
+	ProcessElementQueue( elementQueue, ostream );
+	delete elementQueue;
+
+	return true;
+}
+
+bool ElementSet::ProcessElementQueue( ElementSet* elementQueue, std::ostream* ostream /*= nullptr*/ )
+{
 	while( elementQueue->Cardinality() > 0 )
 	{
 		ElementList::iterator queueIter = elementQueue->elementList.begin();
