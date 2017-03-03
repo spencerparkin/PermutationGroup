@@ -153,6 +153,9 @@ having to do a linear search in the set to check membership and do insertion, bu
 with eliminating any unnecessary multiplications, we may also reduce the number of
 such searces.
 
+Actually, there is no advantage to this.  But it would lend itself well to being
+farmed out to multiple threads!
+
 */
 
 bool ElementSet::ProcessElementQueue( ElementSet* elementQueue, std::ostream* ostream /*= nullptr*/ )

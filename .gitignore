@@ -33,3 +33,9 @@
 *.VC.db
 *.VC.VC.opendb
 Debug/
+enc_temp_folder/
+
+# LaTeX crap...
+*.aux
+*.log
+*.synctex.gz
