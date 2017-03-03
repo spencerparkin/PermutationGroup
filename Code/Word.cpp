@@ -52,7 +52,7 @@ bool WordCompressor::Compress( Word& word )
 
 				Term newTerm;
 				newTerm.name = termA.name;
-				newTerm.exponent = termA.exponent = termB.exponent;
+				newTerm.exponent = termA.exponent + termB.exponent;
 				
 				if( newTerm.exponent != 0 )
 					word.termList.insert( iter, newTerm );
@@ -67,16 +67,40 @@ bool WordCompressor::Compress( Word& word )
 	}
 	while( combined );
 
-	for( TermList::iterator iter = word.termList.begin(); iter != word.termList.end(); iter++ )
+	TermList::iterator iter = word.termList.begin();
+	while( iter != word.termList.end() )
 	{
+		TermList::iterator nextIter = iter;
+		nextIter++;
+
 		Term& term = *iter;
 
-		uint order = TermOrder( term );
+		int order = TermOrder( term );
+
+		while( abs( term.exponent ) > order )
+		{
+			if( term.exponent > 0 )
+				term.exponent -= order;
+			else
+				term.exponent += order;
+		}
 
 		if( term.exponent > 0 )
-			term.exponent %= order;
+		{
+			if( -( term.exponent - order ) < term.exponent )
+				term.exponent -= order;
+		}
+		else if( term.exponent < 0 )
+		{
+			if( term.exponent + order < -term.exponent )
+				term.exponent += order;
+		}
 		else
-			term.exponent = -int( -term.exponent % order );
+		{
+			word.termList.erase( iter );
+		}
+
+		iter = nextIter;
 	}
 
 	return true;

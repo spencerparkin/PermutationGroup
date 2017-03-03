@@ -48,6 +48,8 @@ public:
 	ElementSet( void );
 	virtual ~ElementSet( void );
 	
+	void Print( std::ostream& ostream ) const;
+
 	virtual ElementSet* New( void ) const = 0;
 	virtual ElementSet* Clone( void ) const;
 	virtual Element* Identity( void ) const = 0;

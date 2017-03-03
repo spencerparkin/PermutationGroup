@@ -175,7 +175,7 @@ void NaturalNumberSet::Print( std::ostream& ostream ) const
 			ostream << ",";
 		iter = nextIter;
 	}
-	ostream << "}";
+	ostream << "}\n";
 }
 
 // NaturalNumberSet.cpp

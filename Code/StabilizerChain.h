@@ -17,6 +17,7 @@ public:
 	StabilizerChainGroup( void );
 	~StabilizerChainGroup( void );
 
+	void Print( std::ostream& ostream ) const;
 	bool Generate( const NaturalNumberSet& domainSet, WordCompressor* wordCompressor = nullptr, std::ostream* ostream = nullptr );
 	bool Factor( const PermutationElement& permElement, PermutationElement& invPermElement ) const;
 

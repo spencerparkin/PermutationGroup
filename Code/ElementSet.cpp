@@ -128,6 +128,15 @@ void ElementSet::Clear( void )
 	}
 }
 
+void ElementSet::Print( std::ostream& ostream ) const
+{
+	for( ElementList::const_iterator iter = elementList.cbegin(); iter != elementList.cend(); iter++ )
+	{
+		const Element* member = *iter;
+		member->Print( ostream );
+	}
+}
+
 bool ElementSet::IsMember( const Element* element, ElementList::iterator* foundIter /*= nullptr*/ )
 {
 	// This linear search is the main innefficiency in my design.

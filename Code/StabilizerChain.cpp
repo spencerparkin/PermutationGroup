@@ -111,4 +111,17 @@ bool StabilizerChainGroup::Factor( const PermutationElement& permElement, Permut
 	return subGroup->Factor( *dynamic_cast< PermutationElement* >( reducedElement.get() ), invPermElement );
 }
 
+void StabilizerChainGroup::Print( std::ostream& ostream ) const
+{
+	ostream << "===============================================================\n";
+	ostream << "Unstable set...\n";
+	factorGroup.unstableSet.Print( ostream );
+	ostream << "Generator set...\n";
+	generatorSet.Print( ostream );
+	ostream << "Factor group...\n";
+	factorGroup.Print( ostream );
+	if( subGroup )
+		subGroup->Print( ostream );
+}
+
 // StabilizerChain.cpp
