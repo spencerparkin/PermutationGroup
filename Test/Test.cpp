@@ -95,24 +95,33 @@ void GroupGenerationTest( void )
 	element->permutation.Define( 4, 3 );
 	generatorSet.AddNewMember( element );
 
-	element = new PermutationElement();
+	/*element = new PermutationElement();
 	element->word.SetName( "d" );
 	element->permutation.Define( 4, 5 );
 	element->permutation.Define( 5, 4 );
-	generatorSet.AddNewMember( element );
+	generatorSet.AddNewMember( element );*/
 
 	ConfiguredWordCompressor wordCompressor;
 	wordCompressor.Configure( generatorSet );
 
-	PermutationSet group;
+	PermutationSet* group = nullptr;
+	if( false )
+		group = new PermutationSet();
+	else
+	{
+		CosetRepresentativeSet* cosetRepSet = new CosetRepresentativeSet();
+		for( uint i = 1; i < 5; i++ )
+			cosetRepSet->unstableSet.AddMember(i);
+		group = cosetRepSet;
+	}
 
-	bool generated = group.GenerateGroup( generatorSet, &std::cout, true );
+	bool generated = group->GenerateGroup( generatorSet, &std::cout, true );
 	if( !generated )
 		std::cout << "Fail!\n";
 	else
 	{
-		wordCompressor.Compress( group );
-		group.Print( std::cout );
+		wordCompressor.Compress( *group );
+		group->Print( std::cout );
 	}
 
 	t = clock() - t;
