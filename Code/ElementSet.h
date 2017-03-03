@@ -115,7 +115,7 @@ public:
 	virtual bool AreEqual( const Element* elementA, const Element* elementB ) const;
 
 	uint Cardinality( void ) const;
-	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr );
+	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr, bool multiThreaded = true );
 	void Clear( void );
 
 	static void DeleteList( ElementList& elementList );

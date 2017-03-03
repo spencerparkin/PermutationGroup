@@ -55,7 +55,7 @@ ElementSet::ElementSet( void )
 	return set;
 }
 
-bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/ )
+bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/, bool multiThreaded /*= true*/ )
 {
 	std::auto_ptr< CaylayTableData > data( new CaylayTableData() );
 
@@ -89,10 +89,7 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 		uint oldGroupOrder = data->caylayTableHeaderArray.size();
 
 		if( *ostream )
-		{
 			*ostream << "Current group order: " << oldGroupOrder << "\n";
-			*ostream << "Kicking off " << blockList.size() << " thread(s)!\n";
-		}
 		
 		std::list< Thread* > threadList;
 
@@ -102,25 +99,43 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 			thread->set = this;
 			thread->data = data.get();
 			thread->block = *iter;
-			thread->thread = new std::thread( &ElementSet::Thread::Generate, thread );
+			thread->thread = nullptr;
 			threadList.push_back( thread );
+		}
+
+		if( multiThreaded )
+		{
+			if( ostream )
+				*ostream << "Kicking off " << threadList.size() << " thread(s)!\n";
+
+			for( std::list< Thread* >::iterator iter = threadList.begin(); iter != threadList.end(); iter++ )
+			{
+				Thread* thread = *iter;
+				thread->thread = new std::thread( &ElementSet::Thread::Generate, thread );
+			}
+		}
+		else
+		{
+			for( std::list< Thread* >::iterator iter = threadList.begin(); iter != threadList.end(); iter++ )
+			{
+				Thread* thread = *iter;
+				thread->Generate();
+			}
 		}
 
 		while( threadList.size() > 0 )
 		{
 			std::list< Thread* >::iterator iter = threadList.begin();
 			Thread* thread = *iter;
-			thread->thread->join();
+			if( multiThreaded )
+				thread->thread->join();
 			delete thread->thread;
 			delete thread;
 			threadList.erase( iter );
 
-			if( ostream )
+			if( ostream && multiThreaded )
 				*ostream << "Thread joined.  " << threadList.size() << " thread(s) remaining.\n";
 		}
-
-		if( ostream )
-			*ostream << "All threads joined!\n";
 
 		uint newGroupOrder = data->caylayTableHeaderArray.size();
 
@@ -148,11 +163,15 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 
 			for( uint i = 0; i < newGroupOrder; i++ )
 			{
+				uint k = oldGroupOrder;
 				if( i >= data->caylayColumnCheckArray.size() )
+				{
 					data->caylayColumnCheckArray.push_back( new ElementHashMap() );
+					k = 0;
+				}
 
 				ElementHashMap* elementHashMap = data->caylayColumnCheckArray[i];
-				for( uint j = oldGroupOrder; j < newGroupOrder; j++ )
+				for( uint j = k; j < newGroupOrder; j++ )
 					elementHashMap->insert( data->caylayTableHeaderArray[j] );
 			}
 		}
@@ -169,6 +188,7 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 	return true;
 }
 
+// TODO: We might get better net performance by allowing horizontal splits and then adding more locking?
 void ElementSet::ChopUpBlockList( CaylayBlockList& blockList, uint maxThreadCount, uint minBlockSize )
 {
 	// Notice that we do not let any block contain an element of the table

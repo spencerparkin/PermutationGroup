@@ -97,7 +97,7 @@ void GroupGenerationTest( void )
 
 	PermutationSet group;
 
-	bool generated = group.GenerateGroup( generatorSet, &std::cout );
+	bool generated = group.GenerateGroup( generatorSet, &std::cout, false );
 	if( !generated )
 		std::cout << "Fail!\n";
 	else
