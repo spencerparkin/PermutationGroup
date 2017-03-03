@@ -45,14 +45,8 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, WordComp
 		*ostream << "\n";
 	}
 
-#if 0
-	// TODO: There may be a bug here in this method such that it doesn't work for factor groups.  Why?  What have I missed?
-	if( !factorGroup.GenerateGroupResursive( generatorSet, ostream ) )
-		return false;
-#else
 	if( !factorGroup.GenerateGroup( generatorSet, ostream ) )
 		return false;
-#endif
 
 	if( !factorGroup.unstableSet.IsEmpty() )
 	{

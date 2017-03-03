@@ -7,6 +7,10 @@
 #include <list>
 #include <ostream>
 #include <map>
+#include <vector>
+#include <unordered_set>
+#include <thread>
+#include <mutex>
 
 typedef unsigned int uint;
 
@@ -32,9 +36,62 @@ public:
 	virtual uint Order( void ) const = 0;
 	virtual Word* GetWord( void ) { return nullptr; }
 	virtual void Print( std::ostream& ostream ) const = 0;
+	virtual std::size_t CalcHash( void ) const { return 0; }
 };
 
 typedef std::list< Element* > ElementList;
+typedef std::vector< Element* > ElementArray;
+
+class ElementKey
+{
+public:
+
+	ElementKey( void )
+	{
+		element = nullptr;
+	}
+
+	ElementKey( Element* element )
+	{
+		this->element = element;
+	}
+
+	ElementKey( const ElementKey& key )
+	{
+		element = key.element;
+	}
+
+	~ElementKey( void )
+	{
+	}
+
+	bool operator==( const ElementKey& key ) const
+	{
+		return ( element == key.element ) ? true : false;
+	}
+
+	void operator=( const ElementKey& key )
+	{
+		element = key.element;
+	}
+
+	Element* element;
+};
+
+typedef std::unordered_set< ElementKey > ElementHashMap;
+typedef std::vector< ElementHashMap* > ElementHashMapArray;
+
+namespace std
+{
+	template<>
+	struct hash< ElementKey >
+	{
+		std::size_t operator()( const ElementKey& key ) const
+		{
+			return key.element->CalcHash();
+		}
+	};
+}
 
 //------------------------------------------------------------------------------------------
 //									       ElementSet
@@ -59,8 +116,6 @@ public:
 
 	uint Cardinality( void ) const;
 	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr );
-	bool GenerateGroupResursive( const ElementSet& generatorSet, std::ostream* ostream = nullptr );
-	bool ProcessElementQueue( ElementSet* elementQueue, std::ostream* ostream = nullptr );
 	void Clear( void );
 
 	static void DeleteList( ElementList& elementList );
@@ -69,6 +124,37 @@ public:
 
 	bool IsMember( const Element* element, ElementList::iterator* foundIter = nullptr );
 	bool AddNewMember( Element* element );
+
+	struct CaylayBlock
+	{
+		uint minRow, maxRow;
+		uint minCol, maxCol;
+
+		uint Width( void ) const { return maxCol - minCol + 1; }
+		uint Height( void ) const { return maxRow - minRow + 1; }
+		uint Area( void ) const { return Width() * Height(); }
+	};
+
+	typedef std::list< CaylayBlock > CaylayBlockList;
+
+	struct CaylayTableData
+	{
+		std::mutex caylayTableHeaderArrayMutex;	// This is used to protect write access to the header array.
+		ElementArray caylayTableHeaderArray;	// This is a shared resource, but I don't think we need to lock for read access.
+		ElementHashMapArray caylayColumnCheckArray;	// No lock is needed for this shared resource, because no blocks overlap vertically.
+	};
+
+	void ChopUpBlockList( CaylayBlockList& blockList, uint maxThreadCount, uint minBlockSize );
+
+	struct Thread
+	{
+		void Generate( void );
+
+		CaylayBlock block;
+		CaylayTableData* data;
+		ElementSet* set;
+		std::thread* thread;
+	};
 };
 
 //------------------------------------------------------------------------------------------
@@ -87,6 +173,7 @@ public:
 	virtual uint Order( void ) const override;
 	virtual void Print( std::ostream& ostream ) const override;
 	virtual Word* GetWord( void ) override { return &word; }
+	virtual std::size_t CalcHash( void ) const override { return permutation.CalcHash(); }
 
 	Word word;
 	Permutation permutation;

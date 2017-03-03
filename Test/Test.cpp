@@ -97,13 +97,7 @@ void GroupGenerationTest( void )
 
 	PermutationSet group;
 
-	bool generated = false;
-	
-	if( false )
-		generated = group.GenerateGroupResursive( generatorSet, &std::cout );
-	else
-		generated = group.GenerateGroup( generatorSet, &std::cout );
-
+	bool generated = group.GenerateGroup( generatorSet, &std::cout );
 	if( !generated )
 		std::cout << "Fail!\n";
 	else
@@ -121,9 +115,9 @@ void GroupGenerationTest( void )
 
 int main( int argc, char** argv )
 {
-	//GroupGenerationTest();
+	GroupGenerationTest();
 
-	StabilizerChainTest();
+	//StabilizerChainTest();
 
 	return 0;
 }

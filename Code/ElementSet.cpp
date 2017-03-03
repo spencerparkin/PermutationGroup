@@ -55,158 +55,210 @@ ElementSet::ElementSet( void )
 	return set;
 }
 
-bool ElementSet::GenerateGroupResursive( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/ )
-{
-	if( generatorSet.Cardinality() == 0 )
-	{
-		Clear();
-		AddNewMember( Identity() );
-		return true;
-	}
-
-	std::auto_ptr< ElementSet > subGeneratorSet( generatorSet.Clone() );
-
-	ElementList::iterator iter = subGeneratorSet->elementList.begin();
-	Element* lastGenerator = *iter;
-	subGeneratorSet->elementList.erase( iter );
-
-	std::auto_ptr< ElementSet > subGroup( New() );
-	if( !subGroup->GenerateGroupResursive( *subGeneratorSet, ostream ) )
-		return false;
-
-	Clear();
-
-	uint order = lastGenerator->Order();
-
-	Element* multiplierElement = nullptr;
-
-	for( uint i = 0; i < order; i++ )
-	{
-		for( iter = subGroup->elementList.begin(); iter != subGroup->elementList.end(); iter++ )
-		{
-			Element* newElement = ( *iter )->Clone();
-
-			if( multiplierElement )
-			{
-				Element* deleteMe = newElement;
-				newElement = Multiply( multiplierElement, deleteMe );
-				delete deleteMe;
-			}
-
-			// This is what I'm hoping is a major optimization.
-			// I know that I can unconditionally add these elements to the set,
-			// because I know that they're all unique.
-			elementList.push_back( newElement );
-		}
-
-		if( !multiplierElement )
-			multiplierElement = lastGenerator->Clone();
-		else
-		{
-			Element* deleteMe = multiplierElement;
-			multiplierElement = Multiply( lastGenerator, deleteMe );
-			delete deleteMe;
-		}
-	}
-
-	delete multiplierElement;
-
-	// Interestingly, if we knew the subgroup was normal,
-	// then this last step would be unecessary.  This is where
-	// we're sure to be spending most of our time.  Fortunately,
-	// if the subgroup really is normal, this should be very fast.
-
-	ElementSet* elementQueue = New();
-	elementQueue->AddNewMember( lastGenerator );
-
-	ProcessElementQueue( elementQueue, ostream );
-	delete elementQueue;
-
-	return true;
-}
-
 bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/ )
 {
-	ElementSet* elementQueue = New();
+	std::auto_ptr< CaylayTableData > data( new CaylayTableData() );
 
 	for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
-		elementQueue->elementList.push_back( ( *iter )->Clone() );
-	
-	Clear();
-	AddNewMember( Identity() );
+		data->caylayTableHeaderArray.push_back( ( *iter )->Clone() );
 
-	ProcessElementQueue( elementQueue, ostream );
-	delete elementQueue;
+	for( uint i = 0; i < data->caylayTableHeaderArray.size(); i++ )
+	{
+		ElementHashMap* elementHashMap = new ElementHashMap();
+		data->caylayColumnCheckArray.push_back( elementHashMap );
+
+		for( uint j = 0; j < data->caylayTableHeaderArray.size(); j++ )
+			elementHashMap->insert( data->caylayTableHeaderArray[j] );
+	}
+
+	uint maxThreadCount = std::thread::hardware_concurrency();
+
+	CaylayBlock block;
+	block.minRow = 0;
+	block.maxRow = data->caylayTableHeaderArray.size();
+	block.minCol = 0;
+	block.maxCol = data->caylayTableHeaderArray.size();
+
+	CaylayBlockList blockList;
+	blockList.push_back( block );
+
+	while( true )
+	{
+		ChopUpBlockList( blockList, maxThreadCount, 25 );
+
+		uint oldGroupOrder = data->caylayTableHeaderArray.size();
+
+		if( *ostream )
+		{
+			*ostream << "Current group order: " << oldGroupOrder << "\n";
+			*ostream << "Kicking off " << blockList.size() << " thread(s)!\n";
+		}
+		
+		std::list< Thread* > threadList;
+
+		for( CaylayBlockList::iterator iter = blockList.begin(); iter != blockList.end(); iter++ )
+		{
+			Thread* thread = new Thread();
+			thread->set = this;
+			thread->data = data.get();
+			thread->block = *iter;
+			thread->thread = new std::thread( &ElementSet::Thread::Generate, thread );
+			threadList.push_back( thread );
+		}
+
+		while( threadList.size() > 0 )
+		{
+			std::list< Thread* >::iterator iter = threadList.begin();
+			Thread* thread = *iter;
+			thread->thread->join();
+			delete thread->thread;
+			delete thread;
+			threadList.erase( iter );
+
+			if( ostream )
+				*ostream << "Thread joined.  " << threadList.size() << " thread(s) remaining.\n";
+		}
+
+		if( ostream )
+			*ostream << "All threads joined!\n";
+
+		uint newGroupOrder = data->caylayTableHeaderArray.size();
+
+		if( newGroupOrder == oldGroupOrder )
+		{
+			if( ostream )
+				*ostream << "Group order: " << newGroupOrder << "\n";
+			break;
+		}
+		else
+		{
+			blockList.clear();
+
+			block.minRow = oldGroupOrder;
+			block.maxRow = newGroupOrder - 1;
+			block.minCol = 0;
+			block.maxCol = oldGroupOrder;
+			blockList.push_back( block );
+
+			block.minRow = 0;
+			block.maxRow = newGroupOrder - 1;
+			block.minCol = oldGroupOrder;
+			block.maxCol = newGroupOrder - 1;
+			blockList.push_back( block );
+
+			for( uint i = 0; i < newGroupOrder; i++ )
+			{
+				if( i >= data->caylayColumnCheckArray.size() )
+					data->caylayColumnCheckArray.push_back( new ElementHashMap() );
+
+				ElementHashMap* elementHashMap = data->caylayColumnCheckArray[i];
+				for( uint j = oldGroupOrder; j < newGroupOrder; j++ )
+					elementHashMap->insert( data->caylayTableHeaderArray[j] );
+			}
+		}
+	}
+
+	Clear();
+
+	for( uint i = 0; i < data->caylayTableHeaderArray.size(); i++ )
+		elementList.push_back( data->caylayTableHeaderArray[i] );
+
+	for( uint i = 0; i < data->caylayColumnCheckArray.size(); i++ )
+		delete data->caylayColumnCheckArray[i];
 
 	return true;
 }
 
-/*
-
-Here's what might be a better idea (and maybe faster?!) for generating a group.
-The idea is to grow a Caylay table.  The generators form the row and column headers
-initially.  We fill in the table, then discover new elements in the middle that
-aren't in any header.  So we put those in row and column headers, then go fill in
-the new blank spots in the larger Caylay table.  This might be faster, because we
-are avoiding doing any multiplications redundantly.  We still have the problem of
-having to do a linear search in the set to check membership and do insertion, but
-with eliminating any unnecessary multiplications, we may also reduce the number of
-such searces.
-
-Actually, there is no advantage to this.  But it would lend itself well to being
-farmed out to multiple threads!  Another optimization that can be made is that
-when we're checking that a newly calculated element in the Caylay table is not
-in a row (or column) header, we don't have to check against the header elements
-that match was is in the row or column of the new element.  So for each slot in
-the Caylay table, we could maintain the subset of header elements we need to check
-against.  Coming up with those initial subsets can be done using hash table lookups.
-
-*/
-
-bool ElementSet::ProcessElementQueue( ElementSet* elementQueue, std::ostream* ostream /*= nullptr*/ )
+void ElementSet::ChopUpBlockList( CaylayBlockList& blockList, uint maxThreadCount, uint minBlockSize )
 {
-	while( elementQueue->Cardinality() > 0 )
+	// Notice that we do not let any block contain an element of the table
+	// that sits above or below any element in any other block.  This is
+	// so that we don't have to share the column check array resource among threads.
+	while( blockList.size() < maxThreadCount )
 	{
-		ElementList::iterator queueIter = elementQueue->elementList.begin();
-		Element* newElement = *queueIter;
-		elementQueue->elementList.erase( queueIter );
-
-		if( ostream )
+		uint maxArea = 0;
+		CaylayBlockList::iterator foundIter = blockList.end();
+		for( CaylayBlockList::iterator iter = blockList.begin(); iter != blockList.end(); iter++ )
 		{
-			*ostream << "QueueSize: " << elementQueue->Cardinality() << "\n";
-			*ostream << "GroupSize: " << Cardinality() << "\n";
-		}
-
-		for( ElementList::const_iterator iter = elementList.cbegin(); iter != elementList.cend(); iter++ )
-		{
-			const Element* oldElement = *iter;
-
-			for( int i = 0; i < 2; i++ )
+			uint area = ( *iter ).Area();
+			if( area > maxArea )
 			{
-				Element* product = nullptr;
-
-				if( i == 0 )
-					product = Multiply( newElement, oldElement );
-				else
-					product = Multiply( oldElement, newElement );
-
-				bool foundInSet = IsMember( product );
-				bool foundInQueue = elementQueue->IsMember( product );
-
-				if( !( foundInSet || foundInQueue ) )
-					elementQueue->AddNewMember( product );
-				else
-					delete product;
+				maxArea = area;
+				foundIter = iter;
 			}
 		}
 
-		if( !AddNewMember( newElement ) )
-			delete newElement;
-		else if( ostream )
-			newElement->Print( *ostream );
-	}
+		if( maxArea <= minBlockSize )
+			break;
 
-	return true;
+		const CaylayBlock& block = *foundIter;
+		if( block.Width() < 4 )
+			break;
+	
+		CaylayBlock leftBlock, rightBlock;
+
+		uint halfWidth = block.Width() / 2;
+
+		leftBlock.minRow = block.minRow;
+		leftBlock.maxRow = block.maxRow;
+		leftBlock.minCol = block.minCol;
+		leftBlock.maxCol = block.minCol + halfWidth;
+
+		rightBlock.minRow = block.minRow;
+		rightBlock.maxRow = block.maxRow;
+		rightBlock.minCol = leftBlock.maxCol + 1;
+		rightBlock.minCol = block.maxCol;
+
+		blockList.erase( foundIter );
+		blockList.push_back( leftBlock );
+		blockList.push_back( rightBlock );
+	}
+}
+
+void ElementSet::Thread::Generate( void )
+{
+	for( uint i = block.minRow; i <= block.minRow; i++ )
+	{
+		const Element* elementA = data->caylayTableHeaderArray[i];
+
+		for( uint j = block.minCol; j <= block.minCol; j++ )
+		{
+			const Element* elementB = data->caylayTableHeaderArray[j];
+
+			Element* product = set->Multiply( elementA, elementB );
+
+			ElementHashMap* elementHashMap = data->caylayColumnCheckArray[j];
+
+			// This is the painful linear search we must do because elements of the group do not necessarily have unique representation.
+			Element* foundElement = nullptr;
+			for( ElementHashMap::iterator iter = elementHashMap->begin(); iter != elementHashMap->end(); iter++ )
+			{
+				Element* element = ( *iter ).element;
+				if( set->AreEqual( product, element ) )
+				{
+					foundElement = element;
+					break;
+				}
+			}
+
+			if( foundElement )
+			{
+				delete product;
+
+				// For the remainder of the algorithm, if any product is computed in this column,
+				// we don't have to do our linear search against this element!  This is exploiting
+				// the property of every Caylay table that no element will appear more than once
+				// in any row or column.  I don't think we're fully exploiting this property, but
+				// we're at least not ignoring it.
+				elementHashMap->erase( foundElement );
+			}
+			else
+			{
+				std::lock_guard< std::mutex > guard( data->caylayTableHeaderArrayMutex );
+				data->caylayTableHeaderArray.push_back( product );
+			}
+		}
+	}
 }
 
 uint ElementSet::Cardinality( void ) const
