@@ -141,6 +141,20 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 	return true;
 }
 
+/*
+
+Here's what might be a better idea (and maybe faster?!) for generating a group.
+The idea is to grow a Caylay table.  The generators form the row and column headers
+initially.  We fill in the table, then discover new elements in the middle that
+aren't in any header.  So we put those in row and column headers, then go fill in
+the new blank spots in the larger Caylay table.  This might be faster, because we
+are avoiding doing any multiplications redundantly.  We still have the problem of
+having to do a linear search in the set to check membership and do insertion, but
+with eliminating any unnecessary multiplications, we may also reduce the number of
+such searces.
+
+*/
+
 bool ElementSet::ProcessElementQueue( ElementSet* elementQueue, std::ostream* ostream /*= nullptr*/ )
 {
 	while( elementQueue->Cardinality() > 0 )
