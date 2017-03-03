@@ -152,9 +152,8 @@ public:
 		CaylayBlock block;
 		CaylayTableData* data;
 		ElementSet* set;
-		std::thread* thread;
-		std::ostream* ostream;
 		ElementSet* newElementSet;
+		std::thread* thread;
 	};
 
 	struct UnionThread

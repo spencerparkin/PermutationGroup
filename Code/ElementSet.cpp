@@ -61,7 +61,11 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 
 	Clear();
 	for( ElementList::const_iterator iter = generatorSet.elementList.cbegin(); iter != generatorSet.elementList.cend(); iter++ )
-		elementList.push_back( ( *iter )->Clone() );
+	{
+		Element* clone = ( *iter )->Clone();
+		if( !AddNewMember( clone ) )
+			delete clone;
+	}
 
 	for( ElementList::iterator iter = elementList.begin(); iter != elementList.end(); iter++ )
 		data->caylayTableHeaderArray.push_back( *iter );
@@ -95,7 +99,6 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 			thread->data = data.get();
 			thread->block = *iter;
 			thread->thread = nullptr;
-			thread->ostream = ostream;
 			thread->newElementSet = New();
 			tableThreadList.push_back( thread );
 		}
@@ -153,10 +156,11 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 			unionThreadList.push_back( thread );
 
 			setIter = nextIter;
-			setIter++;
+			if( setIter != elementSetList.end() )
+				setIter++;
 		}
 
-		while( unionThreadList.size() > 1 )
+		do
 		{
 			if( !multiThreaded )
 			{
@@ -223,13 +227,14 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 			}
 			while( combined );
 		}
+		while( unionThreadList.size() > 1 );
 
 		ElementSet* setUnion = nullptr;
 
-		if( unionThreadList.size() > 1 )
+		if( unionThreadList.size() == 1 )
 		{
 			UnionThread* thread = *unionThreadList.begin();
-			if( multiThreaded )
+			if( multiThreaded && thread->thread )
 			{
 				thread->thread->join();
 				delete thread->thread;
@@ -352,7 +357,7 @@ void ElementSet::CaylayTableThread::Generate( void )
 
 			Element* product = set->Multiply( elementA, elementB );
 
-			if( !set->IsMember( product ) || !newElementSet->AddNewMember( product ) )
+			if( set->IsMember( product ) || !newElementSet->AddNewMember( product ) )
 				delete product;
 		}
 	}

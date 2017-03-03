@@ -83,19 +83,30 @@ void GroupGenerationTest( void )
 	element->permutation.Define( 2, 1 );
 	generatorSet.AddNewMember( element );
 
-	/*element = new PermutationElement();
+	element = new PermutationElement();
 	element->word.SetName( "c" );
-	element->permutation.Define( 3, 5 );
-	element->permutation.Define( 5, 2 );
 	element->permutation.Define( 2, 3 );
-	generatorSet.AddNewMember( element );*/
+	element->permutation.Define( 3, 2 );
+	generatorSet.AddNewMember( element );
+
+	element = new PermutationElement();
+	element->word.SetName( "d" );
+	element->permutation.Define( 3, 4 );
+	element->permutation.Define( 4, 3 );
+	generatorSet.AddNewMember( element );
+
+	element = new PermutationElement();
+	element->word.SetName( "d" );
+	element->permutation.Define( 4, 5 );
+	element->permutation.Define( 5, 4 );
+	generatorSet.AddNewMember( element );
 
 	ConfiguredWordCompressor wordCompressor;
 	wordCompressor.Configure( generatorSet );
 
 	PermutationSet group;
 
-	bool generated = group.GenerateGroup( generatorSet, &std::cout, false );
+	bool generated = group.GenerateGroup( generatorSet, &std::cout, true );
 	if( !generated )
 		std::cout << "Fail!\n";
 	else
