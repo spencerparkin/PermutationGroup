@@ -127,11 +127,11 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 			while( iter != caylayColumnList.end() )
 			{
 				CaylayColumn* caylayColumn = *iter;
-				if( caylayColumn->permuterElement != elementArray[i] )
+				if( caylayColumn->permuterElement == elementArray[i] )
 					break;
 				iter++;
 			}
-			if( iter != caylayColumnList.end() )
+			if( iter == caylayColumnList.end() )
 			{
 				CaylayColumn* caylayColumn = new CaylayColumn();
 				caylayColumn->permuterElement = elementArray[i];
