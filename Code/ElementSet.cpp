@@ -196,8 +196,10 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 						if( multiThreaded )
 						{
 							// This should be near instantaneous, because the threads have no more work to do.
-							threadA->thread->join();
-							threadB->thread->join();
+							if( threadA->thread )
+								threadA->thread->join();
+							if( threadB->thread )
+								threadB->thread->join();
 							delete threadA->thread;
 							delete threadB->thread;
 						}
@@ -213,6 +215,9 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 
 						unionThreadList.erase( iterA );
 						unionThreadList.erase( iterB );
+
+						if( ostream )
+							*ostream << "Union list: " << unionThreadList.size() << "\n";
 
 						delete threadA;
 						delete threadB;

@@ -95,11 +95,11 @@ void GroupGenerationTest( void )
 	element->permutation.Define( 4, 3 );
 	generatorSet.AddNewMember( element );
 
-	/*element = new PermutationElement();
-	element->word.SetName( "d" );
+	element = new PermutationElement();
+	element->word.SetName( "e" );
 	element->permutation.Define( 4, 5 );
 	element->permutation.Define( 5, 4 );
-	generatorSet.AddNewMember( element );*/
+	generatorSet.AddNewMember( element );
 
 	ConfiguredWordCompressor wordCompressor;
 	wordCompressor.Configure( generatorSet );
@@ -110,7 +110,7 @@ void GroupGenerationTest( void )
 	else
 	{
 		CosetRepresentativeSet* cosetRepSet = new CosetRepresentativeSet();
-		for( uint i = 1; i < 5; i++ )
+		for( uint i = 2; i < 6; i++ )
 			cosetRepSet->unstableSet.AddMember(i);
 		group = cosetRepSet;
 	}
