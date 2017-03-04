@@ -91,14 +91,23 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 
 	while( true )
 	{
-		// Grow all caylay columns.		
-		uint maxGrowth = 0;
-		for( CaylayColumnList::iterator iter = caylayColumnList.begin(); iter != caylayColumnList.end(); iter++ )
-		{
-			CaylayColumn* caylayColumn = *iter;
-			uint growth = caylayColumn->Grow( this );
-			if( growth > maxGrowth )
-				maxGrowth = growth;
+		// Grow all caylay columns until no one column grows.
+		uint growCount = 0;
+		uint maxGrowth;
+		while( true )
+		{	
+			maxGrowth = 0;
+			for( CaylayColumnList::iterator iter = caylayColumnList.begin(); iter != caylayColumnList.end(); iter++ )
+			{
+				CaylayColumn* caylayColumn = *iter;
+				uint growth = caylayColumn->Grow( this );
+				if( growth > maxGrowth )
+					maxGrowth = growth;
+			}
+			if( maxGrowth > 0 )
+				growCount++;
+			else
+				break;
 		}
 
 		// After growing all columns, if we grew as many as there are known elements of the group,
@@ -106,8 +115,8 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 		if( caylayColumnList.size() == elementArray.size() )
 			break;
 
-		// Terminate now as an approximation of having generated the group if the maximum growth was small.
-		if( maxGrowth <= minGrowth )
+		// Terminate now as an approximation of having generated the group if none of our columns ever grew.
+		if( growCount == 0 )
 			break;
 
 		// Pick an element at random to start a new column.
@@ -118,11 +127,11 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 			while( iter != caylayColumnList.end() )
 			{
 				CaylayColumn* caylayColumn = *iter;
-				if( caylayColumn->permuterElement == elementArray[i] )
+				if( caylayColumn->permuterElement != elementArray[i] )
 					break;
 				iter++;
 			}
-			if( iter == caylayColumnList.end() )
+			if( iter != caylayColumnList.end() )
 			{
 				CaylayColumn* caylayColumn = new CaylayColumn();
 				caylayColumn->permuterElement = elementArray[i];
