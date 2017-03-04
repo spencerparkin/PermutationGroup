@@ -87,10 +87,12 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 	caylayColumn->permuterElement = elementArray[0];
 	caylayColumnList.push_back( caylayColumn );
 
-	uint minGrowth = 3;
+	uint stagnationCount = 0;
 
 	while( true )
 	{
+		uint oldOrder = elementArray.size();
+
 		// Grow all caylay columns until no one column grows.
 		uint growCount = 0;
 		uint maxGrowth;
@@ -110,13 +112,29 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 				break;
 		}
 
+		uint newOrder = elementArray.size();
+
+		if( newOrder == oldOrder )
+			stagnationCount++;
+		else
+			stagnationCount = 0;
+
+		if( ostream )
+		{
+			*ostream << "Size: " << elementArray.size() << "\n";
+			*ostream << "Columns: " << caylayColumnList.size() << "\n";
+		}
+
 		// After growing all columns, if we grew as many as there are known elements of the group,
-		// then we have generated the entire group.
+		// then we have generated the entire group.  This is unlikely for large groups, but may happen
+		// if we're trying to generate a very small group.
 		if( caylayColumnList.size() == elementArray.size() )
 			break;
 
-		// Terminate now as an approximation of having generated the group if none of our columns ever grew.
-		if( growCount == 0 )
+		// Terminate now as an approximation of having generated the group if we were stagnet long enough.
+		// In many cases, we have generated the entire group, and we can add more columns to our heart's
+		// content and it will never generate any new elements.
+		if( stagnationCount > 15 )		// I'm not sure what this should be.
 			break;
 
 		// Pick an element at random to start a new column.
