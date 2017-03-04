@@ -27,8 +27,8 @@ WordCompressor::WordCompressor( void )
 
 bool WordCompressor::Compress( ElementSet& elementSet )
 {
-	for( ElementList::iterator iter = elementSet.elementList.begin(); iter != elementSet.elementList.end(); iter++ )
-		if( !Compress( *( *iter )->GetWord() ) )
+	for( uint i = 0; i < elementSet.elementArray.size(); i++ )
+		if( !Compress( *elementSet.elementArray[i]->GetWord() ) )
 			return false;
 	return true;
 }
@@ -156,9 +156,9 @@ bool ConfiguredWordCompressor::Configure( const ElementSet& elementSet )
 {
 	orderMap.clear();
 
-	for( ElementList::const_iterator iter = elementSet.elementList.cbegin(); iter != elementSet.elementList.cend(); iter++ )
+	for( uint i = 0; i < elementSet.elementArray.size(); i++ )
 	{
-		const Element* element = *iter;
+		const Element* element = elementSet.elementArray[i];
 		std::string name = element->Name();
 		uint order = element->Order();
 		orderMap.insert( std::pair< std::string, uint >( name, order ) );
@@ -166,13 +166,13 @@ bool ConfiguredWordCompressor::Configure( const ElementSet& elementSet )
 
 	commuteMap.clear();
 
-	for( ElementList::const_iterator iterA = elementSet.elementList.cbegin(); iterA != elementSet.elementList.cend(); iterA++ )
+	for( uint i = 0; i < elementSet.elementArray.size(); i++ )
 	{
-		const Element* elementA = *iterA;
+		const Element* elementA = elementSet.elementArray[i];
 
-		for( ElementList::const_iterator iterB = iterA; iterB != elementSet.elementList.cend(); iterB++ )
+		for( uint j = i + 1; j < elementSet.elementArray.size(); j++ )
 		{
-			const Element* elementB = *iterB;
+			const Element* elementB = elementSet.elementArray[j];
 
 			Element* productAB = elementSet.Multiply( elementA, elementB );
 			Element* productBA = elementSet.Multiply( elementB, elementA );

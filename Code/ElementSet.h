@@ -117,53 +117,13 @@ public:
 	uint Cardinality( void ) const;
 	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr, bool multiThreaded = true );
 	void Clear( void );
-	void AbsorbSet( ElementSet& set, ElementArray* elementArray = nullptr );
 
 	static void DeleteList( ElementList& elementList );
 
-	ElementList elementList;
+	ElementArray elementArray;
 
-	bool IsMember( const Element* element, ElementList::iterator* foundIter = nullptr );
+	bool IsMember( const Element* element, uint* offset = nullptr );
 	bool AddNewMember( Element* element );
-
-	struct CaylayBlock
-	{
-		uint minRow, maxRow;
-		uint minCol, maxCol;
-
-		uint Width( void ) const { return maxCol - minCol + 1; }
-		uint Height( void ) const { return maxRow - minRow + 1; }
-		uint Area( void ) const { return Width() * Height(); }
-	};
-
-	typedef std::list< CaylayBlock > CaylayBlockList;
-
-	struct CaylayTableData
-	{
-		ElementArray caylayTableHeaderArray;
-	};
-
-	void ChopUpBlockList( CaylayBlockList& blockList, uint maxThreadCount, uint minBlockSize );
-
-	struct CaylayTableThread
-	{
-		void Generate( void );
-
-		CaylayBlock block;
-		CaylayTableData* data;
-		ElementSet* set;
-		ElementSet* newElementSet;
-		std::thread* thread;
-	};
-
-	struct UnionThread
-	{
-		void Unionize( void );
-
-		ElementSet* setTarget;
-		ElementSet* setSource;
-		std::thread* thread;
-	};
 };
 
 typedef std::list< ElementSet* > ElementSetList;
