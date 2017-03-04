@@ -124,6 +124,16 @@ public:
 
 	bool IsMember( const Element* element, uint* offset = nullptr );
 	bool AddNewMember( Element* element );
+
+	struct CaylayColumn
+	{
+		Element* permuterElement;
+		ElementArray columnArray;
+
+		uint Grow( ElementSet* set );
+	};
+
+	uint RandomInteger( uint min, uint max );
 };
 
 typedef std::list< ElementSet* > ElementSetList;

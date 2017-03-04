@@ -1,6 +1,7 @@
 // ElementSet.cpp
 
 #include "ElementSet.h"
+#include <cstdlib>
 
 //------------------------------------------------------------------------------------------
 //                                         Element
@@ -55,50 +56,116 @@ ElementSet::ElementSet( void )
 	return set;
 }
 
+uint ElementSet::RandomInteger( uint min, uint max )
+{
+	float t = float( std::rand() ) / float( RAND_MAX );
+	float r = float( min ) + t * float( max - min );
+	uint i = uint(r);
+	if( i < min )
+		i = min;
+	if( i > max )
+		i = max;
+	return i;
+}
+
 bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/, bool multiThreaded /*= true*/ )
 {
 	Clear();
 	for( uint i = 0; i < generatorSet.elementArray.size(); i++ )
 		AddNewMember( generatorSet.elementArray[i]->Clone() );
 
-	Element* permutationElement = elementArray[0];
+	if( generatorSet.Cardinality() == 0 )
+		return true;
 
-	ElementArray columnArray;
+	std::srand(0);
 
-	uint setLocation = 0;
+	typedef std::list< CaylayColumn* > CaylayColumnList;
+	CaylayColumnList caylayColumnList;
+
+	// Arbitrarily pick an element to use as our first caylay column.
+	CaylayColumn* caylayColumn = new CaylayColumn();
+	caylayColumn->permuterElement = elementArray[0];
+	caylayColumnList.push_back( caylayColumn );
+
+	uint minGrowth = 3;
 
 	while( true )
 	{
-		// If we break this into two passes, one pass if fast, the other could be farmed out to threads.
-		while( setLocation < elementArray.size() )
+		// Grow all caylay columns.		
+		uint maxGrowth = 0;
+		for( CaylayColumnList::iterator iter = caylayColumnList.begin(); iter != caylayColumnList.end(); iter++ )
 		{
-			Element* element = elementArray[ setLocation ];
-			Element* product = Multiply( element, permutationElement );
-			
-			uint offset;
-			if( !IsMember( product, &offset ) )
-				elementArray.push_back( product );
-			else
-			{
-				delete product;
-				product = elementArray[ offset ];
-			}
-
-			columnArray.push_back( product );
-
-			setLocation++;
+			CaylayColumn* caylayColumn = *iter;
+			uint growth = caylayColumn->Grow( this );
+			if( growth > maxGrowth )
+				maxGrowth = growth;
 		}
 
-		// At this point, we either have the entire group,
-		// or we need to search for a new element...randomly?
+		// After growing all columns, if we grew as many as there are known elements of the group,
+		// then we have generated the entire group.
+		if( caylayColumnList.size() == elementArray.size() )
+			break;
 
-		// If we find a new element g, and S is our current column,
-		// then I believe we can unconditionally add gS, g^2S, ..., g^{|g|-1}S
-		// to our elementArray.  Now begin again at the top of this loop to build
-		// our column.
+		// Terminate now as an approximation of having generated the group if the maximum growth was small.
+		if( maxGrowth <= minGrowth )
+			break;
+
+		// Pick an element at random to start a new column.
+		while( true )
+		{
+			uint i = RandomInteger( 0, elementArray.size() - 1 );
+			CaylayColumnList::iterator iter = caylayColumnList.begin();
+			while( iter != caylayColumnList.end() )
+			{
+				CaylayColumn* caylayColumn = *iter;
+				if( caylayColumn->permuterElement == elementArray[i] )
+					break;
+				iter++;
+			}
+			if( iter == caylayColumnList.end() )
+			{
+				CaylayColumn* caylayColumn = new CaylayColumn();
+				caylayColumn->permuterElement = elementArray[i];
+				caylayColumnList.push_back( caylayColumn );
+				break;
+			}
+		}
+	}
+
+	while( caylayColumnList.size() > 0 )
+	{
+		CaylayColumnList::iterator iter = caylayColumnList.begin();
+		CaylayColumn* caylayColumn = *iter;
+		delete caylayColumn;
+		caylayColumnList.erase( iter );
 	}
 
 	return true;
+}
+
+uint ElementSet::CaylayColumn::Grow( ElementSet* set )
+{
+	uint growth = 0;
+
+	while( columnArray.size() < set->elementArray.size() )
+	{
+		Element* element = set->elementArray[ columnArray.size() ];
+		Element* product = set->Multiply( element, permuterElement );
+
+		uint offset;
+		if( !set->IsMember( product, &offset ) )
+			set->elementArray.push_back( product );
+		else
+		{
+			delete product;
+			product = set->elementArray[ offset ];
+		}
+
+		columnArray.push_back( product );
+		growth++;
+	}
+
+	return growth;
 }
 
 uint ElementSet::Cardinality( void ) const
@@ -124,6 +191,8 @@ void ElementSet::Print( std::ostream& ostream ) const
 	}
 }
 
+// TODO: Maybe farm this out to multiple threads if our set is big enough?
+//       A compute shader would be a shnazy way to handle this.
 bool ElementSet::IsMember( const Element* element, uint* offset /*= nullptr*/ )
 {
 	// This linear search is the main innefficiency in my design.

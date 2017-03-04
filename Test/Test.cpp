@@ -105,7 +105,7 @@ void GroupGenerationTest( void )
 	wordCompressor.Configure( generatorSet );
 
 	PermutationSet* group = nullptr;
-	if( false )
+	if( true )
 		group = new PermutationSet();
 	else
 	{
