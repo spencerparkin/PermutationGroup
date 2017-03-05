@@ -23,11 +23,13 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, WordComp
 	NaturalNumberSet::UintSet::iterator iter = factorGroup.unstableSet.set.begin();
 	factorGroup.unstableSet.RemoveMember( *iter );
 
-	if( ostream )
-		*ostream << "Compressing word in generator set...\n";
-
 	if( wordCompressor )
+	{
+		if( ostream )
+			*ostream << "Compressing words in generator set...\n";
+
 		wordCompressor->Compress( generatorSet );
+	}
 
 	if( ostream )
 	{
@@ -47,6 +49,14 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, WordComp
 
 	if( !factorGroup.GenerateGroup( generatorSet, ostream ) )
 		return false;
+
+	if( wordCompressor )
+	{
+		if( ostream )
+			*ostream << "Compressing words in factor group...\n";
+
+		wordCompressor->Compress( factorGroup );
+	}
 
 	if( !factorGroup.unstableSet.IsEmpty() )
 	{
