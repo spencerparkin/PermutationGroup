@@ -134,6 +134,9 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 		// Terminate now as an approximation of having generated the group if we were stagnet long enough.
 		// In many cases, we have generated the entire group, and we can add more columns to our heart's
 		// content and it will never generate any new elements.
+		// TODO: What we really need in place of this is a proven stopping condition.  Checking for closure
+		//       is as hard as generating the entire Cayley table, which we just don't have time to do.
+		//       More research is clearly indicated.
 		if( stagnationCount > 15 )		// I'm not sure what this should be.
 			break;
 
