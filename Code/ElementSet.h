@@ -118,8 +118,6 @@ public:
 	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr, bool multiThreaded = true );
 	void Clear( void );
 
-	static void DeleteList( ElementList& elementList );
-
 	ElementArray elementArray;
 
 	bool IsMember( const Element* element, uint* offset = nullptr );
@@ -134,6 +132,22 @@ public:
 	};
 
 	uint RandomInteger( uint min, uint max );
+
+	struct MembershipThread
+	{
+		void FindMember( void );
+
+		std::thread* thread;
+		const Element* element;
+		const ElementSet* set;
+		bool found;
+		bool done;
+		bool abort;
+		uint i;
+		uint min, max;
+	};
+
+	typedef std::list< MembershipThread* > MembershipThreadList;
 };
 
 typedef std::list< ElementSet* > ElementSetList;

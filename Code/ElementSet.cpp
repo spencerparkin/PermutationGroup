@@ -218,25 +218,133 @@ void ElementSet::Print( std::ostream& ostream ) const
 	}
 }
 
-// TODO: Maybe farm this out to multiple threads if our set is big enough?
-//       A compute shader would be a shnazy way to handle this.
+// This linear search is the main innefficiency in the program.
+// If elements have a unique representation, then we can use a hash table to get better performance.
+// In the case of factor groups, however, I do not know how to do better than a linear search.
 bool ElementSet::IsMember( const Element* element, uint* offset /*= nullptr*/ )
 {
-	// This linear search is the main innefficiency in my design.
-	// If elements have a unique representation, then we can use a hash table to get better performance.
-	// In the case of factor groups, however, I do not know how to do better than this linear search.
-	for( uint i = 0; i < elementArray.size(); i++ )
+	// Creating and destroy threads rappedly might be too costly.
+	// So we don't go multithreded unless we really need to.
+	uint maxElementsPerThread = 1000;
+
+	//if( elementArray.size() <= maxElementsPerThread )
+	if( true )
 	{
-		Element* member = elementArray[i];
-		if( AreEqual( member, element ) )
+		for( uint i = 0; i < elementArray.size(); i++ )
 		{
-			if( offset )
-				*offset = i;
-			return true;
+			Element* member = elementArray[i];
+			if( AreEqual( member, element ) )
+			{
+				if( offset )
+					*offset = i;
+				return true;
+			}
 		}
+	}
+	else
+	{
+		MembershipThreadList threadList;
+		uint i = 0;
+
+		uint threadCount = ( uint )ceil( float( elementArray.size() ) / float( maxElementsPerThread ) );
+		uint elementsPerThread = elementArray.size() / threadCount + 1;
+
+		do
+		{
+			MembershipThread* thread = new MembershipThread();
+			thread->thread = nullptr;
+			thread->found = false;
+			thread->done = false;
+			thread->abort = false;
+			thread->element = element;
+			thread->set = this;
+			thread->i = 0;
+			thread->min = i;
+			thread->max = ( ( i + elementsPerThread ) <= elementArray.size() ) ? ( i + elementsPerThread ) : elementArray.size();
+			i += elementsPerThread;
+			threadList.push_back( thread );
+		}
+		while( i < elementArray.size() );
+
+		uint concurrency = std::thread::hardware_concurrency();
+
+		MembershipThreadList activeThreadList;
+		bool found = false;
+
+		while( !found && ( threadList.size() > 0 || activeThreadList.size() > 0 ) )
+		{
+			while( activeThreadList.size() < concurrency && threadList.size() > 0 )
+			{
+				MembershipThreadList::iterator iter = threadList.begin();
+				MembershipThread* thread = *iter;
+				threadList.erase( iter );
+				thread->thread = new std::thread( &ElementSet::MembershipThread::FindMember, thread );
+				activeThreadList.push_back( thread );
+			}
+
+			for( MembershipThreadList::iterator iter = activeThreadList.begin(); iter != activeThreadList.end(); iter++ )
+			{
+				MembershipThread* thread = *iter;
+				if( thread->done )
+				{
+					if( thread->found )
+					{
+						found = true;
+						if( offset )
+							*offset = thread->i;
+					}
+
+					thread->thread->join();
+					delete thread->thread;
+					delete thread;
+					activeThreadList.erase( iter );
+					break;
+				}
+			}
+		}
+
+		for( MembershipThreadList::iterator iter = activeThreadList.begin(); iter != activeThreadList.end(); iter++ )
+			( *iter )->abort = true;
+		
+		while( threadList.size() > 0 )
+		{
+			MembershipThreadList::iterator iter = threadList.begin();
+			MembershipThread* thread = *iter;
+			threadList.erase( iter );
+			delete thread;
+		}
+
+		while( activeThreadList.size() > 0 )
+		{
+			MembershipThreadList::iterator iter = activeThreadList.begin();
+			MembershipThread* thread = *iter;
+			activeThreadList.erase( iter );
+			thread->thread->join();
+			delete thread->thread;
+			delete thread;
+		}
+
+		return found;
 	}
 
 	return false;
+}
+
+void ElementSet::MembershipThread::FindMember( void )
+{
+	i = min;
+	while( i < max && !abort )
+	{
+		Element* member = set->elementArray[i];
+		if( set->AreEqual( member, element ) )
+		{
+			found = true;
+			break;
+		}
+		i++;
+	}
+
+	done = true;
 }
 
 bool ElementSet::AddNewMember( Element* element )

@@ -101,6 +101,12 @@ void GroupGenerationTest( void )
 	element->permutation.Define( 5, 4 );
 	generatorSet.AddNewMember( element );
 
+	element = new PermutationElement();
+	element->word.SetName( "f" );
+	element->permutation.Define( 5, 6 );
+	element->permutation.Define( 6, 5 );
+	generatorSet.AddNewMember( element );
+
 	ConfiguredWordCompressor wordCompressor;
 	wordCompressor.Configure( generatorSet );
 
@@ -133,9 +139,9 @@ void GroupGenerationTest( void )
 
 int main( int argc, char** argv )
 {
-	GroupGenerationTest();
+	//GroupGenerationTest();
 
-	//StabilizerChainTest();
+	StabilizerChainTest();
 
 	return 0;
 }
