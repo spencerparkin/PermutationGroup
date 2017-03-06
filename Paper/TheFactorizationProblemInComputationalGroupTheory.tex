@@ -46,11 +46,14 @@ we define the stabilizer subgroup of $G$ with respect to $\omega$ as
 \stab_{\omega}(G) = \{g\in G|g(\omega)=\omega\}.
 \end{equation*}
 This is the set of all permutation of $g$ that stabilize $\omega$.  It is not hard to show
-that this is a subgroup of $G$.  Furthermore, it is a normal subgroup of $G$.  For any $h\in\stab_{\omega}(G)$,
+that this is a subgroup of $G$.  Furthermore, it is a normal subgroup of $G$.  
+For any $h\in\stab_{\omega}(G)$,
 and any $g\in G$, we have
 \begin{equation*}
 g(h(g^{-1}(\omega))) = g(g^{-1}(\omega)) = \omega.
 \end{equation*}
+EDIT: WRONG!!!!!!  You moron!!!
+
 Being normal, we can consider the factor group
 \begin{equation*}
 G/H = \{gH|g\in G\},
@@ -114,5 +117,9 @@ it must be a subgroup of that group.  Lastly, can we claim that $G$ is the small
 Well, since we never added any elements to $G$ unnecessarily, I would have to think so.
 
 This line of reasoning is not terribly rigorous, but it is the best I can come up with for now.
+
+% Maybe note a recursive algorithm for generating a group in the case that it is abelian.
+% In that case, all subgroups are normal.  If H is a subgroup of such a G, and g is in G-H,
+% Then <gH> is the smallest subgroup of G containing g and H.
 
 \end{document}

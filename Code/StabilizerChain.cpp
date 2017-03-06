@@ -47,6 +47,10 @@ bool StabilizerChainGroup::Generate( const NaturalNumberSet& domainSet, WordComp
 		*ostream << "\n";
 	}
 
+	// CRITICAL FAIL!!!!: We can't create a transversal like this, because the stabilizer is not necessarily a normal subgroup!
+	//                    If it was a normal subgroup, then we can compute the generators for the factor group using the generators for the group,
+	//                    but the stabilizer is not generally normal!  Trying to create a factor group out of a non-normal subgroup results is a set of
+	//                    elements that don't form a group!
 	if( !factorGroup.GenerateGroup( generatorSet, ostream ) )
 		return false;
 
