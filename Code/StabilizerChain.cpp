@@ -7,6 +7,11 @@
 //                                   StabilizerChainGroup
 //------------------------------------------------------------------------------------------
 
+// TODO: This code is fundamentally flawed and will have to be written only after I
+//       have learned more CGT; specifically, how to generate a transversal of a subgroup
+//       that is not necessarily normal.
+#if 0
+
 StabilizerChainGroup::StabilizerChainGroup( void )
 {
 	subGroup = nullptr;
@@ -134,5 +139,7 @@ void StabilizerChainGroup::Print( std::ostream& ostream ) const
 	if( subGroup )
 		subGroup->Print( ostream );
 }
+
+#endif
 
 // StabilizerChain.cpp

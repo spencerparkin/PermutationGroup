@@ -177,20 +177,25 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 			*ostream << "Elements w/out Inverses: " << elementsWithoutInversesList.size() << "\n";
 		}
 
-		// After growing all columns, if we grew as many as there are known elements of the group,
-		// then we have generated the entire group.  This is unlikely for large groups, but may happen
-		// if we're trying to generate a very small group.
-		if( caylayColumnList.size() == elementArray.size() )
-			break;
+		if( elementsWithoutInversesList.size() == 0 )
+		{
+			// After growing all columns, if we grew as many as there are known elements of the group,
+			// then we have generated the entire group.  This is unlikely for large groups, but may happen
+			// if we're trying to generate a small group.
+			if( caylayColumnList.size() == elementArray.size() )
+				break;
 
-		// Terminate now as an approximation of having generated the group if we were stagnet long enough.
-		// In many cases, we have generated the entire group, and we can add more columns to our heart's
-		// content and it will never generate any new elements.
-		// TODO: What we really need in place of this is a proven stopping condition.  Checking for closure
-		//       is as hard as generating the entire Cayley table, which we just don't have time to do.
-		//       More research is clearly indicated.
-		if( elementsWithoutInversesList.size() == 0 && stagnationCount > 15 )		// I'm not sure what this should be.
-			break;
+			// Terminate now as an approximation of having generated the group if we were stagnet long enough.
+			// In many cases, we have generated the entire group, and we can add more columns to our heart's
+			// content and it will never generate any new elements.
+			// TODO: What we really need in place of this is a proven stopping condition.  Checking for closure
+			//       is as hard as generating the entire Cayley table, which we just don't have time to do.
+			//       More research is clearly indicated.  I was able to conclude that if the column, as a permutation,
+			//       has the same order as the size of the column, then we have the group, but this does not happen
+			//       for most groups.
+			if( stagnationCount > 15 )		// This is a hacky guess.
+				break;
+		}
 
 		// Pick an element at random to start a new column.
 		while( true )
@@ -273,133 +278,23 @@ void ElementSet::Print( std::ostream& ostream ) const
 	}
 }
 
-// This linear search is the main innefficiency in the program.
-// If elements have a unique representation, then we can use a hash table to get better performance.
-// In the case of factor groups, however, I do not know how to do better than a linear search.
 bool ElementSet::IsMember( const Element* element, uint* offset /*= nullptr*/ )
 {
-	// Creating and destroy threads rappedly might be too costly.
-	// So we don't go multithreded unless we really need to.
-	uint maxElementsPerThread = 1000;
-
-	//if( elementArray.size() <= maxElementsPerThread )
-	if( true )
+	// This linear search is the main innefficiency in the program.
+	// If elements have a unique representation, then we can use a hash table to get better performance.
+	// In the case of factor groups, however, I do not know how to do better than a linear search.
+	for( uint i = 0; i < elementArray.size(); i++ )
 	{
-		for( uint i = 0; i < elementArray.size(); i++ )
+		Element* member = elementArray[i];
+		if( AreEqual( member, element ) )
 		{
-			Element* member = elementArray[i];
-			if( AreEqual( member, element ) )
-			{
-				if( offset )
-					*offset = i;
-				return true;
-			}
+			if( offset )
+				*offset = i;
+			return true;
 		}
-	}
-	else
-	{
-		MembershipThreadList threadList;
-		uint i = 0;
-
-		uint threadCount = ( uint )ceil( float( elementArray.size() ) / float( maxElementsPerThread ) );
-		uint elementsPerThread = elementArray.size() / threadCount + 1;
-
-		do
-		{
-			MembershipThread* thread = new MembershipThread();
-			thread->thread = nullptr;
-			thread->found = false;
-			thread->done = false;
-			thread->abort = false;
-			thread->element = element;
-			thread->set = this;
-			thread->i = 0;
-			thread->min = i;
-			thread->max = ( ( i + elementsPerThread ) <= elementArray.size() ) ? ( i + elementsPerThread ) : elementArray.size();
-			i += elementsPerThread;
-			threadList.push_back( thread );
-		}
-		while( i < elementArray.size() );
-
-		uint concurrency = std::thread::hardware_concurrency();
-
-		MembershipThreadList activeThreadList;
-		bool found = false;
-
-		while( !found && ( threadList.size() > 0 || activeThreadList.size() > 0 ) )
-		{
-			while( activeThreadList.size() < concurrency && threadList.size() > 0 )
-			{
-				MembershipThreadList::iterator iter = threadList.begin();
-				MembershipThread* thread = *iter;	// TODO: Why do we crash here sometimes?  I get 0xfdfdfdfd (no-man's land.)
-				threadList.erase( iter );
-				thread->thread = new std::thread( &ElementSet::MembershipThread::FindMember, thread );
-				activeThreadList.push_back( thread );
-			}
-
-			for( MembershipThreadList::iterator iter = activeThreadList.begin(); iter != activeThreadList.end(); iter++ )
-			{
-				MembershipThread* thread = *iter;
-				if( thread->done )
-				{
-					if( thread->found )
-					{
-						found = true;
-						if( offset )
-							*offset = thread->i;
-					}
-
-					thread->thread->join();
-					delete thread->thread;
-					delete thread;
-					activeThreadList.erase( iter );
-					break;
-				}
-			}
-		}
-
-		for( MembershipThreadList::iterator iter = activeThreadList.begin(); iter != activeThreadList.end(); iter++ )
-			( *iter )->abort = true;
-		
-		while( threadList.size() > 0 )
-		{
-			MembershipThreadList::iterator iter = threadList.begin();
-			MembershipThread* thread = *iter;
-			threadList.erase( iter );
-			delete thread;
-		}
-
-		while( activeThreadList.size() > 0 )
-		{
-			MembershipThreadList::iterator iter = activeThreadList.begin();
-			MembershipThread* thread = *iter;
-			activeThreadList.erase( iter );
-			thread->thread->join();
-			delete thread->thread;
-			delete thread;
-		}
-
-		return found;
 	}
 
 	return false;
-}
-
-void ElementSet::MembershipThread::FindMember( void )
-{
-	i = min;
-	while( i < max && !abort )
-	{
-		Element* member = set->elementArray[i];
-		if( set->AreEqual( member, element ) )
-		{
-			found = true;
-			break;
-		}
-		i++;
-	}
-
-	done = true;
 }
 
 bool ElementSet::AddNewMember( Element* element )
@@ -545,14 +440,6 @@ CosetRepresentativeSet::CosetRepresentativeSet( void )
 /*virtual*/ ElementSet* CosetRepresentativeSet::New( void ) const
 {
 	return new CosetRepresentativeSet();
-}
-
-bool CosetRepresentativeSet::IsInDivsorGroup( const Permutation& permutation ) const
-{
-	NaturalNumberSet permUnstableSet;
-	permutation.GetUnstableSet( permUnstableSet );
-
-	return permUnstableSet.IsSubsetOf( unstableSet );
 }
 
 /*virtual*/ bool CosetRepresentativeSet::AreEqual( const Element* elementA, const Element* elementB ) const

@@ -137,22 +137,6 @@ public:
 	};
 
 	uint RandomInteger( uint min, uint max );
-
-	struct MembershipThread
-	{
-		void FindMember( void );
-
-		std::thread* thread;
-		const Element* element;
-		const ElementSet* set;
-		bool found;
-		bool done;
-		bool abort;
-		uint i;
-		uint min, max;
-	};
-
-	typedef std::list< MembershipThread* > MembershipThreadList;
 };
 
 typedef std::list< ElementSet* > ElementSetList;
@@ -213,9 +197,7 @@ public:
 	virtual bool AreEqual( const Element* elementA, const Element* elementB ) const override;
 	virtual bool AreInverses( const Element* elementA, const Element* elementB ) const override;
 
-	bool IsInDivsorGroup( const Permutation& permutation ) const;
-
-	NaturalNumberSet unstableSet;
+	virtual bool IsInDivsorGroup( const Permutation& permutation ) const { return false; }
 };
 
 // ElementSet.h

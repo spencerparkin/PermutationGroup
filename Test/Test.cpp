@@ -5,6 +5,7 @@
 #include "ElementSet.h"
 #include "StabilizerChain.h"
 
+#if 0
 void StabilizerChainTest( void )
 {
 	clock_t t = clock();
@@ -76,6 +77,7 @@ void StabilizerChainTest( void )
 
 	// TODO: Actually use the stabilizer chain here to factor a permutation.
 }
+#endif
 
 void GroupGenerationTest( void )
 {
@@ -126,16 +128,7 @@ void GroupGenerationTest( void )
 	ConfiguredWordCompressor wordCompressor;
 	wordCompressor.Configure( generatorSet );
 
-	PermutationSet* group = nullptr;
-	if( true )
-		group = new PermutationSet();
-	else
-	{
-		CosetRepresentativeSet* cosetRepSet = new CosetRepresentativeSet();
-		for( uint i = 2; i < 6; i++ )
-			cosetRepSet->unstableSet.AddMember(i);
-		group = cosetRepSet;
-	}
+	PermutationSet* group = new PermutationSet();
 
 	bool generated = group->GenerateGroup( generatorSet, &std::cout, true );
 	if( !generated )
@@ -155,9 +148,9 @@ void GroupGenerationTest( void )
 
 int main( int argc, char** argv )
 {
-	//GroupGenerationTest();
+	GroupGenerationTest();
 
-	StabilizerChainTest();
+	//StabilizerChainTest();
 
 	return 0;
 }
