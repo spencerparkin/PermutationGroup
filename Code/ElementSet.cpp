@@ -43,6 +43,11 @@ ElementSet::ElementSet( void )
 	return elementA->IsEqualTo( elementB );
 }
 
+/*virtual*/ bool ElementSet::AreInverses( const Element* elementA, const Element* elementB ) const
+{
+	return elementA->IsInverseOf( elementB );
+}
+
 /*virtual*/ ElementSet* ElementSet::Clone( void ) const
 {
 	ElementSet* set = New();
@@ -68,6 +73,42 @@ uint ElementSet::RandomInteger( uint min, uint max )
 	return i;
 }
 
+void ElementSet::ReduceElementsWithoutInversesList( OffsetList& offsetList )
+{
+	bool reduced;
+
+	do
+	{
+		reduced = false;
+
+		for( OffsetList::iterator iterA = offsetList.begin(); iterA != offsetList.end(); iterA++ )
+		{
+			uint i = *iterA;
+			Element* elementA = elementArray[i];
+
+			for( OffsetList::iterator iterB = offsetList.begin(); iterB != offsetList.end(); iterB++ )
+			{
+				uint j = *iterB;
+				Element* elementB = elementArray[j];
+
+				if( AreInverses( elementA, elementB ) )
+				{
+					offsetList.erase( iterA );
+					if( elementA != elementB )
+						offsetList.erase( iterB );
+
+					reduced = true;
+					break;
+				}
+			}
+
+			if( reduced )
+				break;
+		}
+	}
+	while( reduced );
+}
+
 bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/, bool multiThreaded /*= true*/ )
 {
 	Clear();
@@ -78,6 +119,11 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 		return true;
 
 	std::srand(0);
+
+	OffsetList elementsWithoutInversesList;
+	uint inversesListOffset = 0;
+	while( inversesListOffset < elementArray.size() )
+		elementsWithoutInversesList.push_back( inversesListOffset++ );
 
 	typedef std::list< CaylayColumn* > CaylayColumnList;
 	CaylayColumnList caylayColumnList;
@@ -119,10 +165,16 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 		else
 			stagnationCount = 0;
 
+		while( inversesListOffset < elementArray.size() )
+			elementsWithoutInversesList.push_back( inversesListOffset++ );
+
+		ReduceElementsWithoutInversesList( elementsWithoutInversesList );
+
 		if( ostream )
 		{
 			*ostream << "Size: " << elementArray.size() << "\n";
 			*ostream << "Columns: " << caylayColumnList.size() << "\n";
+			*ostream << "Elements w/out Inverses: " << elementsWithoutInversesList.size() << "\n";
 		}
 
 		// After growing all columns, if we grew as many as there are known elements of the group,
@@ -137,7 +189,7 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 		// TODO: What we really need in place of this is a proven stopping condition.  Checking for closure
 		//       is as hard as generating the entire Cayley table, which we just don't have time to do.
 		//       More research is clearly indicated.
-		if( stagnationCount > 15 )		// I'm not sure what this should be.
+		if( elementsWithoutInversesList.size() == 0 && stagnationCount > 15 )		// I'm not sure what this should be.
 			break;
 
 		// Pick an element at random to start a new column.
@@ -279,7 +331,7 @@ bool ElementSet::IsMember( const Element* element, uint* offset /*= nullptr*/ )
 			while( activeThreadList.size() < concurrency && threadList.size() > 0 )
 			{
 				MembershipThreadList::iterator iter = threadList.begin();
-				MembershipThread* thread = *iter;
+				MembershipThread* thread = *iter;	// TODO: Why do we crash here sometimes?  I get 0xfdfdfdfd (no-man's land.)
 				threadList.erase( iter );
 				thread->thread = new std::thread( &ElementSet::MembershipThread::FindMember, thread );
 				activeThreadList.push_back( thread );
@@ -464,6 +516,20 @@ PermutationSet::PermutationSet( void )
 	return permElementA->permutation.IsEqualTo( permElementB->permutation );
 }
 
+/*virtual*/ bool PermutationSet::AreInverses( const Element* elementA, const Element* elementB ) const
+{
+	const PermutationElement* permElementA = dynamic_cast< const PermutationElement* >( elementA );
+	const PermutationElement* permElementB = dynamic_cast< const PermutationElement* >( elementB );
+
+	if( !( permElementA && permElementB ) )
+		return false;
+
+	Permutation invPermutationA;
+	permElementA->permutation.GetInverse( invPermutationA );
+
+	return invPermutationA.IsEqualTo( permElementB->permutation );
+}
+
 //------------------------------------------------------------------------------------------
 //                                 CosetRepresentativeSet
 //------------------------------------------------------------------------------------------
@@ -502,6 +568,20 @@ bool CosetRepresentativeSet::IsInDivsorGroup( const Permutation& permutation ) c
 
 	Permutation product;
 	product.Multiply( invPermA, permElementB->permutation );
+
+	return IsInDivsorGroup( product );
+}
+
+/*virtual*/ bool CosetRepresentativeSet::AreInverses( const Element* elementA, const Element* elementB ) const
+{
+	const PermutationElement* permElementA = dynamic_cast< const PermutationElement* >( elementA );
+	const PermutationElement* permElementB = dynamic_cast< const PermutationElement* >( elementB );
+
+	if( !( permElementA && permElementB ) )
+		return false;
+
+	Permutation product;
+	product.Multiply( permElementA->permutation, permElementB->permutation );
 
 	return IsInDivsorGroup( product );
 }

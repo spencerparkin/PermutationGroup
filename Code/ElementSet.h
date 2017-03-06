@@ -30,6 +30,7 @@ public:
 	virtual Element* MultiplyOnRight( const Element* element ) const { return nullptr; }
 	virtual Element* MultiplyOnLeft( const Element* element ) const { return nullptr; }
 	virtual bool IsEqualTo( const Element* element ) const { return false; }
+	virtual bool IsInverseOf( const Element* element ) const { return false; }
 	virtual Element* Invert( void ) const { return nullptr; }
 	virtual Element* Clone( void ) const = 0;
 	virtual std::string Name( void ) const = 0;
@@ -113,6 +114,7 @@ public:
 	virtual Element* Multiply( const Element* elementA, const Element* elementB ) const;
 	virtual Element* Invert( const Element* element ) const;
 	virtual bool AreEqual( const Element* elementA, const Element* elementB ) const;
+	virtual bool AreInverses( const Element* elementA, const Element* elementB ) const;
 
 	uint Cardinality( void ) const;
 	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr, bool multiThreaded = true );
@@ -122,6 +124,9 @@ public:
 
 	bool IsMember( const Element* element, uint* offset = nullptr );
 	bool AddNewMember( Element* element );
+
+	typedef std::list< uint > OffsetList;
+	void ReduceElementsWithoutInversesList( OffsetList& offsetList );
 
 	struct CaylayColumn
 	{
@@ -190,6 +195,7 @@ public:
 	virtual Element* Multiply( const Element* elementA, const Element* elementB ) const override;
 	virtual Element* Invert( const Element* element ) const override;
 	virtual bool AreEqual( const Element* elementA, const Element* elementB ) const override;
+	virtual bool AreInverses( const Element* elementA, const Element* elementB ) const override;
 };
 
 //------------------------------------------------------------------------------------------
@@ -205,6 +211,7 @@ public:
 
 	virtual ElementSet* New( void ) const override;
 	virtual bool AreEqual( const Element* elementA, const Element* elementB ) const override;
+	virtual bool AreInverses( const Element* elementA, const Element* elementB ) const override;
 
 	bool IsInDivsorGroup( const Permutation& permutation ) const;
 
