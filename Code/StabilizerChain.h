@@ -18,11 +18,11 @@ public:
 	~StabilizerChainGroup( void );
 
 	void Print( std::ostream& ostream ) const;
-	bool Generate( const NaturalNumberSet& domainSet, WordCompressor* wordCompressor = nullptr, std::ostream* ostream = nullptr );
+	bool Generate( uint newStabilizer, uint maxStabilizer, WordCompressor* wordCompressor = nullptr, std::ostream* ostream = nullptr );
 	bool Factor( const PermutationElement& permElement, PermutationElement& invPermElement ) const;
 
 	PermutationSet generatorSet;
-	CosetRepresentativeSet factorGroup;
+	StabilizerCosetRepresentativeSet transversalSet;
 
 	StabilizerChainGroup* subGroup;
 };

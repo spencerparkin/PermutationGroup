@@ -16,11 +16,57 @@ Element::Element( void )
 }
 
 //------------------------------------------------------------------------------------------
+//                                        ElementKey
+//------------------------------------------------------------------------------------------
+
+ElementKey::ElementKey( void )
+{
+	set = nullptr;
+	element = nullptr;
+}
+
+ElementKey::ElementKey( const ElementSet* set, const Element* element )
+{
+	this->set = set;
+	this->element = element;
+}
+
+ElementKey::ElementKey( const ElementKey& key )
+{
+	set = key.set;
+	element = key.element;
+}
+
+ElementKey::~ElementKey( void )
+{
+}
+
+bool ElementKey::operator==( const ElementKey& key ) const
+{
+	if( set != key.set )
+		return false;
+
+	return set->AreEqual( element, key.element );
+}
+
+void ElementKey::operator=( const ElementKey& key )
+{
+	set = key.set;
+	element = key.element;
+}
+
+std::size_t ElementKey::CalcHash( void ) const
+{
+	return element->CalcHash();
+}
+
+//------------------------------------------------------------------------------------------
 //									       ElementSet
 //------------------------------------------------------------------------------------------
 
 ElementSet::ElementSet( void )
 {
+	elementsHaveUniqueRepresentation = false;
 }
 
 /*virtual*/ ElementSet::~ElementSet( void )
@@ -52,10 +98,16 @@ ElementSet::ElementSet( void )
 {
 	ElementSet* set = New();
 
+	set->elementsHaveUniqueRepresentation = elementsHaveUniqueRepresentation;
+
 	for( uint i = 0; i < elementArray.size(); i++ )
 	{
 		const Element* member = elementArray[i];
-		set->elementArray.push_back( member->Clone() );
+		Element* memberClone = member->Clone();
+		set->elementArray.push_back( memberClone );
+
+		if( elementsHaveUniqueRepresentation )
+			set->elementOffsetMap.insert( std::pair< ElementKey, uint >( ElementKey( set, memberClone ), set->elementArray.size() ) );
 	}
 
 	return set;
@@ -73,43 +125,9 @@ uint ElementSet::RandomInteger( uint min, uint max )
 	return i;
 }
 
-void ElementSet::ReduceElementsWithoutInversesList( OffsetList& offsetList )
-{
-	bool reduced;
-
-	do
-	{
-		reduced = false;
-
-		for( OffsetList::iterator iterA = offsetList.begin(); iterA != offsetList.end(); iterA++ )
-		{
-			uint i = *iterA;
-			Element* elementA = elementArray[i];
-
-			for( OffsetList::iterator iterB = offsetList.begin(); iterB != offsetList.end(); iterB++ )
-			{
-				uint j = *iterB;
-				Element* elementB = elementArray[j];
-
-				if( AreInverses( elementA, elementB ) )
-				{
-					offsetList.erase( iterA );
-					if( elementA != elementB )
-						offsetList.erase( iterB );
-
-					reduced = true;
-					break;
-				}
-			}
-
-			if( reduced )
-				break;
-		}
-	}
-	while( reduced );
-}
-
-bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/, bool multiThreaded /*= true*/ )
+// The idea here is to generate any kind of group, but I believe we can also use this routine to generate transversals.
+// As of this writing, unfortunately, there is no clear stopping condition for the algorithm.
+bool ElementSet::Generate( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/, bool multiThreaded /*= true*/ )
 {
 	Clear();
 	for( uint i = 0; i < generatorSet.elementArray.size(); i++ )
@@ -120,18 +138,13 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 
 	std::srand(0);
 
-	OffsetList elementsWithoutInversesList;
-	uint inversesListOffset = 0;
-	while( inversesListOffset < elementArray.size() )
-		elementsWithoutInversesList.push_back( inversesListOffset++ );
+	typedef std::list< CayleyColumn* > CayleyColumnList;
+	CayleyColumnList cayleyColumnList;
 
-	typedef std::list< CaylayColumn* > CaylayColumnList;
-	CaylayColumnList caylayColumnList;
-
-	// Arbitrarily pick an element to use as our first caylay column.
-	CaylayColumn* caylayColumn = new CaylayColumn();
-	caylayColumn->permuterElement = elementArray[0];
-	caylayColumnList.push_back( caylayColumn );
+	// Arbitrarily pick an element to use as our first cayley column.
+	CayleyColumn* cayleyColumn = new CayleyColumn();
+	cayleyColumn->permuterElement = elementArray[0];
+	cayleyColumnList.push_back( cayleyColumn );
 
 	uint stagnationCount = 0;
 
@@ -139,16 +152,16 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 	{
 		uint oldOrder = elementArray.size();
 
-		// Grow all caylay columns until no one column grows.
+		// Grow all cayley columns until no one column grows.
 		uint growCount = 0;
 		uint maxGrowth;
 		while( true )
 		{	
 			maxGrowth = 0;
-			for( CaylayColumnList::iterator iter = caylayColumnList.begin(); iter != caylayColumnList.end(); iter++ )
+			for( CayleyColumnList::iterator iter = cayleyColumnList.begin(); iter != cayleyColumnList.end(); iter++ )
 			{
-				CaylayColumn* caylayColumn = *iter;
-				uint growth = caylayColumn->Grow( this );
+				CayleyColumn* cayleyColumn = *iter;
+				uint growth = cayleyColumn->Grow( this );
 				if( growth > maxGrowth )
 					maxGrowth = growth;
 			}
@@ -165,72 +178,63 @@ bool ElementSet::GenerateGroup( const ElementSet& generatorSet, std::ostream* os
 		else
 			stagnationCount = 0;
 
-		while( inversesListOffset < elementArray.size() )
-			elementsWithoutInversesList.push_back( inversesListOffset++ );
-
-		ReduceElementsWithoutInversesList( elementsWithoutInversesList );
-
 		if( ostream )
 		{
 			*ostream << "Size: " << elementArray.size() << "\n";
-			*ostream << "Columns: " << caylayColumnList.size() << "\n";
-			*ostream << "Elements w/out Inverses: " << elementsWithoutInversesList.size() << "\n";
+			*ostream << "Columns: " << cayleyColumnList.size() << "\n";
 		}
 
-		if( elementsWithoutInversesList.size() == 0 )
-		{
-			// After growing all columns, if we grew as many as there are known elements of the group,
-			// then we have generated the entire group.  This is unlikely for large groups, but may happen
-			// if we're trying to generate a small group.
-			if( caylayColumnList.size() == elementArray.size() )
-				break;
+		// After growing all columns, if we grew as many as there are known elements of the group,
+		// then we have generated the entire group.  This is unlikely for large groups, but may happen
+		// if we're trying to generate a small group.
+		if( cayleyColumnList.size() == elementArray.size() )
+			break;
 
-			// Terminate now as an approximation of having generated the group if we were stagnet long enough.
-			// In many cases, we have generated the entire group, and we can add more columns to our heart's
-			// content and it will never generate any new elements.
-			// TODO: What we really need in place of this is a proven stopping condition.  Checking for closure
-			//       is as hard as generating the entire Cayley table, which we just don't have time to do.
-			//       More research is clearly indicated.  I was able to conclude that if the column, as a permutation,
-			//       has the same order as the size of the column, then we have the group, but this does not happen
-			//       for most groups.
-			if( stagnationCount > 15 )		// This is a hacky guess.
-				break;
-		}
+		// Terminate now as an approximation of having generated the group if we were stagnet long enough.
+		// In many cases, we have generated the entire group, and we can add more columns to our heart's
+		// content and it will never generate any new elements.
+		// TODO: What we really need in place of this is a proven stopping condition.  Checking for closure
+		//       is as hard as generating the entire Cayley table, which we just don't have time to do.
+		//       More research is clearly indicated.  I was able to conclude that if the column, as a permutation,
+		//       has the same order as the size of the column, then we have the group, but this only happens
+		//       for cyclic groups according to Cayley's theorem.
+		if( stagnationCount > 15 )		// This is a hacky guess for now.
+			break;
 
 		// Pick an element at random to start a new column.
 		while( true )
 		{
 			uint i = RandomInteger( 0, elementArray.size() - 1 );
-			CaylayColumnList::iterator iter = caylayColumnList.begin();
-			while( iter != caylayColumnList.end() )
+			CayleyColumnList::iterator iter = cayleyColumnList.begin();
+			while( iter != cayleyColumnList.end() )
 			{
-				CaylayColumn* caylayColumn = *iter;
-				if( caylayColumn->permuterElement == elementArray[i] )
+				CayleyColumn* cayleyColumn = *iter;
+				if( cayleyColumn->permuterElement == elementArray[i] )
 					break;
 				iter++;
 			}
-			if( iter == caylayColumnList.end() )
+			if( iter == cayleyColumnList.end() )
 			{
-				CaylayColumn* caylayColumn = new CaylayColumn();
-				caylayColumn->permuterElement = elementArray[i];
-				caylayColumnList.push_back( caylayColumn );
+				CayleyColumn* cayleyColumn = new CayleyColumn();
+				cayleyColumn->permuterElement = elementArray[i];
+				cayleyColumnList.push_back( cayleyColumn );
 				break;
 			}
 		}
 	}
 
-	while( caylayColumnList.size() > 0 )
+	while( cayleyColumnList.size() > 0 )
 	{
-		CaylayColumnList::iterator iter = caylayColumnList.begin();
-		CaylayColumn* caylayColumn = *iter;
-		delete caylayColumn;
-		caylayColumnList.erase( iter );
+		CayleyColumnList::iterator iter = cayleyColumnList.begin();
+		CayleyColumn* cayleyColumn = *iter;
+		delete cayleyColumn;
+		cayleyColumnList.erase( iter );
 	}
 
 	return true;
 }
 
-uint ElementSet::CaylayColumn::Grow( ElementSet* set )
+uint ElementSet::CayleyColumn::Grow( ElementSet* set )
 {
 	uint growth = 0;
 
@@ -240,9 +244,7 @@ uint ElementSet::CaylayColumn::Grow( ElementSet* set )
 		Element* product = set->Multiply( element, permuterElement );
 
 		uint offset;
-		if( !set->IsMember( product, &offset ) )
-			set->elementArray.push_back( product );
-		else
+		if( !set->AddNewMember( product, &offset ) )
 		{
 			delete product;
 			product = set->elementArray[ offset ];
@@ -267,6 +269,9 @@ void ElementSet::Clear( void )
 		Element* member = elementArray[i];
 		delete member;
 	}
+
+	elementArray.clear();
+	elementOffsetMap.clear();
 }
 
 void ElementSet::Print( std::ostream& ostream ) const
@@ -280,26 +285,41 @@ void ElementSet::Print( std::ostream& ostream ) const
 
 bool ElementSet::IsMember( const Element* element, uint* offset /*= nullptr*/ )
 {
-	// This linear search is the main innefficiency in the program.
-	// If elements have a unique representation, then we can use a hash table to get better performance.
-	// In the case of factor groups, however, I do not know how to do better than a linear search.
-	for( uint i = 0; i < elementArray.size(); i++ )
+	if( elementsHaveUniqueRepresentation )
 	{
-		Element* member = elementArray[i];
-		if( AreEqual( member, element ) )
+		ElementKey key( this, element );
+		ElementOffsetMap::iterator iter = elementOffsetMap.find( key );
+		if( iter == elementOffsetMap.end() )
+			return false;
+		
+		if( offset )
+			*offset = iter->second;
+
+		return true;
+	}
+	else
+	{
+		// This linear search is the main innefficiency in the program.
+		// If elements have a unique representation, then we can use a hash table to get better performance.
+		// In the case of factor groups, however, I do not know how to do better than a linear search.
+		for( uint i = 0; i < elementArray.size(); i++ )
 		{
-			if( offset )
-				*offset = i;
-			return true;
+			Element* member = elementArray[i];
+			if( AreEqual( member, element ) )
+			{
+				if( offset )
+					*offset = i;
+				return true;
+			}
 		}
 	}
 
 	return false;
 }
 
-bool ElementSet::AddNewMember( Element* element )
+bool ElementSet::AddNewMember( Element* element, uint* offset /*= nullptr*/ )
 {
-	if( IsMember( element ) )
+	if( IsMember( element, offset ) )
 		return false;
 
 	elementArray.push_back( element );
@@ -431,6 +451,7 @@ PermutationSet::PermutationSet( void )
 
 CosetRepresentativeSet::CosetRepresentativeSet( void )
 {
+	cosetType = LEFT_COSET;
 }
 
 /*virtual*/ CosetRepresentativeSet::~CosetRepresentativeSet( void )
@@ -450,11 +471,29 @@ CosetRepresentativeSet::CosetRepresentativeSet( void )
 	if( !( permElementA && permElementB ) )
 		return false;
 
-	Permutation invPermA;
-	invPermA.SetInverse( permElementA->permutation );
-
 	Permutation product;
-	product.Multiply( invPermA, permElementB->permutation );
+
+	switch( cosetType )
+	{
+		case LEFT_COSET:
+		{
+			Permutation invPermA;
+			invPermA.SetInverse( permElementA->permutation );
+			product.Multiply( invPermA, permElementB->permutation );
+			break;
+		}
+		case RIGHT_COSET:
+		{
+			Permutation invPermB;
+			invPermB.SetInverse( permElementB->permutation );
+			product.Multiply( permElementA->permutation, invPermB );
+			break;
+		}
+		default:
+		{
+			return false;
+		}
+	}
 
 	return IsInDivsorGroup( product );
 }
@@ -471,6 +510,26 @@ CosetRepresentativeSet::CosetRepresentativeSet( void )
 	product.Multiply( permElementA->permutation, permElementB->permutation );
 
 	return IsInDivsorGroup( product );
+}
+
+//------------------------------------------------------------------------------------------
+//                           StabilizerCosetRepresentativeSet
+//------------------------------------------------------------------------------------------
+
+StabilizerCosetRepresentativeSet::StabilizerCosetRepresentativeSet( void )
+{
+}
+
+/*virtual*/ StabilizerCosetRepresentativeSet::~StabilizerCosetRepresentativeSet( void )
+{
+}
+
+/*virtual*/ bool StabilizerCosetRepresentativeSet::IsInDivsorGroup( const Permutation& permutation ) const
+{
+	NaturalNumberSet permStableSet;
+	permutation.GetStableSet( permStableSet );
+
+	return stableSet.IsSubsetOf( permStableSet );
 }
 
 // ElementSet.cpp

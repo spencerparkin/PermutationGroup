@@ -130,7 +130,7 @@ void GroupGenerationTest( void )
 
 	PermutationSet* group = new PermutationSet();
 
-	bool generated = group->GenerateGroup( generatorSet, &std::cout, true );
+	bool generated = group->Generate( generatorSet, &std::cout, true );
 	if( !generated )
 		std::cout << "Fail!\n";
 	else

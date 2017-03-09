@@ -54,6 +54,7 @@ public:
 	void MultiplyOnLeft( const Permutation& permutation );
 	bool Factor( PermutationList& permutationList ) const;
 	void GetUnstableSet( NaturalNumberSet& unstableSet ) const;
+	void GetStableSet( NaturalNumberSet& stableSet ) const;
 	std::size_t CalcHash( void ) const;
 	void Print( std::ostream& ostream, bool isCycle = false ) const;
 

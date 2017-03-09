@@ -8,7 +8,7 @@
 #include <ostream>
 #include <map>
 #include <vector>
-#include <unordered_set>
+#include <unordered_map>
 #include <thread>
 #include <mutex>
 
@@ -43,44 +43,29 @@ public:
 typedef std::list< Element* > ElementList;
 typedef std::vector< Element* > ElementArray;
 
+//------------------------------------------------------------------------------------------
+//                                        ElementKey
+//------------------------------------------------------------------------------------------
+
 class ElementKey
 {
 public:
 
-	ElementKey( void )
-	{
-		element = nullptr;
-	}
+	ElementKey( void );
+	ElementKey( const ElementSet* set, const Element* element );
+	ElementKey( const ElementKey& key );
+	~ElementKey( void );
 
-	ElementKey( Element* element )
-	{
-		this->element = element;
-	}
+	bool operator==( const ElementKey& key ) const;
+	void operator=( const ElementKey& key );
 
-	ElementKey( const ElementKey& key )
-	{
-		element = key.element;
-	}
+	std::size_t CalcHash( void ) const;
 
-	~ElementKey( void )
-	{
-	}
-
-	bool operator==( const ElementKey& key ) const
-	{
-		return ( element == key.element ) ? true : false;
-	}
-
-	void operator=( const ElementKey& key )
-	{
-		element = key.element;
-	}
-
-	Element* element;
+	const ElementSet* set;
+	const Element* element;
 };
 
-typedef std::unordered_set< ElementKey > ElementHashMap;
-typedef std::vector< ElementHashMap* > ElementHashMapArray;
+typedef std::unordered_map< ElementKey, uint > ElementOffsetMap;
 
 namespace std
 {
@@ -89,7 +74,7 @@ namespace std
 	{
 		std::size_t operator()( const ElementKey& key ) const
 		{
-			return key.element->CalcHash();
+			return key.CalcHash();
 		}
 	};
 }
@@ -117,18 +102,17 @@ public:
 	virtual bool AreInverses( const Element* elementA, const Element* elementB ) const;
 
 	uint Cardinality( void ) const;
-	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr, bool multiThreaded = true );
+	bool Generate( const ElementSet& generatorSet, std::ostream* ostream = nullptr, bool multiThreaded = true );
 	void Clear( void );
 
 	ElementArray elementArray;
+	ElementOffsetMap elementOffsetMap;
+	bool elementsHaveUniqueRepresentation;
 
 	bool IsMember( const Element* element, uint* offset = nullptr );
-	bool AddNewMember( Element* element );
+	bool AddNewMember( Element* element, uint* offset = nullptr );
 
-	typedef std::list< uint > OffsetList;
-	void ReduceElementsWithoutInversesList( OffsetList& offsetList );
-
-	struct CaylayColumn
+	struct CayleyColumn
 	{
 		Element* permuterElement;
 		ElementArray columnArray;
@@ -198,6 +182,32 @@ public:
 	virtual bool AreInverses( const Element* elementA, const Element* elementB ) const override;
 
 	virtual bool IsInDivsorGroup( const Permutation& permutation ) const { return false; }
+
+	enum CosetType
+	{
+		LEFT_COSET,
+		RIGHT_COSET,
+	};
+
+	CosetType cosetType;
+};
+
+//------------------------------------------------------------------------------------------
+//                           StabilizerCosetRepresentativeSet
+//------------------------------------------------------------------------------------------
+
+// Stabilizer subgroups are not generally normal subgroups, but we can still
+// generate transversals of the set of left or right cosets of such groups.
+class StabilizerCosetRepresentativeSet : public CosetRepresentativeSet
+{
+public:
+
+	StabilizerCosetRepresentativeSet( void );
+	virtual ~StabilizerCosetRepresentativeSet( void );
+
+	virtual bool IsInDivsorGroup( const Permutation& permutation ) const override;
+
+	NaturalNumberSet stableSet;
 };
 
 // ElementSet.h

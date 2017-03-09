@@ -282,4 +282,13 @@ void Permutation::GetUnstableSet( NaturalNumberSet& unstableSet ) const
 			unstableSet.AddMember(i);
 }
 
+void Permutation::GetStableSet( NaturalNumberSet& stableSet ) const
+{
+	stableSet.RemoveAllMembers();
+
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+		if( map[i] == i )
+			stableSet.AddMember(i);
+}
+
 // Permutation.cpp
