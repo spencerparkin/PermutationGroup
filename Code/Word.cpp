@@ -77,7 +77,7 @@ bool WordCompressor::Compress( Word& word )
 
 		int order = TermOrder( term );
 
-		while( abs( term.exponent ) > order )
+		while( abs( term.exponent ) >= order )
 		{
 			if( term.exponent > 0 )
 				term.exponent -= order;

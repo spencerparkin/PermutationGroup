@@ -107,7 +107,7 @@ ElementSet::ElementSet( void )
 		set->elementArray.push_back( memberClone );
 
 		if( elementsHaveUniqueRepresentation )
-			set->elementOffsetMap.insert( std::pair< ElementKey, uint >( ElementKey( set, memberClone ), set->elementArray.size() ) );
+			set->elementOffsetMap.insert( std::pair< ElementKey, uint >( ElementKey( set, memberClone ), uint( set->elementArray.size() ) ) );
 	}
 
 	return set;
@@ -150,7 +150,7 @@ bool ElementSet::Generate( const ElementSet& generatorSet, std::ostream* ostream
 
 	while( true )
 	{
-		uint oldOrder = elementArray.size();
+		uint oldOrder = ( uint )elementArray.size();
 
 		// Grow all cayley columns until no one column grows.
 		uint growCount = 0;
@@ -171,7 +171,7 @@ bool ElementSet::Generate( const ElementSet& generatorSet, std::ostream* ostream
 				break;
 		}
 
-		uint newOrder = elementArray.size();
+		uint newOrder = ( uint )elementArray.size();
 
 		if( newOrder == oldOrder )
 			stagnationCount++;
@@ -204,7 +204,7 @@ bool ElementSet::Generate( const ElementSet& generatorSet, std::ostream* ostream
 		// Pick an element at random to start a new column.
 		while( true )
 		{
-			uint i = RandomInteger( 0, elementArray.size() - 1 );
+			uint i = RandomInteger( 0, uint( elementArray.size() ) - 1 );
 			CayleyColumnList::iterator iter = cayleyColumnList.begin();
 			while( iter != cayleyColumnList.end() )
 			{
@@ -259,7 +259,7 @@ uint ElementSet::CayleyColumn::Grow( ElementSet* set )
 
 uint ElementSet::Cardinality( void ) const
 {
-	return elementArray.size();
+	return ( uint )elementArray.size();
 }
 
 void ElementSet::Clear( void )
@@ -321,6 +321,12 @@ bool ElementSet::AddNewMember( Element* element, uint* offset /*= nullptr*/ )
 {
 	if( IsMember( element, offset ) )
 		return false;
+
+	if( elementsHaveUniqueRepresentation )
+	{
+		ElementKey key( this, element );
+		elementOffsetMap.insert( std::pair< ElementKey, uint >( key, ( uint )elementArray.size() ) );
+	}
 
 	elementArray.push_back( element );
 	return true;

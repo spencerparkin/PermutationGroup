@@ -86,6 +86,7 @@ void GroupGenerationTest( void )
 	clock_t t = clock();
 
 	PermutationSet generatorSet;
+	generatorSet.elementsHaveUniqueRepresentation = true;
 
 	PermutationElement* element = nullptr;
 
@@ -119,16 +120,17 @@ void GroupGenerationTest( void )
 	element->permutation.Define( 5, 4 );
 	generatorSet.AddNewMember( element );
 
-	element = new PermutationElement();
+	/*element = new PermutationElement();
 	element->word.SetName( "f" );
 	element->permutation.Define( 5, 6 );
 	element->permutation.Define( 6, 5 );
-	generatorSet.AddNewMember( element );
+	generatorSet.AddNewMember( element );*/
 
 	ConfiguredWordCompressor wordCompressor;
 	wordCompressor.Configure( generatorSet );
 
 	PermutationSet* group = new PermutationSet();
+	group->elementsHaveUniqueRepresentation = true;
 
 	bool generated = group->Generate( generatorSet, &std::cout, true );
 	if( !generated )
