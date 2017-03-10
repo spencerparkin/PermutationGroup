@@ -9,6 +9,9 @@
 
 StabilizerChainGroup::StabilizerChainGroup( void )
 {
+	generatorSet.elementsHaveUniqueRepresentation = true;
+	transversalSet.elementsHaveUniqueRepresentation = false;
+
 	subGroup = nullptr;
 }
 
@@ -19,9 +22,6 @@ StabilizerChainGroup::~StabilizerChainGroup( void )
 
 bool StabilizerChainGroup::Generate( uint newStabilizer, uint maxStabilizer, WordCompressor* wordCompressor /*= nullptr*/, std::ostream* ostream /*= nullptr*/ )
 {
-	generatorSet.elementsHaveUniqueRepresentation = true;
-	transversalSet.elementsHaveUniqueRepresentation = false;
-
 	transversalSet.stableSet.RemoveAllMembers();
 	for( uint i = 0; i <= newStabilizer; i++ )
 		transversalSet.stableSet.AddMember(i);
@@ -37,14 +37,7 @@ bool StabilizerChainGroup::Generate( uint newStabilizer, uint maxStabilizer, Wor
 	if( ostream )
 	{
 		*ostream << "Generators for subgroup in stabilizer chain...\n";
-
-		for( uint i = 0; i < generatorSet.elementArray.size(); i++ )
-		{
-			const Element* generator = generatorSet.elementArray[i];
-			if( ostream )
-				generator->Print( *ostream );
-		}
-
+		generatorSet.Print( *ostream );
 		*ostream << "Generating factor group for stable set...\n";
 		transversalSet.stableSet.Print( *ostream );
 		*ostream << "\n";

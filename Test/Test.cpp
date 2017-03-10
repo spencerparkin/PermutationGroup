@@ -5,7 +5,6 @@
 #include "ElementSet.h"
 #include "StabilizerChain.h"
 
-#if 0
 void StabilizerChainTest( void )
 {
 	clock_t t = clock();
@@ -61,11 +60,7 @@ void StabilizerChainTest( void )
 	ConfiguredWordCompressor wordCompressor;
 	wordCompressor.Configure( chainGroup->generatorSet );
 
-	NaturalNumberSet domainSet;
-	for( uint i = 0; i < 5; i++ )
-		domainSet.AddMember(i);
-
-	chainGroup->Generate( domainSet, &wordCompressor, &std::cout );
+	chainGroup->Generate( 0, 4, &wordCompressor, &std::cout );
 
 	t = clock() - t;
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
@@ -77,7 +72,6 @@ void StabilizerChainTest( void )
 
 	// TODO: Actually use the stabilizer chain here to factor a permutation.
 }
-#endif
 
 void GroupGenerationTest( void )
 {
@@ -150,9 +144,9 @@ void GroupGenerationTest( void )
 
 int main( int argc, char** argv )
 {
-	GroupGenerationTest();
+	//GroupGenerationTest();
 
-	//StabilizerChainTest();
+	StabilizerChainTest();
 
 	return 0;
 }
