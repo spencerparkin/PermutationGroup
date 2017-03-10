@@ -7,6 +7,13 @@
 //                                   StabilizerChainGroup
 //------------------------------------------------------------------------------------------
 
+// TODO: What I'm finding is that the words of the elements are getting so horribly big that
+//       the program runs out of memory before it ever completes.  Would it at all be possible
+//       to understand and encorporate the ideas of Minkowitz?  Note that to save memory, instead
+//       of storing the full word with each element, we could just have an element store two
+//       pointers to the elements taken in the group product to form the element.  The root
+//       elements would be the original basis elements.
+
 StabilizerChainGroup::StabilizerChainGroup( void )
 {
 	generatorSet.elementsHaveUniqueRepresentation = true;
@@ -20,11 +27,13 @@ StabilizerChainGroup::~StabilizerChainGroup( void )
 	delete subGroup;
 }
 
+// TODO: I think I may tear this all apart and start over at some point.
 bool StabilizerChainGroup::Generate( uint newStabilizer, uint maxStabilizer, WordCompressor* wordCompressor /*= nullptr*/, std::ostream* ostream /*= nullptr*/ )
 {
+	// Note that we really only needed to make this a singleton set of the new stabilized point,
+	// because we're now working in the subgroup exclusively.
 	transversalSet.stableSet.RemoveAllMembers();
-	for( uint i = 0; i <= newStabilizer; i++ )
-		transversalSet.stableSet.AddMember(i);
+	transversalSet.stableSet.AddMember( newStabilizer );	// But I would need to also change my test for membership in a stabilizer subgroup.
 
 	if( wordCompressor )
 	{

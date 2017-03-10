@@ -102,7 +102,7 @@ public:
 	virtual bool AreInverses( const Element* elementA, const Element* elementB ) const;
 
 	uint Cardinality( void ) const;
-	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr, bool multiThreaded = true );
+	bool GenerateGroup( const ElementSet& generatorSet, std::ostream* ostream = nullptr );
 	void Clear( void );
 
 	ElementArray elementArray;

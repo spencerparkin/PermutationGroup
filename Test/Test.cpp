@@ -126,7 +126,7 @@ void GroupGenerationTest( void )
 	PermutationSet* group = new PermutationSet();
 	group->elementsHaveUniqueRepresentation = true;
 
-	bool generated = group->GenerateGroup( generatorSet, &std::cout, true );
+	bool generated = group->GenerateGroup( generatorSet, &std::cout );
 	if( !generated )
 		std::cout << "Fail!\n";
 	else
