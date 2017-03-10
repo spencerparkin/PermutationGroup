@@ -43,7 +43,7 @@ bool StabilizerChainGroup::Generate( uint newStabilizer, uint maxStabilizer, Wor
 		*ostream << "\n";
 	}
 
-	if( !transversalSet.Generate( generatorSet, ostream ) )
+	if( !transversalSet.GenerateGroup( generatorSet, ostream ) )
 		return false;
 
 	if( wordCompressor )
