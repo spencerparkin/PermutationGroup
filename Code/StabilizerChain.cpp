@@ -38,7 +38,7 @@ bool StabilizerChainGroup::Generate( uint newStabilizer, uint maxStabilizer, Wor
 	{
 		*ostream << "Generators for subgroup in stabilizer chain...\n";
 		generatorSet.Print( *ostream );
-		*ostream << "Generating factor group for stable set...\n";
+		*ostream << "Generating transversal for stable set...\n";
 		transversalSet.stableSet.Print( *ostream );
 		*ostream << "\n";
 	}

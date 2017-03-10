@@ -126,6 +126,8 @@ uint ElementSet::RandomInteger( uint min, uint max )
 }
 
 // The idea here is to generate any kind of group, but I believe we can also use this routine to generate transversals.
+// On second thought, I'm not sure this is guarenteed to get us every element we would need in any transversal.
+// Of course, if the subgroup is normal, then it should generate the factor group.
 // As of this writing, unfortunately, there is no clear stopping condition for the algorithm.
 bool ElementSet::Generate( const ElementSet& generatorSet, std::ostream* ostream /*= nullptr*/, bool multiThreaded /*= true*/ )
 {

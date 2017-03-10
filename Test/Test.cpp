@@ -15,7 +15,7 @@ void StabilizerChainTest( void )
 
 	PermutationElement* element = nullptr;
 
-	element = new PermutationElement();
+	/*element = new PermutationElement();
 	element->word.SetName( "a" );
 	element->permutation.Define( 0, 1 );
 	element->permutation.Define( 1, 2 );
@@ -27,9 +27,9 @@ void StabilizerChainTest( void )
 	element->permutation.Define( 1, 3 );
 	element->permutation.Define( 3, 4 );
 	element->permutation.Define( 4, 1 );
-	chainGroup->generatorSet.AddNewMember( element );
+	chainGroup->generatorSet.AddNewMember( element );*/
 
-	/*element = new PermutationElement();
+	element = new PermutationElement();
 	element->word.SetName( "a" );
 	element->permutation.Define( 0, 4 );
 	element->permutation.Define( 4, 7 );
@@ -55,12 +55,12 @@ void StabilizerChainTest( void )
 	element->permutation.Define( 3, 7 );
 	element->permutation.Define( 7, 6 );
 	element->permutation.Define( 6, 3 );
-	chainGroup->generatorSet.AddNewMember( element );*/
+	chainGroup->generatorSet.AddNewMember( element );
 
 	ConfiguredWordCompressor wordCompressor;
 	wordCompressor.Configure( chainGroup->generatorSet );
 
-	chainGroup->Generate( 0, 4, &wordCompressor, &std::cout );
+	chainGroup->Generate( 0, 7, &wordCompressor, &std::cout );
 
 	t = clock() - t;
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
