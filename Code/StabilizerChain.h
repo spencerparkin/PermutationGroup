@@ -21,8 +21,11 @@ public:
 	bool Generate( uint newStabilizer, uint maxStabilizer, WordCompressor* wordCompressor = nullptr, std::ostream* ostream = nullptr );
 	bool Factor( const PermutationElement& permElement, PermutationElement& invPermElement ) const;
 
+	//bool Load();
+	//bool Save();
+
 	PermutationSet generatorSet;
-	StabilizerCosetRepresentativeSet transversalSet;
+	PermutationSet transversalSet;
 
 	StabilizerChainGroup* subGroup;
 };

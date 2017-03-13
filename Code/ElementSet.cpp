@@ -66,7 +66,7 @@ std::size_t ElementKey::CalcHash( void ) const
 
 ElementSet::ElementSet( void )
 {
-	elementsHaveUniqueRepresentation = false;
+	elementsHaveUniqueRepresentation = true;
 }
 
 /*virtual*/ ElementSet::~ElementSet( void )
@@ -537,8 +537,9 @@ CosetRepresentativeSet::CosetRepresentativeSet( void )
 //                           StabilizerCosetRepresentativeSet
 //------------------------------------------------------------------------------------------
 
-StabilizerCosetRepresentativeSet::StabilizerCosetRepresentativeSet( void )
+StabilizerCosetRepresentativeSet::StabilizerCosetRepresentativeSet( uint stablePoint )
 {
+	this->stablePoint = stablePoint;
 }
 
 /*virtual*/ StabilizerCosetRepresentativeSet::~StabilizerCosetRepresentativeSet( void )
@@ -547,10 +548,7 @@ StabilizerCosetRepresentativeSet::StabilizerCosetRepresentativeSet( void )
 
 /*virtual*/ bool StabilizerCosetRepresentativeSet::IsInDivsorGroup( const Permutation& permutation ) const
 {
-	NaturalNumberSet permStableSet;
-	permutation.GetStableSet( permStableSet );
-
-	return stableSet.IsSubsetOf( permStableSet );
+	return( permutation.Evaluate( stablePoint ) == stablePoint ? true : false );
 }
 
 // ElementSet.cpp

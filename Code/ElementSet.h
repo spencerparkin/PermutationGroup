@@ -170,6 +170,7 @@ public:
 //                                 CosetRepresentativeSet
 //------------------------------------------------------------------------------------------
 
+// Some methods assume we're working with a normal subgroup.
 class CosetRepresentativeSet : public PermutationSet
 {
 public:
@@ -189,6 +190,7 @@ public:
 		RIGHT_COSET,
 	};
 
+	// Of course, this shouldn't matter if we're working with a normal subgroup.
 	CosetType cosetType;
 };
 
@@ -202,12 +204,12 @@ class StabilizerCosetRepresentativeSet : public CosetRepresentativeSet
 {
 public:
 
-	StabilizerCosetRepresentativeSet( void );
+	StabilizerCosetRepresentativeSet( uint stablePoint );
 	virtual ~StabilizerCosetRepresentativeSet( void );
 
 	virtual bool IsInDivsorGroup( const Permutation& permutation ) const override;
 
-	NaturalNumberSet stableSet;
+	uint stablePoint;
 };
 
 // ElementSet.h
