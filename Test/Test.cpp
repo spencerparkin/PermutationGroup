@@ -144,9 +144,9 @@ void GroupGenerationTest( void )
 
 int main( int argc, char** argv )
 {
-	//GroupGenerationTest();
+	GroupGenerationTest();
 
-	StabilizerChainTest();
+	//StabilizerChainTest();
 
 	return 0;
 }

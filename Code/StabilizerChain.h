@@ -18,7 +18,7 @@ public:
 	~StabilizerChainGroup( void );
 
 	void Print( std::ostream& ostream ) const;
-	bool Generate( uint newStabilizer, uint maxStabilizer, WordCompressor* wordCompressor = nullptr, std::ostream* ostream = nullptr );
+	bool Generate( uint stablePoint, uint maxStablePoint, WordCompressor* wordCompressor = nullptr, std::ostream* ostream = nullptr );
 	bool Factor( const PermutationElement& permElement, PermutationElement& invPermElement ) const;
 
 	//bool Load();
