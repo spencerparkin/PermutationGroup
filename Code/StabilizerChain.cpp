@@ -43,6 +43,7 @@ bool StabilizerChainGroup::Generate( std::ostream* ostream /*= nullptr*/ )
 
 	PermutationSet permutationQueue;
 	Permutation identity;
+	identity.word = new ElementList;
 	permutationQueue.insert( identity );
 
 	// Notice that the identity element will always land in the traversal.
