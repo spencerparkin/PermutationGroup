@@ -21,7 +21,7 @@ StabilizerChainGroup::~StabilizerChainGroup( void )
 
 bool StabilizerChainGroup::Generate( std::ostream* ostream /*= nullptr*/ )
 {
-	if( generatorSet.size() == 0 )
+	if( generatorSet.size() == 1 )
 	{
 		PermutationSet::iterator iter = generatorSet.begin();
 		const Permutation& permutation = *iter;
@@ -60,7 +60,11 @@ bool StabilizerChainGroup::Generate( std::ostream* ostream /*= nullptr*/ )
 		if( !orbitSet.IsMember( point ) )
 		{
 			if( ostream )
+			{
 				*ostream << "Found new orbit: " << point << "\n";
+				*ostream << "Coset representatives: ";
+				permutation.Print( *ostream );
+			}
 
 			orbitSet.AddMember( point );
 			
@@ -104,8 +108,11 @@ bool StabilizerChainGroup::Generate( std::ostream* ostream /*= nullptr*/ )
 			if( iter == transversalSet.end() )
 				return false;		// Something went wrong with our math!
 
+			Permutation invCosetRepresentative;
+			invCosetRepresentative.SetInverse( *iter );
+
 			Permutation newGenerator;
-			newGenerator.Multiply( product, *iter );
+			newGenerator.Multiply( product, invCosetRepresentative );
 
 			subGroup->generatorSet.insert( newGenerator );
 		}

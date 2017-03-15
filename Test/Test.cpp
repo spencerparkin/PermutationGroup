@@ -15,12 +15,14 @@ void StabilizerChainTest( void )
 	Permutation permutation;
 
 	permutation.DefineIdentity();
+	permutation.SetName( "a" );
 	permutation.Define( 0, 1 );
 	permutation.Define( 1, 2 );
 	permutation.Define( 2, 0 );
 	chainGroup->generatorSet.insert( permutation );
 
 	permutation.DefineIdentity();
+	permutation.SetName( "b" );
 	permutation.Define( 1, 3 );
 	permutation.Define( 3, 4 );
 	permutation.Define( 4, 1 );
