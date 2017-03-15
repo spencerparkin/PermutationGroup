@@ -2,13 +2,11 @@
 
 #pragma once
 
-#include "ElementSet.h"
+#include "Permutation.h"
 
 //------------------------------------------------------------------------------------------
 //                                   StabilizerChainGroup
 //------------------------------------------------------------------------------------------
-
-class WordCompressor;
 
 class StabilizerChainGroup
 {
@@ -17,9 +15,11 @@ public:
 	StabilizerChainGroup( void );
 	~StabilizerChainGroup( void );
 
-	void Print( std::ostream& ostream ) const;
-	bool Generate( uint stablePoint, uint maxStablePoint, WordCompressor* wordCompressor = nullptr, std::ostream* ostream = nullptr );
-	bool Factor( const PermutationElement& permElement, PermutationElement& invPermElement ) const;
+	//void Print( std::ostream& ostream ) const;
+
+	bool Generate( std::ostream* ostream = nullptr );
+
+	//bool Factor();
 
 	//bool Load();
 	//bool Save();
@@ -28,6 +28,10 @@ public:
 	PermutationSet transversalSet;
 
 	StabilizerChainGroup* subGroup;
+
+	uint stabilizerPoint;
+
+	PermutationSet::iterator FindCoset( const Permutation& permutation );
 };
 
 // StabilizerChain.h

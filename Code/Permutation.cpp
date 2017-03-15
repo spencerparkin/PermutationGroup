@@ -10,6 +10,8 @@
 
 Permutation::Permutation( void )
 {
+	word = nullptr;
+
 	DefineIdentity();
 }
 
@@ -20,6 +22,7 @@ Permutation::Permutation( const Permutation& permutation )
 
 /*virtual*/ Permutation::~Permutation( void )
 {
+	delete word;
 }
 
 uint Permutation::Evaluate( uint input ) const
@@ -153,6 +156,15 @@ uint Permutation::Order( void ) const
 void Permutation::SetCopy( const Permutation& permutation )
 {
 	permutation.GetCopy( *this );
+
+	if( permutation.word )
+	{
+		delete word;
+		word = new ElementList;
+
+		for( ElementList::const_iterator iter = permutation.word->cbegin(); iter != permutation.word->cend(); iter++ )
+			word->push_back( *iter );
+	}
 }
 
 void Permutation::GetCopy( Permutation& permutation ) const
@@ -177,6 +189,21 @@ bool Permutation::GetInverse( Permutation& permutation ) const
 		permutation.map[j] = i;
 	}
 
+	if( word )
+	{
+		delete permutation.word;
+		permutation.word = new ElementList;
+
+		for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
+		{
+			const Element& element = *iter;
+			Element invElement;
+			invElement.name = element.name;
+			invElement.exponent = -element.exponent;
+			permutation.word->push_front( invElement );
+		}
+	}
+
 	return true;
 }
 
@@ -184,6 +211,20 @@ void Permutation::Multiply( const Permutation& permutationA, const Permutation& 
 {
 	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
 		map[i] = permutationB.Evaluate( permutationA.Evaluate(i) );
+
+	if( permutationA.word && permutationB.word )
+	{
+		if( !word )
+			word = new ElementList;
+		else
+			word->clear();
+
+		for( ElementList::const_iterator iter = permutationA.word->cbegin(); iter != permutationA.word->cend(); iter++ )
+			word->push_back( *iter );
+
+		for( ElementList::const_iterator iter = permutationB.word->cbegin(); iter != permutationB.word->cend(); iter++ )
+			word->push_back( *iter );
+	}
 }
 
 void Permutation::MultiplyOnRight( const Permutation& permutation )
@@ -238,6 +279,9 @@ void Permutation::Print( std::ostream& ostream, bool isCycle /*= false*/ ) const
 {
 	if( !isCycle )
 	{
+		std::string name = GetName();
+		ostream << name << " = ";
+
 		PermutationList permutationList;
 		if( !Factor( permutationList ) )
 			ostream << "(invalid)";
@@ -246,6 +290,8 @@ void Permutation::Print( std::ostream& ostream, bool isCycle /*= false*/ ) const
 		else
 			for( PermutationList::iterator iter = permutationList.begin(); iter != permutationList.end(); iter++ )
 				( *iter ).Print( ostream, true );
+
+		ostream << "\n";
 	}
 	else
 	{
@@ -289,6 +335,50 @@ void Permutation::GetStableSet( NaturalNumberSet& stableSet ) const
 	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
 		if( map[i] == i )
 			stableSet.AddMember(i);
+}
+
+bool Permutation::operator==( const Permutation& permutation ) const
+{
+	return IsEqualTo( permutation );
+}
+
+void Permutation::operator=( const Permutation& permutation )
+{
+	permutation.GetCopy( *this );
+}
+
+void Permutation::SetName( const std::string& name )
+{
+	if( word )
+	{
+		delete word;
+		word = nullptr;
+	}
+
+	word = new ElementList;
+
+	Element element;
+	element.name = name;
+	element.exponent = 1;
+	word->push_back( element );
+}
+
+std::string Permutation::GetName( void ) const
+{
+	if( !word )
+		return "anonymous";
+
+	std::stringstream stream;
+
+	for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
+	{
+		const Element& element = *iter;
+		stream << element.name;
+		if( element.exponent != 1 )
+			stream << "^{" << element.exponent << "}";
+	}
+
+	return stream.str();
 }
 
 // Permutation.cpp

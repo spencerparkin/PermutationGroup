@@ -6,6 +6,7 @@
 #include <list>
 #include <map>
 #include <string>
+#include <unordered_set>
 #include "NaturalNumberSet.h"
 
 class Permutation;
@@ -14,6 +15,14 @@ typedef std::list< Permutation > PermutationList;
 typedef std::map< std::string, Permutation > PermutationMap;
 
 typedef unsigned int uint;
+
+struct Element
+{
+	std::string name;
+	int exponent;
+};
+
+typedef std::list< Element > ElementList;
 
 //------------------------------------------------------------------------------------------
 //                                        Permutation
@@ -57,8 +66,27 @@ public:
 	void GetStableSet( NaturalNumberSet& stableSet ) const;
 	std::size_t CalcHash( void ) const;
 	void Print( std::ostream& ostream, bool isCycle = false ) const;
+	bool operator==( const Permutation& permutation ) const;
+	void operator=( const Permutation& permutation );
+	void SetName( const std::string& name );
+	std::string GetName( void ) const;
 
+	ElementList* word;
 	uint map[ MAX_MAP_SIZE ];
 };
+
+namespace std
+{
+	template<>
+	struct hash< Permutation >
+	{
+		std::size_t operator()( const Permutation& permutation ) const
+		{
+			return permutation.CalcHash();
+		}
+	};
+}
+
+typedef std::unordered_set< Permutation > PermutationSet;
 
 // Permutation.h

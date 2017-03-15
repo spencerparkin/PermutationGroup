@@ -13,12 +13,6 @@
     <ClCompile Include="Code\Permutation.cpp">
       <Filter>Code</Filter>
     </ClCompile>
-    <ClCompile Include="Code\Word.cpp">
-      <Filter>Code</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\ElementSet.cpp">
-      <Filter>Code</Filter>
-    </ClCompile>
     <ClCompile Include="Code\StabilizerChain.cpp">
       <Filter>Code</Filter>
     </ClCompile>
@@ -28,12 +22,6 @@
       <Filter>Code</Filter>
     </ClInclude>
     <ClInclude Include="Code\Permutation.h">
-      <Filter>Code</Filter>
-    </ClInclude>
-    <ClInclude Include="Code\Word.h">
-      <Filter>Code</Filter>
-    </ClInclude>
-    <ClInclude Include="Code\ElementSet.h">
       <Filter>Code</Filter>
     </ClInclude>
     <ClInclude Include="Code\StabilizerChain.h">
