@@ -17,6 +17,8 @@ Permutation::Permutation( void )
 
 Permutation::Permutation( const Permutation& permutation )
 {
+	word = nullptr;
+
 	SetCopy( permutation );
 }
 
