@@ -19,15 +19,51 @@ StabilizerChainGroup::~StabilizerChainGroup( void )
 	delete subGroup;
 }
 
-bool StabilizerChainGroup::Generate( std::ostream* ostream /*= nullptr*/ )
+void StabilizerChainGroup::Print( std::ostream& ostream, uint flags /*= PRINT_FLAG_REPRESENTATIVES*/ ) const
+{
+	ostream << "==================================================================\n";
+	ostream << "Stabilizer point for subgroup is: " << stabilizerPoint << "\n";
+
+	if( flags & PRINT_FLAG_GENERATORS )
+	{
+		ostream << "--------------------------------------------\n";
+		ostream << "Generators...\n";
+		for( PermutationSet::const_iterator iter = generatorSet.cbegin(); iter != generatorSet.cend(); iter++ )
+			( *iter ).Print( ostream );
+	}
+
+	if( flags & PRINT_FLAG_REPRESENTATIVES )
+	{
+		ostream << "--------------------------------------------\n";
+		ostream << "Coset representatives...\n";
+		for( PermutationSet::const_iterator iter = transversalSet.cbegin(); iter != transversalSet.cend(); iter++ )
+			( *iter ).Print( ostream );
+	}
+
+	if( subGroup )
+		subGroup->Print( ostream, flags );
+}
+
+// The order in which we stabilize points may have an impact on the size of the factorizations in the chain.
+bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint pointArrayOffset, std::ostream* ostream /*= nullptr*/ )
 {
 	if( generatorSet.size() == 1 )
 	{
 		PermutationSet::iterator iter = generatorSet.begin();
 		const Permutation& permutation = *iter;
 		if( permutation.IsIdentity() )
+		{
+			if( ostream )
+				*ostream << "Process complete!\n";
+
 			return true;
+		}
 	}
+
+	if( pointArrayOffset >= pointArraySize )
+		return false;
+
+	stabilizerPoint = pointArray[ pointArrayOffset ];
 
 	if( ostream )
 	{
@@ -50,9 +86,6 @@ bool StabilizerChainGroup::Generate( std::ostream* ostream /*= nullptr*/ )
 	// This is a requirement of Schreier's lemma.
 	while( permutationQueue.size() > 0 )
 	{
-		if( ostream )
-			*ostream << "Queue size: " << permutationQueue.size() << "\n";
-
 		PermutationSet::iterator iter = permutationQueue.begin();
 		Permutation permutation = *iter;
 		permutationQueue.erase( iter );
@@ -63,7 +96,7 @@ bool StabilizerChainGroup::Generate( std::ostream* ostream /*= nullptr*/ )
 			if( ostream )
 			{
 				*ostream << "Found new orbit: " << point << "\n";
-				*ostream << "Coset representatives: ";
+				*ostream << "Coset representative: ";
 				permutation.Print( *ostream );
 			}
 
@@ -72,28 +105,26 @@ bool StabilizerChainGroup::Generate( std::ostream* ostream /*= nullptr*/ )
 			// This is the orbit-stabilizer theorem!
 			transversalSet.insert( permutation );
 
-			for( iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
-			{
-				const Permutation& generator = *iter;
-
-				Permutation newPermutation;
-				newPermutation.Multiply( permutation, generator );
-
-				if( permutationQueue.find( newPermutation ) == permutationQueue.end() )
-					permutationQueue.insert( newPermutation );
-			}
+			EnqueueNewPermutations( permutation, permutationQueue );
 		}
 	}
 
 	if( ostream )
-	{
-		*ostream << "Queue empty!\n";
 		*ostream << "Calculating Schreier generators...\n";
-	}
 
 	subGroup = new StabilizerChainGroup();
-	subGroup->stabilizerPoint = stabilizerPoint + 1;
 
+	if( !CalculateSchreierGenerators( subGroup->generatorSet ) )
+		return false;
+
+	if( !subGroup->Generate( pointArray, pointArraySize, pointArrayOffset + 1, ostream ) )
+		return false;
+	
+	return true;
+}
+
+bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreierGeneratorSet )
+{
 	for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
 	{
 		const Permutation& generator = *genIter;
@@ -115,13 +146,10 @@ bool StabilizerChainGroup::Generate( std::ostream* ostream /*= nullptr*/ )
 			Permutation newGenerator;
 			newGenerator.Multiply( product, invCosetRepresentative );
 
-			subGroup->generatorSet.insert( newGenerator );
+			schreierGeneratorSet.insert( newGenerator );
 		}
 	}
 
-	if( !subGroup->Generate( ostream ) )
-		return false;
-	
 	return true;
 }
 
@@ -146,6 +174,95 @@ PermutationSet::iterator StabilizerChainGroup::FindCoset( const Permutation& per
 	}
 
 	return iter;
+}
+
+// This may be the naive approach to what Minkwitz describes in his paper.
+bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
+{
+	// We might consider calling the OptimizeWithPermutation function with
+	// permutations we know are useful, such as a bunch of conjugates that
+	// setup to a certain depth, or conjugates of commutators, etc.
+
+	PermutationSet processedSet;
+	PermutationSet permutationQueue;
+	Permutation identity;
+	identity.word = new ElementList;
+	permutationQueue.insert( identity );
+
+	while( permutationQueue.size() > 0 )
+	{
+		PermutationSet::iterator iter = permutationQueue.begin();
+		Permutation permutation = *iter;
+		permutationQueue.erase( iter );
+
+		if( ostream )
+		{
+			*ostream << "Trying...\n";
+			permutation.Print( *ostream );
+		}
+
+		OptimizeWithPermutation( permutation, ostream );
+
+		processedSet.insert( permutation );
+		EnqueueNewPermutations( permutation, permutationQueue, &processedSet );
+	}
+
+	return true;
+}
+
+bool StabilizerChainGroup::OptimizeWithPermutation( const Permutation& permutation, std::ostream* ostream /*= nullptr*/ )
+{
+	if( !subGroup )
+		return false;
+
+	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
+		return subGroup->OptimizeWithPermutation( permutation, ostream );
+
+	PermutationSet::iterator iter = FindCoset( permutation );
+	if( iter == transversalSet.end() )
+		return false;
+
+	const Permutation& cosetRepresentative = *iter;
+
+	if( permutation.word->size() < cosetRepresentative.word->size() )
+	{
+		if( ostream )
+		{
+			*ostream << "Replacing...\n";
+			cosetRepresentative.Print( *ostream );
+			*ostream << "...with...\n";
+			permutation.Print( *ostream );
+		}
+
+		transversalSet.erase( iter );
+		transversalSet.insert( permutation );
+		return true;
+	}
+
+	Permutation invPermutation;
+	permutation.GetInverse( invPermutation );
+
+	Permutation product;
+	product.Multiply( cosetRepresentative, invPermutation );
+
+	return subGroup->OptimizeWithPermutation( product, ostream );
+}
+
+void StabilizerChainGroup::EnqueueNewPermutations( const Permutation& permutation, PermutationSet& permutationQueue, PermutationSet* processedSet /*= nullptr*/ )
+{
+	for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
+	{
+		const Permutation& generator = *iter;
+
+		Permutation newPermutation;
+		newPermutation.Multiply( permutation, generator );
+
+		if( !processedSet || processedSet->find( newPermutation ) == processedSet->end() )
+		{
+			if( permutationQueue.find( newPermutation ) == permutationQueue.end() )
+				permutationQueue.insert( newPermutation );
+		}
+	}
 }
 
 // StabilizerChain.cpp

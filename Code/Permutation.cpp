@@ -372,12 +372,17 @@ std::string Permutation::GetName( void ) const
 
 	std::stringstream stream;
 
-	for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
+	if( word->size() == 0 )
+		stream << "identity";
+	else
 	{
-		const Element& element = *iter;
-		stream << element.name;
-		if( element.exponent != 1 )
-			stream << "^{" << element.exponent << "}";
+		for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
+		{
+			const Element& element = *iter;
+			stream << element.name;
+			if( element.exponent != 1 )
+				stream << "^{" << element.exponent << "}";
+		}
 	}
 
 	return stream.str();

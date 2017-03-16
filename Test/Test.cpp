@@ -62,13 +62,20 @@ void StabilizerChainTest( void )
 	permutation.Define( 7, 6 );
 	chainGroup->generatorSet.insert( permutation );
 
-	chainGroup->Generate( &std::cout );
+	uint pointArray[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	uint pointArraySize = sizeof( pointArray ) / sizeof( uint );
+
+	chainGroup->Generate( pointArray, pointArraySize, 0, &std::cout );
+
+	std::cout << "Optimizing stabilizer chain...\n";
+
+	chainGroup->Optimize( &std::cout );
+
+	chainGroup->Print( std::cout );
 
 	t = clock() - t;
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
 	std::cout << "Time taken: " << elapsed_time << " sec\n";
-
-	//chainGroup->Print( std::cout );
 
 	getchar();
 
