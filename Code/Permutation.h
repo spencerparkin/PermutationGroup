@@ -5,6 +5,7 @@
 #include <set>
 #include <list>
 #include <map>
+#include <vector>
 #include <string>
 #include <unordered_set>
 #include <rapidjson/document.h>
@@ -14,6 +15,7 @@ class Permutation;
 
 typedef std::list< Permutation > PermutationList;
 typedef std::map< std::string, Permutation > PermutationMap;
+typedef std::vector< Permutation > PermutationArray;
 
 typedef unsigned int uint;
 
