@@ -2,6 +2,7 @@
 
 #include "StabilizerChain.h"
 #include <memory>
+#include <rapidjson/writer.h>
 
 //------------------------------------------------------------------------------------------
 //                                   StabilizerChainGroup
@@ -19,12 +20,154 @@ StabilizerChainGroup::~StabilizerChainGroup( void )
 	delete subGroup;
 }
 
-void StabilizerChainGroup::Print( std::ostream& ostream, uint flags /*= PRINT_FLAG_REPRESENTATIVES*/ ) const
+bool StabilizerChainGroup::LoadFromJsonString( const std::string& jsonString )
+{
+	generatorSet.clear();
+	transversalSet.clear();
+
+	delete subGroup;
+	subGroup = nullptr;
+
+	rapidjson::Document doc;
+	doc.Parse( jsonString.c_str() );
+	if( !doc.IsObject() )
+		return false;
+
+	if( !doc.HasMember( "group" ) )
+		return false;
+
+	rapidjson::Value chainGroupValue = doc[ "group" ].GetObject();
+	if( !LoadRecursive( chainGroupValue ) )
+		return false;
+
+	return true;
+}
+
+bool StabilizerChainGroup::SaveToJsonString( std::string& jsonString, uint flags /*= FLAG_REPRESENTATIVES*/ ) const
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	rapidjson::Value chainGroupValue( rapidjson::kObjectType );
+	if( !SaveRecursive( chainGroupValue, doc.GetAllocator(), flags ) )
+		return false;
+
+	doc.AddMember( "group", chainGroupValue, doc.GetAllocator() );
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer< rapidjson::StringBuffer > writer( buffer );
+	if( !doc.Accept( writer ) )
+		return false;
+
+	jsonString = buffer.GetString();
+	return true;
+}
+
+bool StabilizerChainGroup::LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue )
+{
+	if( !chainGroupValue.HasMember( "stabilizerPoint" ) )
+		return false;
+
+	stabilizerPoint = chainGroupValue[ "stabilizerPoint" ].GetInt();
+
+	if( chainGroupValue.HasMember( "generators" ) )
+	{
+		rapidjson::Value generatorsValue = chainGroupValue[ "generators" ].GetArray();
+		if( !LoadPermutationSet( generatorSet, generatorsValue ) )
+			return false;
+	}
+
+	if( chainGroupValue.HasMember( "transversals" ) )
+	{
+		rapidjson::Value transversalsValue = chainGroupValue[ "transversals" ].GetArray();
+		if( !LoadPermutationSet( transversalSet, transversalsValue ) )
+			return false;
+	}
+
+	if( chainGroupValue.HasMember( "subGroup" ) )
+	{
+		subGroup = new StabilizerChainGroup();
+
+		rapidjson::Value subGroupValue = chainGroupValue[ "subGroup" ].GetObject();
+		if( !subGroup->LoadRecursive( subGroupValue ) )
+			return false;
+	}
+
+	return true;
+}
+
+bool StabilizerChainGroup::SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator, uint flags ) const
+{
+	chainGroupValue.AddMember( "stabilizerPoint", stabilizerPoint, allocator );
+
+	if( flags & FLAG_GENERATORS )
+	{
+		rapidjson::Value generatorsValue( rapidjson::kArrayType );
+		if( !SavePermutationSet( generatorSet, generatorsValue, allocator ) )
+			return false;
+
+		chainGroupValue.AddMember( "generators", generatorsValue, allocator );
+	}
+
+	if( flags & FLAG_REPRESENTATIVES )
+	{
+		rapidjson::Value transversalsValue( rapidjson::kArrayType );
+		if( !SavePermutationSet( transversalSet, transversalsValue, allocator ) )
+			return false;
+
+		chainGroupValue.AddMember( "transversals", transversalsValue, allocator );
+	}
+
+	if( subGroup )
+	{
+		rapidjson::Value subGroupValue( rapidjson::kObjectType );
+		if( !subGroup->SaveRecursive( subGroupValue, allocator, flags ) )
+			return false;
+
+		chainGroupValue.AddMember( "subGroup", subGroupValue, allocator );
+	}
+
+	return true;
+}
+
+/*static*/ bool StabilizerChainGroup::LoadPermutationSet( PermutationSet& permutationSet, /*const*/ rapidjson::Value& arrayValue )
+{
+	permutationSet.clear();
+
+	for( uint i = 0; i < arrayValue.Size(); i++ )
+	{
+		rapidjson::Value permutationValue = arrayValue[i].GetObject();
+
+		Permutation permutation;
+		if( !permutation.SetFromJsonValue( permutationValue ) )
+			return false;
+
+		permutationSet.insert( permutation );
+	}
+
+	return true;
+}
+
+/*static*/ bool StabilizerChainGroup::SavePermutationSet( const PermutationSet& permutationSet, rapidjson::Value& arrayValue, rapidjson::Document::AllocatorType& allocator )
+{
+	for( PermutationSet::const_iterator iter = permutationSet.cbegin(); iter != permutationSet.cend(); iter++ )
+	{
+		rapidjson::Value permutationValue( rapidjson::kObjectType );
+		if( !( *iter ).GetToJsonValue( permutationValue, allocator ) )
+			return false;
+
+		arrayValue.PushBack( permutationValue, allocator );
+	}
+
+	return true;
+}
+
+void StabilizerChainGroup::Print( std::ostream& ostream, uint flags /*= FLAG_REPRESENTATIVES*/ ) const
 {
 	ostream << "==================================================================\n";
 	ostream << "Stabilizer point for subgroup is: " << stabilizerPoint << "\n";
 
-	if( flags & PRINT_FLAG_GENERATORS )
+	if( flags & FLAG_GENERATORS )
 	{
 		ostream << "--------------------------------------------\n";
 		ostream << "Generators...\n";
@@ -32,7 +175,7 @@ void StabilizerChainGroup::Print( std::ostream& ostream, uint flags /*= PRINT_FL
 			( *iter ).Print( ostream );
 	}
 
-	if( flags & PRINT_FLAG_REPRESENTATIVES )
+	if( flags & FLAG_REPRESENTATIVES )
 	{
 		ostream << "--------------------------------------------\n";
 		ostream << "Coset representatives...\n";
@@ -176,6 +319,31 @@ PermutationSet::iterator StabilizerChainGroup::FindCoset( const Permutation& per
 	return iter;
 }
 
+bool StabilizerChainGroup::FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const
+{
+	if( !subGroup )
+		return false;
+
+	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
+		return subGroup->FactorInverse( permutation, invPermutation );
+
+	PermutationSet::iterator iter = const_cast< StabilizerChainGroup* >( this )->FindCoset( permutation );
+	if( iter == transversalSet.end() )
+		return false;
+
+	const Permutation& cosetRepresentative = *iter;
+
+	Permutation invCosetRepresentative;
+	cosetRepresentative.GetInverse( invCosetRepresentative );
+
+	Permutation product;
+	product.Multiply( permutation, invCosetRepresentative );
+
+	invPermutation.MultiplyOnRight( invCosetRepresentative );
+
+	return FactorInverse( product, invPermutation );
+}
+
 // This may be the naive approach to what Minkwitz describes in his paper.
 bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 {
@@ -189,6 +357,11 @@ bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 	identity.word = new ElementList;
 	permutationQueue.insert( identity );
 
+	// TODO: This will iterate over all members of the group.  Now, if we actually had the
+	//       time and memory to do that, then we wouldn't need the stabilizer chain.  So
+	//       what we need here is an earily-out.  If the maximum word-size of any coset
+	//       representative goes below a given threshold, then this might be a good reason
+	//       to bail.
 	while( permutationQueue.size() > 0 )
 	{
 		PermutationSet::iterator iter = permutationQueue.begin();

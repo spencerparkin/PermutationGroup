@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Permutation.h"
+#include <rapidjson/document.h>
 
 //------------------------------------------------------------------------------------------
 //                                   StabilizerChainGroup
@@ -17,19 +18,23 @@ public:
 
 	enum
 	{
-		PRINT_FLAG_GENERATORS			= 0x00000001,
-		PRINT_FLAG_REPRESENTATIVES		= 0x00000002,
+		FLAG_GENERATORS				= 0x00000001,
+		FLAG_REPRESENTATIVES		= 0x00000002,
 	};
 
-	void Print( std::ostream& ostream, uint flags = PRINT_FLAG_REPRESENTATIVES ) const;
+	void Print( std::ostream& ostream, uint flags = FLAG_REPRESENTATIVES ) const;
 
 	bool Generate( uint* pointArray, uint pointArraySize, uint pointArrayOffset, std::ostream* ostream = nullptr );
 	bool Optimize( std::ostream* ostream = nullptr );
 
-	//bool Factor();
+	// The given inverse permutation should be initialized to the identity before this call is made.
+	bool FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const;
 
-	//bool Load();
-	//bool Save();
+	bool LoadFromJsonString( const std::string& jsonString );
+	bool SaveToJsonString( std::string& jsonString, uint flags = FLAG_REPRESENTATIVES ) const;
+
+	bool LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue );
+	bool SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator, uint flags ) const;
 
 	PermutationSet generatorSet;
 	PermutationSet transversalSet;
@@ -43,6 +48,9 @@ public:
 	void EnqueueNewPermutations( const Permutation& permutation, PermutationSet& permutationQueue, PermutationSet* processedSet = nullptr );
 	PermutationSet::iterator FindCoset( const Permutation& permutation );
 	bool OptimizeWithPermutation( const Permutation& permutation, std::ostream* ostream = nullptr );
+	
+	static bool LoadPermutationSet( PermutationSet& permutationSet, /*const*/ rapidjson::Value& arrayValue );
+	static bool SavePermutationSet( const PermutationSet& permutationSet, rapidjson::Value& arrayValue, rapidjson::Document::AllocatorType& allocator );
 };
 
 // StabilizerChain.h

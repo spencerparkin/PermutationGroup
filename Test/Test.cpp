@@ -73,6 +73,9 @@ void StabilizerChainTest( void )
 
 	chainGroup->Print( std::cout );
 
+	std::string jsonString;
+	chainGroup->SaveToJsonString( jsonString );
+
 	t = clock() - t;
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
 	std::cout << "Time taken: " << elapsed_time << " sec\n";

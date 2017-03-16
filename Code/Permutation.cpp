@@ -388,4 +388,71 @@ std::string Permutation::GetName( void ) const
 	return stream.str();
 }
 
+bool Permutation::GetToJsonValue( rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator ) const
+{
+	rapidjson::Value wordArray( rapidjson::kArrayType );
+
+	if( word )
+	{
+		for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
+		{
+			const Element& element = *iter;
+						
+			rapidjson::Value stringValue( rapidjson::kStringType );
+			stringValue.SetString( element.name.c_str(), allocator );
+
+			rapidjson::Value elementValue( rapidjson::kObjectType );
+			elementValue.AddMember( "name", stringValue, allocator );
+			elementValue.AddMember( "exponent", element.exponent, allocator );
+			wordArray.PushBack( elementValue, allocator );
+		}
+	}
+
+	value.AddMember( "word", wordArray, allocator );
+
+	// We could certainly store this more compactly.
+	rapidjson::Value mapArray( rapidjson::kArrayType );
+	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+		mapArray.PushBack( map[i], allocator );
+
+	value.AddMember( "map", mapArray, allocator );
+
+	return true;
+}
+
+bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
+{
+	delete word;
+	word = nullptr;
+
+	if( value.HasMember( "word" ) && value[ "word" ].IsArray() )
+	{
+		word = new ElementList;
+
+		rapidjson::Value wordArray = value[ "word" ].GetArray();
+
+		for( uint i = 0; i < wordArray.Size(); i++ )
+		{
+			rapidjson::Value elementValue = wordArray[i].GetObject();
+
+			Element element;
+			element.name = elementValue[ "name" ].GetString();
+			element.exponent = elementValue[ "exponent" ].GetInt();
+
+			word->push_back( element );
+		}
+	}
+
+	if( !value.HasMember( "map" ) )
+		return false;
+
+	DefineIdentity();
+
+	rapidjson::Value mapArray = value[ "map" ].GetArray();
+	for( uint i = 0; i < MAX_MAP_SIZE && i < mapArray.Size(); i++ )
+		map[i] = mapArray[i].GetInt();
+
+	return true;
+}
+
 // Permutation.cpp

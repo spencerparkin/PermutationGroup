@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <unordered_set>
+#include <rapidjson/document.h>
 #include "NaturalNumberSet.h"
 
 class Permutation;
@@ -70,6 +71,8 @@ public:
 	void operator=( const Permutation& permutation );
 	void SetName( const std::string& name );
 	std::string GetName( void ) const;
+	bool GetToJsonValue( rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator ) const;
+	bool SetFromJsonValue( /*const*/ rapidjson::Value& value );
 
 	ElementList* word;
 	uint map[ MAX_MAP_SIZE ];
