@@ -94,9 +94,9 @@ void Bubbloid3x3x3( void )
 
 	std::cout << "Optimizing stabilizer chain...\n";
 
-	PermutationMap permutationMap;
-	chainGroup->NameGenerators( permutationMap );
-	chainGroup->Optimize( permutationMap, &std::cout );
+	CompressInfo compressInfo;
+	chainGroup->NameGenerators( compressInfo );
+	chainGroup->Optimize( compressInfo, &std::cout );
 
 	chainGroup->Print( std::cout );
 

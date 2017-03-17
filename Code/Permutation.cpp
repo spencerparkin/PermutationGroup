@@ -457,44 +457,10 @@ bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 
 // This doesn't do everything that could possibly be done to compress a word.
 // It might be worth looking into what else can be done.
-bool Permutation::CompressWord( const PermutationMap& permutationMap )
+bool Permutation::CompressWord( const CompressInfo& compressInfo )
 {
 	if( !word )
 		return false;
-
-	typedef std::map< std::string, bool > CommuteMap;
-	CommuteMap commuteMap;
-
-	// Half of this is redundant, but that's fine.
-	for( PermutationMap::const_iterator iterA = permutationMap.cbegin(); iterA != permutationMap.cend(); iterA++ )
-	{
-		const Permutation& permA = iterA->second;
-
-		for( PermutationMap::const_iterator iterB = permutationMap.cbegin(); iterB != permutationMap.cend(); iterB++ )
-		{
-			const Permutation& permB = iterB->second;
-
-			Permutation productAB;
-			productAB.Multiply( permA, permB );
-
-			Permutation productBA;
-			productBA.Multiply( permB, permA );
-
-			bool commute = productAB.IsEqualTo( productBA );
-			std::string key = iterA->first + "*" + iterB->first;
-			commuteMap.insert( std::pair< std::string, bool >( key, commute ) );
-		}
-	}
-
-	typedef std::map< std::string, uint > OrderMap;
-	OrderMap orderMap;
-
-	for( PermutationMap::const_iterator iter = permutationMap.cbegin(); iter != permutationMap.cend(); iter++ )
-	{
-		const Permutation& perm = iter->second;
-		uint order = perm.Order();
-		orderMap.insert( std::pair< std::string, uint >( iter->first, order ) );
-	}
 
 	typedef std::vector< Element > ElementArray;
 	ElementArray elementArray;
@@ -532,11 +498,7 @@ bool Permutation::CompressWord( const PermutationMap& permutationMap )
 						break;
 					}
 
-					CommuteMap::iterator iter = commuteMap.find( element.name + "*" + otherElement.name );
-					if( iter == commuteMap.end() )
-						return false;
-
-					if( !iter->second )
+					if( !compressInfo.ElementsCommute( element, otherElement ) )
 						break;
 
 					k = ( j == 0 ) ? ( k - 1 ) : ( k + 1 );
@@ -552,11 +514,7 @@ bool Permutation::CompressWord( const PermutationMap& permutationMap )
 	{
 		Element& element = elementArray[i];
 
-		OrderMap::iterator iter = orderMap.find( element.name );
-		if( iter == orderMap.end() )
-			return false;
-
-		uint order = iter->second;
+		uint order = compressInfo.ElementOrder( element );
 
 		while( abs( element.exponent ) >= ( signed )order )
 		{
@@ -571,6 +529,58 @@ bool Permutation::CompressWord( const PermutationMap& permutationMap )
 	}
 
 	return true;
+}
+
+bool CompressInfo::ElementsCommute( const Element& elementA, const Element& elementB ) const
+{
+	if( commuteMap.size() == 0 )
+	{
+		// Half of this is redundant, but that's fine.
+		for( PermutationMap::const_iterator iterA = permutationMap.cbegin(); iterA != permutationMap.cend(); iterA++ )
+		{
+			const Permutation& permA = iterA->second;
+
+			for( PermutationMap::const_iterator iterB = permutationMap.cbegin(); iterB != permutationMap.cend(); iterB++ )
+			{
+				const Permutation& permB = iterB->second;
+
+				Permutation productAB;
+				productAB.Multiply( permA, permB );
+
+				Permutation productBA;
+				productBA.Multiply( permB, permA );
+
+				bool commute = productAB.IsEqualTo( productBA );
+				std::string key = iterA->first + "*" + iterB->first;
+				commuteMap.insert( std::pair< std::string, bool >( key, commute ) );
+			}
+		}
+	}
+
+	CommuteMap::iterator iter = commuteMap.find( elementA.name + "*" + elementB.name );
+	if( iter == commuteMap.end() )
+		return false;
+
+	return iter->second;
+}
+
+uint CompressInfo::ElementOrder( const Element& element ) const
+{
+	if( orderMap.size() == 0 )
+	{
+		for( PermutationMap::const_iterator iter = permutationMap.cbegin(); iter != permutationMap.cend(); iter++ )
+		{
+			const Permutation& perm = iter->second;
+			uint order = perm.Order();
+			orderMap.insert( std::pair< std::string, uint >( iter->first, order ) );
+		}
+	}
+
+	OrderMap::iterator iter = orderMap.find( element.name );
+	if( iter == orderMap.end() )
+		return -1;
+
+	return iter->second;
 }
 
 // Permutation.cpp

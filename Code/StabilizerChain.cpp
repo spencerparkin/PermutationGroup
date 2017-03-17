@@ -372,11 +372,13 @@ uint StabilizerChainGroup::CountAllUnnamedRepresentatives( void ) const
 	return count;
 }
 
-void StabilizerChainGroup::NameGenerators( PermutationMap& permutationMap )
+void StabilizerChainGroup::NameGenerators( CompressInfo& compressInfo )
 {
 	char name = 'a';
 
-	permutationMap.clear();
+	compressInfo.permutationMap.clear();
+	compressInfo.commuteMap.clear();
+	compressInfo.orderMap.clear();
 
 	PermutationSet::iterator iter = generatorSet.begin();
 	while( iter != generatorSet.end() )
@@ -397,7 +399,7 @@ void StabilizerChainGroup::NameGenerators( PermutationMap& permutationMap )
 			generatorSet.erase( iter );
 			generatorSet.insert( permutation );
 
-			permutationMap.insert( std::pair< std::string, Permutation >( element.name, permutation ) );
+			compressInfo.permutationMap.insert( std::pair< std::string, Permutation >( element.name, permutation ) );
 		}
 
 		iter = nextIter;
@@ -406,7 +408,7 @@ void StabilizerChainGroup::NameGenerators( PermutationMap& permutationMap )
 
 // The main idea here is taken from Minkwitz, although I'm sure this isn't exactly what he had in mind.
 // The idea of replacing transversal elements is most certainly taken from him.
-bool StabilizerChainGroup::Optimize( const PermutationMap& permutationMap, std::ostream* ostream /*= nullptr*/ )
+bool StabilizerChainGroup::Optimize( const CompressInfo& compressInfo, std::ostream* ostream /*= nullptr*/ )
 {
 	StabilizerChainGroup* group = subGroup;
 	while( group )
@@ -457,7 +459,7 @@ bool StabilizerChainGroup::Optimize( const PermutationMap& permutationMap, std::
 			//permutation.Print( *ostream );
 		}
 
-		permutation.CompressWord( permutationMap );
+		permutation.CompressWord( compressInfo );
 
 		if( OptimizeWithPermutation( permutation, ostream ) )
 		{
@@ -504,7 +506,7 @@ bool StabilizerChainGroup::Optimize( const PermutationMap& permutationMap, std::
 		if( !group )
 			return false;
 		
-		return group->Optimize( permutationMap, ostream );
+		return group->Optimize( compressInfo, ostream );
 	}
 
 	return true;

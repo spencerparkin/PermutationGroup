@@ -26,6 +26,20 @@ struct Element
 };
 
 typedef std::list< Element > ElementList;
+typedef std::map< std::string, uint > OrderMap;
+typedef std::map< std::string, bool > CommuteMap;
+
+class CompressInfo
+{
+public:
+
+	bool ElementsCommute( const Element& elementA, const Element& elementB ) const;
+	uint ElementOrder( const Element& element ) const;
+
+	mutable OrderMap orderMap;
+	mutable CommuteMap commuteMap;
+	PermutationMap permutationMap;
+};
 
 //------------------------------------------------------------------------------------------
 //                                        Permutation
@@ -75,7 +89,7 @@ public:
 	std::string GetName( void ) const;
 	bool GetToJsonValue( rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator ) const;
 	bool SetFromJsonValue( /*const*/ rapidjson::Value& value );
-	bool CompressWord( const PermutationMap& permutationMap );
+	bool CompressWord( const CompressInfo& compressInfo );
 
 	ElementList* word;
 	uint map[ MAX_MAP_SIZE ];
