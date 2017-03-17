@@ -94,8 +94,9 @@ void Bubbloid3x3x3( void )
 
 	std::cout << "Optimizing stabilizer chain...\n";
 
-	chainGroup->NameGenerators();
-	chainGroup->Optimize( &std::cout );
+	PermutationMap permutationMap;
+	chainGroup->NameGenerators( permutationMap );
+	chainGroup->Optimize( permutationMap, &std::cout );
 
 	chainGroup->Print( std::cout );
 
@@ -113,7 +114,7 @@ void Bubbloid3x3x3( void )
 
 	getchar();
 
-	// TODO: Actually use the stabilizer chain here to factor a permutation.
+	delete chainGroup;
 }
 
 int main( int argc, char** argv )

@@ -3,7 +3,7 @@
 #include "StabilizerChain.h"
 #include <memory>
 #include <time.h>
-#include <rapidjson/prettywriter.h>
+#include <rapidjson/writer.h>
 
 //------------------------------------------------------------------------------------------
 //                                   StabilizerChainGroup
@@ -56,7 +56,7 @@ bool StabilizerChainGroup::SaveToJsonString( std::string& jsonString, uint flags
 	doc.AddMember( "group", chainGroupValue, doc.GetAllocator() );
 
 	rapidjson::StringBuffer buffer;
-	rapidjson::PrettyWriter< rapidjson::StringBuffer > writer( buffer );
+	rapidjson::Writer< rapidjson::StringBuffer > writer( buffer );
 	if( !doc.Accept( writer ) )
 		return false;
 
@@ -372,9 +372,11 @@ uint StabilizerChainGroup::CountAllUnnamedRepresentatives( void ) const
 	return count;
 }
 
-void StabilizerChainGroup::NameGenerators( void )
+void StabilizerChainGroup::NameGenerators( PermutationMap& permutationMap )
 {
 	char name = 'a';
+
+	permutationMap.clear();
 
 	PermutationSet::iterator iter = generatorSet.begin();
 	while( iter != generatorSet.end() )
@@ -394,6 +396,8 @@ void StabilizerChainGroup::NameGenerators( void )
 
 			generatorSet.erase( iter );
 			generatorSet.insert( permutation );
+
+			permutationMap.insert( std::pair< std::string, Permutation >( element.name, permutation ) );
 		}
 
 		iter = nextIter;
@@ -401,7 +405,8 @@ void StabilizerChainGroup::NameGenerators( void )
 }
 
 // The main idea here is taken from Minkwitz, although I'm sure this isn't exactly what he had in mind.
-bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
+// The idea of replacing transversal elements is most certainly taken from him.
+bool StabilizerChainGroup::Optimize( const PermutationMap& permutationMap, std::ostream* ostream /*= nullptr*/ )
 {
 	StabilizerChainGroup* group = subGroup;
 	while( group )
@@ -452,6 +457,8 @@ bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 			//permutation.Print( *ostream );
 		}
 
+		permutation.CompressWord( permutationMap );
+
 		if( OptimizeWithPermutation( permutation, ostream ) )
 		{
 			lastOptimizationTime = clock();
@@ -497,7 +504,7 @@ bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 		if( !group )
 			return false;
 		
-		return group->Optimize( ostream );
+		return group->Optimize( permutationMap, ostream );
 	}
 
 	return true;

@@ -75,6 +75,7 @@ public:
 	std::string GetName( void ) const;
 	bool GetToJsonValue( rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator ) const;
 	bool SetFromJsonValue( /*const*/ rapidjson::Value& value );
+	bool CompressWord( const PermutationMap& permutationMap );
 
 	ElementList* word;
 	uint map[ MAX_MAP_SIZE ];
