@@ -15,6 +15,9 @@ void Bubbloid3x3x3( void )
 
 	Permutation permutation;
 
+	// TODO: Need to account for corner orientations.  Maybe the group
+	//       will still be reasonable, because the corners all commute.
+
 	permutation.DefineIdentity();
 	permutation.Define( 0, 4 );
 	permutation.Define( 4, 7 );
