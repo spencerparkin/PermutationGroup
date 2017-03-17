@@ -191,17 +191,12 @@ void StabilizerChainGroup::Print( std::ostream& ostream, uint flags /*= FLAG_REP
 // The order in which we stabilize points may have an impact on the size of the factorizations in the chain.
 bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint pointArrayOffset, bool generateWords, std::ostream* ostream /*= nullptr*/ )
 {
-	if( generatorSet.size() == 1 )
+	if( generatorSet.size() == 0 )
 	{
-		PermutationSet::iterator iter = generatorSet.begin();
-		const Permutation& permutation = *iter;
-		if( permutation.IsIdentity() )
-		{
-			if( ostream )
-				*ostream << "Process complete!\n";
+		if( ostream )
+			*ostream << "Process complete!\n";
 
-			return true;
-		}
+		return true;
 	}
 
 	if( pointArrayOffset >= pointArraySize )
@@ -271,6 +266,8 @@ bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint
 
 bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreierGeneratorSet )
 {
+	// TODO: There is definitely a bug here.  When I get to the 2nd subgroup, it doesn't contains (147).
+
 	for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
 	{
 		const Permutation& generator = *genIter;
@@ -292,7 +289,8 @@ bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreier
 			Permutation newGenerator;
 			newGenerator.Multiply( product, invCosetRepresentative );
 
-			schreierGeneratorSet.insert( newGenerator );
+			if( !newGenerator.IsIdentity() )
+				schreierGeneratorSet.insert( newGenerator );
 		}
 	}
 

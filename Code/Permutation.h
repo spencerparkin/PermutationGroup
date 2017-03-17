@@ -31,7 +31,7 @@ typedef std::list< Element > ElementList;
 //                                        Permutation
 //------------------------------------------------------------------------------------------
 
-#define MAX_MAP_SIZE			30
+#define MAX_MAP_SIZE			40
 
 // A permutation is a bijective map defined on a subset of the natural numbers.
 // Here, multiplication is function composition.  For convenience, we let every
