@@ -188,7 +188,7 @@ void StabilizerChainGroup::Print( std::ostream& ostream, uint flags /*= FLAG_REP
 }
 
 // The order in which we stabilize points may have an impact on the size of the factorizations in the chain.
-bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint pointArrayOffset, std::ostream* ostream /*= nullptr*/ )
+bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint pointArrayOffset, bool generateWords, std::ostream* ostream /*= nullptr*/ )
 {
 	if( generatorSet.size() == 1 )
 	{
@@ -219,10 +219,12 @@ bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint
 	}
 
 	NaturalNumberSet orbitSet;
-
 	PermutationSet permutationQueue;
 	Permutation identity;
-	identity.word = new ElementList;
+	
+	if( generateWords )
+		identity.word = new ElementList;
+
 	permutationQueue.insert( identity );
 
 	// Notice that the identity element will always land in the traversal.
@@ -260,7 +262,7 @@ bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint
 	if( !CalculateSchreierGenerators( subGroup->generatorSet ) )
 		return false;
 
-	if( !subGroup->Generate( pointArray, pointArraySize, pointArrayOffset + 1, ostream ) )
+	if( !subGroup->Generate( pointArray, pointArraySize, pointArrayOffset + 1, generateWords, ostream ) )
 		return false;
 	
 	return true;
@@ -344,12 +346,50 @@ bool StabilizerChainGroup::FactorInverse( const Permutation& permutation, Permut
 	return FactorInverse( product, invPermutation );
 }
 
+uint StabilizerChainGroup::CountUnnamedRepresentatives( void ) const
+{
+	uint count = 0;
+
+	for( PermutationSet::const_iterator iter = transversalSet.cbegin(); iter != transversalSet.cend(); iter++ )
+	{
+		const Permutation& permutation = *iter;
+		if( !permutation.word )
+			count++;
+	}
+
+	if( subGroup )
+		count += subGroup->CountUnnamedRepresentatives();
+
+	return count;
+}
+
 // This may be the naive approach to what Minkwitz describes in his paper.
 bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 {
-	// We might consider calling the OptimizeWithPermutation function with
-	// permutations we know are useful, such as a bunch of conjugates that
-	// setup to a certain depth, or conjugates of commutators, etc.
+	char name = 'a';
+
+	PermutationSet::iterator iter = generatorSet.begin();
+	while( iter != generatorSet.end() )
+	{
+		PermutationSet::iterator nextIter = iter;
+		nextIter++;
+
+		Permutation permutation = *iter;
+		if( !permutation.word )
+		{
+			Element element;
+			element.name = name++;
+			element.exponent = 1;
+
+			permutation.word = new ElementList;
+			permutation.word->push_back( element );
+
+			generatorSet.erase( iter );
+			generatorSet.insert( permutation );
+		}
+
+		iter = nextIter;
+	}
 
 	PermutationSet processedSet;
 	PermutationSet permutationQueue;
@@ -364,7 +404,7 @@ bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 	//       to bail.
 	while( permutationQueue.size() > 0 )
 	{
-		PermutationSet::iterator iter = permutationQueue.begin();
+		iter = permutationQueue.begin();
 		Permutation permutation = *iter;
 		permutationQueue.erase( iter );
 
@@ -374,7 +414,14 @@ bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 			permutation.Print( *ostream );
 		}
 
-		OptimizeWithPermutation( permutation, ostream );
+		if( OptimizeWithPermutation( permutation, ostream ) )
+		{
+			uint unnamedCount = CountUnnamedRepresentatives();
+			if( ostream )
+				*ostream << "Unnamed count: " << unnamedCount << "\n";
+			if( unnamedCount == 0 )
+				break;
+		}
 
 		processedSet.insert( permutation );
 		EnqueueNewPermutations( permutation, permutationQueue, &processedSet );
@@ -385,6 +432,9 @@ bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 
 bool StabilizerChainGroup::OptimizeWithPermutation( const Permutation& permutation, std::ostream* ostream /*= nullptr*/ )
 {
+	if( !permutation.word )
+		return false;
+
 	if( !subGroup )
 		return false;
 
@@ -397,7 +447,7 @@ bool StabilizerChainGroup::OptimizeWithPermutation( const Permutation& permutati
 
 	const Permutation& cosetRepresentative = *iter;
 
-	if( permutation.word->size() < cosetRepresentative.word->size() )
+	if( ( cosetRepresentative.word && permutation.word->size() < cosetRepresentative.word->size() ) || !cosetRepresentative.word )
 	{
 		if( ostream )
 		{
