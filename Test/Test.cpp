@@ -1,10 +1,11 @@
 // Test.cpp
 
 #include <iostream>
+#include <fstream>
 #include <time.h>
 #include "StabilizerChain.h"
 
-void StabilizerChainTest( void )
+void Bubbloid3x3x3( void )
 {
 	clock_t t = clock();
 
@@ -69,6 +70,7 @@ void StabilizerChainTest( void )
 
 	std::cout << "Optimizing stabilizer chain...\n";
 
+	chainGroup->NameGenerators();
 	chainGroup->Optimize( &std::cout );
 
 	chainGroup->Print( std::cout );
@@ -80,6 +82,11 @@ void StabilizerChainTest( void )
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
 	std::cout << "Time taken: " << elapsed_time << " sec\n";
 
+	std::fstream fstream;
+	fstream.open( "Bubbloid3x3x3.txt", std::fstream::out );
+	fstream << jsonString;
+	fstream.close();
+
 	getchar();
 
 	// TODO: Actually use the stabilizer chain here to factor a permutation.
@@ -87,7 +94,7 @@ void StabilizerChainTest( void )
 
 int main( int argc, char** argv )
 {
-	StabilizerChainTest();
+	Bubbloid3x3x3();
 
 	return 0;
 }

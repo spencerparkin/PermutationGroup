@@ -2,7 +2,8 @@
 
 #include "StabilizerChain.h"
 #include <memory>
-#include <rapidjson/writer.h>
+#include <time.h>
+#include <rapidjson/prettywriter.h>
 
 //------------------------------------------------------------------------------------------
 //                                   StabilizerChainGroup
@@ -55,7 +56,7 @@ bool StabilizerChainGroup::SaveToJsonString( std::string& jsonString, uint flags
 	doc.AddMember( "group", chainGroupValue, doc.GetAllocator() );
 
 	rapidjson::StringBuffer buffer;
-	rapidjson::Writer< rapidjson::StringBuffer > writer( buffer );
+	rapidjson::PrettyWriter< rapidjson::StringBuffer > writer( buffer );
 	if( !doc.Accept( writer ) )
 		return false;
 
@@ -357,14 +358,20 @@ uint StabilizerChainGroup::CountUnnamedRepresentatives( void ) const
 			count++;
 	}
 
+	return count;
+}
+
+uint StabilizerChainGroup::CountAllUnnamedRepresentatives( void ) const
+{
+	uint count = CountUnnamedRepresentatives();
+
 	if( subGroup )
-		count += subGroup->CountUnnamedRepresentatives();
+		count += subGroup->CountAllUnnamedRepresentatives();
 
 	return count;
 }
 
-// This may be the naive approach to what Minkwitz describes in his paper.
-bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
+void StabilizerChainGroup::NameGenerators( void )
 {
 	char name = 'a';
 
@@ -390,6 +397,37 @@ bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 
 		iter = nextIter;
 	}
+}
+
+// This main idea here is taken from Minkwitz, although I'm sure this isn't exactly what he had in mind.
+bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
+{
+	StabilizerChainGroup* group = subGroup;
+	while( group )
+	{
+		group->generatorSet.clear();
+		group = group->subGroup;
+	}
+
+	group = this;
+	while( group )
+	{
+		// The identity element must be used as a coset representative, so give it a name now.
+		for( PermutationSet::iterator iter = group->transversalSet.begin(); iter != group->transversalSet.end(); iter++ )
+		{
+			const Permutation& permutation = *iter;
+			if( permutation.IsIdentity() && !permutation.word )
+			{
+				group->transversalSet.erase( iter );
+				Permutation identity;
+				identity.word = new ElementList;
+				group->transversalSet.insert( identity );
+				break;
+			}
+		}
+
+		group = group->subGroup;
+	}
 
 	PermutationSet processedSet;
 	PermutationSet permutationQueue;
@@ -397,26 +435,25 @@ bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 	identity.word = new ElementList;
 	permutationQueue.insert( identity );
 
-	// TODO: This will iterate over all members of the group.  Now, if we actually had the
-	//       time and memory to do that, then we wouldn't need the stabilizer chain.  So
-	//       what we need here is an earily-out.  If the maximum word-size of any coset
-	//       representative goes below a given threshold, then this might be a good reason
-	//       to bail.
+	clock_t lastOptimizationTime = clock();
+
 	while( permutationQueue.size() > 0 )
 	{
-		iter = permutationQueue.begin();
+		PermutationSet::iterator iter = permutationQueue.begin();
 		Permutation permutation = *iter;
 		permutationQueue.erase( iter );
 
 		if( ostream )
 		{
-			*ostream << "Trying...\n";
-			permutation.Print( *ostream );
+			//*ostream << "Trying...\n";
+			//permutation.Print( *ostream );
 		}
 
 		if( OptimizeWithPermutation( permutation, ostream ) )
 		{
-			uint unnamedCount = CountUnnamedRepresentatives();
+			lastOptimizationTime = clock();
+
+			uint unnamedCount = CountAllUnnamedRepresentatives();
 			if( ostream )
 				*ostream << "Unnamed count: " << unnamedCount << "\n";
 			if( unnamedCount == 0 )
@@ -425,6 +462,34 @@ bool StabilizerChainGroup::Optimize( std::ostream* ostream /*= nullptr*/ )
 
 		processedSet.insert( permutation );
 		EnqueueNewPermutations( permutation, permutationQueue, &processedSet );
+
+		clock_t currentTime = clock();
+		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
+		if( elapsedTimeSec > 10.0 && CountUnnamedRepresentatives() == 0 )
+			break;
+	}
+
+	processedSet.clear();
+	permutationQueue.clear();
+
+	uint unnamedCount = CountAllUnnamedRepresentatives();
+	if( unnamedCount > 0 )
+	{
+		// TODO: This code hasn't yet been tested.
+		StabilizerChainGroup* group = this;
+		while( group && group->CountUnnamedRepresentatives() == 0 )
+		{
+			if( !group->subGroup )
+				return false;
+
+			group->CalculateSchreierGenerators( group->subGroup->generatorSet );
+			group = group->subGroup;
+		}
+
+		if( !group )
+			return false;
+		
+		return group->Optimize( ostream );
 	}
 
 	return true;

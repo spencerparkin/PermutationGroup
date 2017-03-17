@@ -25,6 +25,7 @@ public:
 	void Print( std::ostream& ostream, uint flags = FLAG_REPRESENTATIVES ) const;
 
 	bool Generate( uint* pointArray, uint pointArraySize, uint pointArrayOffset, bool generateWords, std::ostream* ostream = nullptr );
+	void NameGenerators( void );
 	bool Optimize( std::ostream* ostream = nullptr );
 
 	// The given inverse permutation should be initialized to the identity before this call is made.
@@ -49,6 +50,7 @@ public:
 	PermutationSet::iterator FindCoset( const Permutation& permutation );
 	bool OptimizeWithPermutation( const Permutation& permutation, std::ostream* ostream = nullptr );
 	uint CountUnnamedRepresentatives( void ) const;
+	uint CountAllUnnamedRepresentatives( void ) const;
 
 	static bool LoadPermutationSet( PermutationSet& permutationSet, /*const*/ rapidjson::Value& arrayValue );
 	static bool SavePermutationSet( const PermutationSet& permutationSet, rapidjson::Value& arrayValue, rapidjson::Document::AllocatorType& allocator );
