@@ -266,8 +266,6 @@ bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint
 
 bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreierGeneratorSet )
 {
-	// TODO: There is definitely a bug here.  When I get to the 2nd subgroup, it doesn't contains (147).
-
 	for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
 	{
 		const Permutation& generator = *genIter;
@@ -277,7 +275,7 @@ bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreier
 			const Permutation& cosetRepresentative = *transIter;
 
 			Permutation product;
-			product.Multiply( generator, cosetRepresentative );
+			product.Multiply( cosetRepresentative, generator );
 
 			PermutationSet::iterator iter = FindCoset( product );
 			if( iter == transversalSet.end() )
