@@ -94,8 +94,11 @@ void Bubbloid3x3x3( void )
 
 	std::cout << "Optimizing stabilizer chain...\n";
 
+	chainGroup->NameGenerators();
+
 	CompressInfo compressInfo;
-	chainGroup->NameGenerators( compressInfo );
+	chainGroup->MakeCompressInfo( compressInfo );
+
 	chainGroup->Optimize( compressInfo, &std::cout );
 
 	chainGroup->Print( std::cout );

@@ -25,14 +25,15 @@ public:
 	void Print( std::ostream& ostream, uint flags = FLAG_REPRESENTATIVES ) const;
 
 	bool Generate( uint* pointArray, uint pointArraySize, uint pointArrayOffset, bool generateWords, std::ostream* ostream = nullptr );
-	void NameGenerators( CompressInfo& compressInfo );
+	void NameGenerators( void );
+	bool MakeCompressInfo( CompressInfo& compressInfo );
 	bool Optimize( const CompressInfo& compressInfo, std::ostream* ostream = nullptr );
 
 	// The given inverse permutation should be initialized to the identity before this call is made.
 	bool FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const;
 
 	bool LoadFromJsonString( const std::string& jsonString );
-	bool SaveToJsonString( std::string& jsonString, uint flags = FLAG_REPRESENTATIVES ) const;
+	bool SaveToJsonString( std::string& jsonString, uint flags = FLAG_REPRESENTATIVES | FLAG_GENERATORS ) const;
 
 	bool LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue );
 	bool SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator, uint flags ) const;

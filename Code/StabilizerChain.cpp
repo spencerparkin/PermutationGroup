@@ -44,7 +44,7 @@ bool StabilizerChainGroup::LoadFromJsonString( const std::string& jsonString )
 	return true;
 }
 
-bool StabilizerChainGroup::SaveToJsonString( std::string& jsonString, uint flags /*= FLAG_REPRESENTATIVES*/ ) const
+bool StabilizerChainGroup::SaveToJsonString( std::string& jsonString, uint flags /*= FLAG_REPRESENTATIVES | FLAG_GENERATORS*/ ) const
 {
 	rapidjson::Document doc;
 	doc.SetObject();
@@ -326,7 +326,7 @@ PermutationSet::iterator StabilizerChainGroup::FindCoset( const Permutation& per
 bool StabilizerChainGroup::FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const
 {
 	if( !subGroup )
-		return false;
+		return true;
 
 	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
 		return subGroup->FactorInverse( permutation, invPermutation );
@@ -372,13 +372,30 @@ uint StabilizerChainGroup::CountAllUnnamedRepresentatives( void ) const
 	return count;
 }
 
-void StabilizerChainGroup::NameGenerators( CompressInfo& compressInfo )
+bool StabilizerChainGroup::MakeCompressInfo( CompressInfo& compressInfo )
 {
-	char name = 'a';
-
 	compressInfo.permutationMap.clear();
 	compressInfo.commuteMap.clear();
 	compressInfo.orderMap.clear();
+
+	for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
+	{
+		const Permutation& generator = *iter;
+
+		if( !generator.word || generator.word->size() != 1 )
+			return false;
+
+		const Element& element = *generator.word->begin();
+
+		compressInfo.permutationMap.insert( std::pair< std::string, Permutation >( element.name, generator ) );
+	}
+
+	return true;
+}
+
+void StabilizerChainGroup::NameGenerators( void )
+{
+	char name = 'a';
 
 	PermutationSet::iterator iter = generatorSet.begin();
 	while( iter != generatorSet.end() )
@@ -398,8 +415,6 @@ void StabilizerChainGroup::NameGenerators( CompressInfo& compressInfo )
 
 			generatorSet.erase( iter );
 			generatorSet.insert( permutation );
-
-			compressInfo.permutationMap.insert( std::pair< std::string, Permutation >( element.name, permutation ) );
 		}
 
 		iter = nextIter;
