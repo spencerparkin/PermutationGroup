@@ -525,7 +525,20 @@ bool Permutation::CompressWord( const CompressInfo& compressInfo )
 		}
 
 		if( element.exponent != 0 )
+		{
+			if( element.exponent > 0 )
+			{
+				if( -( element.exponent - int( order ) ) < element.exponent )
+					element.exponent -= order;
+			}
+			else
+			{
+				if( element.exponent + int( order ) < -element.exponent )
+					element.exponent += order;
+			}
+
 			word->push_back( element );
+		}
 	}
 
 	return true;
