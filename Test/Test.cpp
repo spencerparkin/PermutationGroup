@@ -222,11 +222,31 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 15, 39, 31, 23 );
 			chainGroup->generatorSet.insert( permutation );
 
-			static uint __pointArray[48];
+			static uint __pointArray[20];
 
-			// TODO: I think we only need 20 point stabilizers: 12 per edge, 8 per corner.
-			for( uint i = 0; i < 48; i++ )
-				__pointArray[i] = i;
+			// Stabilize corners...
+			__pointArray[0] = 5;
+			__pointArray[1] = 7;
+			__pointArray[2] = 15;
+			__pointArray[3] = 23;
+			__pointArray[4] = 0;
+			__pointArray[5] = 2;
+			__pointArray[6] = 45;
+			__pointArray[7] = 47;
+
+			// Stabilize edges...
+			__pointArray[8] = 12;
+			__pointArray[9] = 20;
+			__pointArray[10] = 17;
+			__pointArray[11] = 22;
+			__pointArray[12] = 3;
+			__pointArray[13] = 4;
+			__pointArray[14] = 44;
+			__pointArray[15] = 43;
+			__pointArray[16] = 35;
+			__pointArray[17] = 36;
+			__pointArray[18] = 33;
+			__pointArray[19] = 38;
 
 			uint __pointArraySize = sizeof( __pointArray ) / sizeof( uint );
 
