@@ -165,6 +165,9 @@ int main( int argc, char** argv )
 		}
 		case Rubiks3x3x3:
 		{
+			// TODO: Unless I can reduce the number of Schreier generators, this
+			//       will always run out of memory.  Hmmm...
+
 			// +Y
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 0, 5, 7, 2 );
@@ -221,7 +224,7 @@ int main( int argc, char** argv )
 
 			static uint __pointArray[48];
 
-			// This might create redundant subgroups in the chain.
+			// TODO: I think we only need 20 point stabilizers: 12 per edge, 8 per corner.
 			for( uint i = 0; i < 48; i++ )
 				__pointArray[i] = i;
 
