@@ -5,7 +5,14 @@
 #include <time.h>
 #include "StabilizerChain.h"
 
-void Bubbloid3x3x3( void )
+enum Puzzle
+{
+	Bubbloid3x3x3,
+	Rubiks2x2x2,
+	Rubiks3x3x3
+};
+
+int main( int argc, char** argv )
 {
 	clock_t t = clock();
 
@@ -15,80 +22,219 @@ void Bubbloid3x3x3( void )
 
 	Permutation permutation;
 
-	permutation.DefineIdentity();
-	permutation.Define( 0, 4 );
-	permutation.Define( 4, 7 );
-	permutation.Define( 7, 0 );
-	permutation.Define( 12, 13 );
-	permutation.Define( 13, 14 );
-	permutation.Define( 14, 12 );
-	chainGroup->generatorSet.insert( permutation );
+	uint* pointArray = nullptr;
+	uint pointArraySize = 0;
 
-	permutation.DefineIdentity();
-	permutation.Define( 1, 5 );
-	permutation.Define( 5, 4 );
-	permutation.Define( 4, 1 );
-	permutation.Define( 15, 16 );
-	permutation.Define( 16, 17 );
-	permutation.Define( 17, 15 );
-	chainGroup->generatorSet.insert( permutation );
+	const char* fileName = nullptr;
 
-	permutation.DefineIdentity();
-	permutation.Define( 2, 6 );
-	permutation.Define( 6, 5 );
-	permutation.Define( 5, 2 );
-	permutation.Define( 18, 19 );
-	permutation.Define( 19, 20 );
-	permutation.Define( 20, 18 );
-	chainGroup->generatorSet.insert( permutation );
+	Puzzle puzzle = Rubiks3x3x3;
 
-	permutation.DefineIdentity();
-	permutation.Define( 3, 7 );
-	permutation.Define( 7, 6 );
-	permutation.Define( 6, 3 );
-	permutation.Define( 21, 22 );
-	permutation.Define( 22, 23 );
-	permutation.Define( 23, 21 );
-	chainGroup->generatorSet.insert( permutation );
+	switch( puzzle )
+	{
+		case Bubbloid3x3x3:
+		{
+			permutation.DefineIdentity();
+			permutation.Define( 0, 4 );
+			permutation.Define( 4, 7 );
+			permutation.Define( 7, 0 );
+			permutation.Define( 12, 13 );
+			permutation.Define( 13, 14 );
+			permutation.Define( 14, 12 );
+			chainGroup->generatorSet.insert( permutation );
 
-	permutation.DefineIdentity();
-	permutation.Define( 0, 11 );
-	permutation.Define( 11, 8 );
-	permutation.Define( 8, 0 );
-	permutation.Define( 24, 25 );
-	permutation.Define( 25, 26 );
-	permutation.Define( 26, 24 );
-	chainGroup->generatorSet.insert( permutation );
+			permutation.DefineIdentity();
+			permutation.Define( 1, 5 );
+			permutation.Define( 5, 4 );
+			permutation.Define( 4, 1 );
+			permutation.Define( 15, 16 );
+			permutation.Define( 16, 17 );
+			permutation.Define( 17, 15 );
+			chainGroup->generatorSet.insert( permutation );
 
-	permutation.DefineIdentity();
-	permutation.Define( 1, 8 );
-	permutation.Define( 8, 9 );
-	permutation.Define( 9, 1 );
-	permutation.Define( 27, 28 );
-	permutation.Define( 28, 29 );
-	permutation.Define( 29, 27 );
-	chainGroup->generatorSet.insert( permutation );
+			permutation.DefineIdentity();
+			permutation.Define( 2, 6 );
+			permutation.Define( 6, 5 );
+			permutation.Define( 5, 2 );
+			permutation.Define( 18, 19 );
+			permutation.Define( 19, 20 );
+			permutation.Define( 20, 18 );
+			chainGroup->generatorSet.insert( permutation );
 
-	permutation.DefineIdentity();
-	permutation.Define( 2, 9 );
-	permutation.Define( 9, 10 );
-	permutation.Define( 10, 2 );
-	permutation.Define( 30, 31 );
-	permutation.Define( 31, 32 );
-	permutation.Define( 32, 30 );
-	chainGroup->generatorSet.insert( permutation );
+			permutation.DefineIdentity();
+			permutation.Define( 3, 7 );
+			permutation.Define( 7, 6 );
+			permutation.Define( 6, 3 );
+			permutation.Define( 21, 22 );
+			permutation.Define( 22, 23 );
+			permutation.Define( 23, 21 );
+			chainGroup->generatorSet.insert( permutation );
 
-	permutation.DefineIdentity();
-	permutation.Define( 3, 10 );
-	permutation.Define( 10, 11 );
-	permutation.Define( 11, 3 );
-	permutation.Define( 33, 34 );
-	permutation.Define( 34, 35 );
-	permutation.Define( 35, 33 );
-	chainGroup->generatorSet.insert( permutation );
+			permutation.DefineIdentity();
+			permutation.Define( 0, 11 );
+			permutation.Define( 11, 8 );
+			permutation.Define( 8, 0 );
+			permutation.Define( 24, 25 );
+			permutation.Define( 25, 26 );
+			permutation.Define( 26, 24 );
+			chainGroup->generatorSet.insert( permutation );
 
-	uint pointArray[20] = { 12, 15, 18, 21, 24, 27, 30, 33, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-	uint pointArraySize = sizeof( pointArray ) / sizeof( uint );
+			permutation.DefineIdentity();
+			permutation.Define( 1, 8 );
+			permutation.Define( 8, 9 );
+			permutation.Define( 9, 1 );
+			permutation.Define( 27, 28 );
+			permutation.Define( 28, 29 );
+			permutation.Define( 29, 27 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.Define( 2, 9 );
+			permutation.Define( 9, 10 );
+			permutation.Define( 10, 2 );
+			permutation.Define( 30, 31 );
+			permutation.Define( 31, 32 );
+			permutation.Define( 32, 30 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.Define( 3, 10 );
+			permutation.Define( 10, 11 );
+			permutation.Define( 11, 3 );
+			permutation.Define( 33, 34 );
+			permutation.Define( 34, 35 );
+			permutation.Define( 35, 33 );
+			chainGroup->generatorSet.insert( permutation );
+
+			static uint __pointArray[20] = { 12, 15, 18, 21, 24, 27, 30, 33, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+			uint __pointArraySize = sizeof( __pointArray ) / sizeof( uint );
+
+			pointArray = __pointArray;
+			pointArraySize = __pointArraySize;
+
+			fileName = "Bubbloid3x3x3.txt";
+
+			break;
+		}
+		case Rubiks2x2x2:
+		{
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 1, 2, 3 );
+			permutation.DefineCycle( 13, 18, 7, 20 );
+			permutation.DefineCycle( 14, 19, 4, 21 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 4, 5, 6, 7 );
+			permutation.DefineCycle( 2, 18, 8, 22 );
+			permutation.DefineCycle( 1, 17, 11, 21 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 8, 9, 10, 11 );
+			permutation.DefineCycle( 5, 16, 15, 22 );
+			permutation.DefineCycle( 6, 17, 12, 23 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 12, 13, 14, 15 );
+			permutation.DefineCycle( 0, 20, 10, 16 );
+			permutation.DefineCycle( 3, 23, 9, 19 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 16, 17, 18, 19 );
+			permutation.DefineCycle( 0, 12, 8, 4 );
+			permutation.DefineCycle( 1, 13, 9, 5 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 20, 21, 22, 23 );
+			permutation.DefineCycle( 2, 6, 10, 14 );
+			permutation.DefineCycle( 3, 7, 11, 15 );
+			chainGroup->generatorSet.insert( permutation );
+
+			static uint __pointArray[24] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };
+			uint __pointArraySize = sizeof( __pointArray ) / sizeof( uint );
+
+			pointArray = __pointArray;
+			pointArraySize = __pointArraySize;
+
+			fileName = "Rubiks2x2x2.txt";
+
+			break;
+		}
+		case Rubiks3x3x3:
+		{
+			// +Y
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 5, 7, 2 );
+			permutation.DefineCycle( 1, 3, 6, 4 );
+			permutation.DefineCycle( 8, 16, 24, 32 );
+			permutation.DefineCycle( 9, 17, 25, 33 );
+			permutation.DefineCycle( 10, 18, 26, 34 );
+			chainGroup->generatorSet.insert( permutation );
+
+			// -X
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 8, 13, 15, 10 );
+			permutation.DefineCycle( 9, 11, 14, 12 );
+			permutation.DefineCycle( 0, 39, 40, 16 );
+			permutation.DefineCycle( 3, 36, 43, 19 );
+			permutation.DefineCycle( 5, 34, 45, 21 );
+			chainGroup->generatorSet.insert( permutation );
+
+			// +Z
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 16, 21, 23, 18 );
+			permutation.DefineCycle( 17, 19, 22, 20 );
+			permutation.DefineCycle( 5, 15, 42, 24 );
+			permutation.DefineCycle( 6, 12, 41, 27 );
+			permutation.DefineCycle( 7, 10, 40, 29 );
+			chainGroup->generatorSet.insert( permutation );
+
+			// +X
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 24, 29, 31, 26 );
+			permutation.DefineCycle( 25, 27, 30, 28 );
+			permutation.DefineCycle( 2, 18, 42, 37 );
+			permutation.DefineCycle( 4, 20, 44, 35 );
+			permutation.DefineCycle( 7, 23, 47, 32 );
+			chainGroup->generatorSet.insert( permutation );
+
+			// -Z
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 32, 37, 39, 24 );
+			permutation.DefineCycle( 33, 35, 38, 36 );
+			permutation.DefineCycle( 2, 31, 45, 8 );
+			permutation.DefineCycle( 1, 28, 46, 11 );
+			permutation.DefineCycle( 0, 26, 47, 13 );
+			chainGroup->generatorSet.insert( permutation );
+
+			// -Y
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 40, 45, 47, 42 );
+			permutation.DefineCycle( 41, 43, 46, 44 );
+			permutation.DefineCycle( 13, 37, 29, 21 );
+			permutation.DefineCycle( 14, 38, 30, 22 );
+			permutation.DefineCycle( 15, 39, 31, 23 );
+			chainGroup->generatorSet.insert( permutation );
+
+			static uint __pointArray[48];
+
+			// This might create redundant subgroups in the chain.
+			for( uint i = 0; i < 48; i++ )
+				__pointArray[i] = i;
+
+			uint __pointArraySize = sizeof( __pointArray ) / sizeof( uint );
+
+			pointArray = __pointArray;
+			pointArraySize = __pointArraySize;
+
+			fileName = "Rubiks3x3x3.txt";
+
+			break;
+		}
+	}
 
 	chainGroup->Generate( pointArray, pointArraySize, 0, false, &std::cout );
 
@@ -111,18 +257,13 @@ void Bubbloid3x3x3( void )
 	std::cout << "Time taken: " << elapsed_time << " sec\n";
 
 	std::fstream fstream;
-	fstream.open( "Bubbloid3x3x3.txt", std::fstream::out );
+	fstream.open( fileName, std::fstream::out );
 	fstream << jsonString;
 	fstream.close();
 
 	getchar();
 
 	delete chainGroup;
-}
-
-int main( int argc, char** argv )
-{
-	Bubbloid3x3x3();
 
 	return 0;
 }

@@ -45,7 +45,7 @@ public:
 //                                        Permutation
 //------------------------------------------------------------------------------------------
 
-#define MAX_MAP_SIZE			40
+#define MAX_MAP_SIZE			50
 
 // A permutation is a bijective map defined on a subset of the natural numbers.
 // Here, multiplication is function composition.  For convenience, we let every
@@ -62,6 +62,10 @@ public:
 
 	uint Evaluate( uint input ) const;
 	bool Define( uint input, uint output );
+	bool DefineCycle( uint a, uint b );
+	bool DefineCycle( uint a, uint b, uint c );
+	bool DefineCycle( uint a, uint b, uint c, uint d );
+	bool DefineCycle( uint a, uint b, uint c, uint d, uint e );
 	void DefineIdentity( void );
 	bool IsValid( void ) const;
 	bool IsEven( void ) const;

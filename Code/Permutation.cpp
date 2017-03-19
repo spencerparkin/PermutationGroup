@@ -49,6 +49,54 @@ bool Permutation::Define( uint input, uint output )
 	return true;
 }
 
+bool Permutation::DefineCycle( uint a, uint b )
+{
+	if( !Define( a, b ) )
+		return false;
+	if( !Define( b, a ) )
+		return false;
+	return true;
+}
+
+bool Permutation::DefineCycle( uint a, uint b, uint c )
+{
+	if( !Define( a, b ) )
+		return false;
+	if( !Define( b, c ) )
+		return false;
+	if( !Define( c, a ) )
+		return false;
+	return true;
+}
+
+bool Permutation::DefineCycle( uint a, uint b, uint c, uint d )
+{
+	if( !Define( a, b ) )
+		return false;
+	if( !Define( b, c ) )
+		return false;
+	if( !Define( c, d ) )
+		return false;
+	if( !Define( d, a ) )
+		return false;
+	return true;
+}
+
+bool Permutation::DefineCycle( uint a, uint b, uint c, uint d, uint e )
+{
+	if( !Define( a, b ) )
+		return false;
+	if( !Define( b, c ) )
+		return false;
+	if( !Define( c, d ) )
+		return false;
+	if( !Define( d, e ) )
+		return false;
+	if( !Define( e, a ) )
+		return false;
+	return true;
+}
+
 std::size_t Permutation::CalcHash( void ) const
 {
 	std::stringstream stream;
@@ -449,7 +497,10 @@ bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 	DefineIdentity();
 
 	rapidjson::Value mapArray = value[ "map" ].GetArray();
-	for( uint i = 0; i < MAX_MAP_SIZE && i < mapArray.Size(); i++ )
+	if( mapArray.Size() > MAX_MAP_SIZE )
+		return false;
+
+	for( uint i = 0; i < mapArray.Size(); i++ )
 		map[i] = mapArray[i].GetInt();
 
 	return true;
