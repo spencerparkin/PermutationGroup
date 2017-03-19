@@ -166,7 +166,8 @@ int main( int argc, char** argv )
 		case Rubiks3x3x3:
 		{
 			// TODO: Unless I can reduce the number of Schreier generators, this
-			//       will always run out of memory.  Hmmm...
+			//       will always run out of memory.  Hmmm...  What if I came up with
+			//       my own generators for each stage based on what I know about the 3x3x3?
 
 			// +Y
 			permutation.DefineIdentity();
