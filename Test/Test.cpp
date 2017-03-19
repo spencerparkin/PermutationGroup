@@ -9,7 +9,8 @@ enum Puzzle
 {
 	Bubbloid3x3x3,
 	Rubiks2x2x2,
-	Rubiks3x3x3
+	Rubiks3x3x3,
+	Rubiks2x3x3,
 };
 
 int main( int argc, char** argv )
@@ -27,7 +28,7 @@ int main( int argc, char** argv )
 
 	const char* fileName = nullptr;
 
-	Puzzle puzzle = Rubiks3x3x3;
+	Puzzle puzzle = Rubiks2x3x3;
 
 	switch( puzzle )
 	{
@@ -255,6 +256,75 @@ int main( int argc, char** argv )
 			pointArraySize = __pointArraySize;
 
 			fileName = "Rubiks3x3x3.txt";
+
+			break;
+		}
+		case Rubiks2x3x3:
+		{
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 2, 4, 6 );
+			permutation.DefineCycle( 1, 3, 5, 7 );
+			permutation.DefineCycle( 8, 11, 14, 17 );
+			permutation.DefineCycle( 9, 12, 15, 18 );
+			permutation.DefineCycle( 10, 13, 16, 19 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 34 );
+			permutation.DefineCycle( 1, 33 );
+			permutation.DefineCycle( 2, 32 );
+			permutation.DefineCycle( 11, 31 );
+			permutation.DefineCycle( 19, 23 );
+			permutation.DefineCycle( 8, 22 );
+			permutation.DefineCycle( 9, 21 );
+			permutation.DefineCycle( 10, 20 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 2, 36 );
+			permutation.DefineCycle( 3, 35 );
+			permutation.DefineCycle( 4, 34 );
+			permutation.DefineCycle( 10, 26 );
+			permutation.DefineCycle( 14, 22 );
+			permutation.DefineCycle( 11, 25 );
+			permutation.DefineCycle( 12, 24 );
+			permutation.DefineCycle( 13, 23 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 4, 38 );
+			permutation.DefineCycle( 5, 37 );
+			permutation.DefineCycle( 6, 36 );
+			permutation.DefineCycle( 13, 29 );
+			permutation.DefineCycle( 17, 25 );
+			permutation.DefineCycle( 14, 28 );
+			permutation.DefineCycle( 15, 27 );
+			permutation.DefineCycle( 16, 26 );
+			chainGroup->generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 6, 32 );
+			permutation.DefineCycle( 7, 39 );
+			permutation.DefineCycle( 0, 38 );
+			permutation.DefineCycle( 8, 28 );
+			permutation.DefineCycle( 16, 20 );
+			permutation.DefineCycle( 17, 31 );
+			permutation.DefineCycle( 18, 30 );
+			permutation.DefineCycle( 19, 29 );
+			chainGroup->generatorSet.insert( permutation );
+
+			static uint __pointArray[16] =
+			{
+				0, 2, 4, 6, 32, 34, 36, 38,
+				1, 3, 5, 7, 33, 35, 37, 39
+			};
+
+			uint __pointArraySize = sizeof( __pointArray ) / sizeof( uint );
+
+			pointArray = __pointArray;
+			pointArraySize = __pointArraySize;
+
+			fileName = "Rubiks2x3x3.txt";
 
 			break;
 		}

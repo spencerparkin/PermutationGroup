@@ -491,13 +491,13 @@ bool StabilizerChainGroup::Optimize( const CompressInfo& compressInfo, std::ostr
 		clock_t currentTime = clock();
 		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
 
-		if( elapsedTimeSec > 10.0 && CountUnnamedRepresentatives() == 0 )
+		if( elapsedTimeSec > 20.0 && CountUnnamedRepresentatives() == 0 )
 			break;
 
 		// When this count goes to zero, we can bail at any time, but by staying in longer,
 		// we can hopefully optimize more representatives.  Ideally we could get all of them
 		// to be under a certain word length.
-		if( elapsedTimeSec > 10.0 && allUnnamedCount == 0 )
+		if( elapsedTimeSec > 20.0 && allUnnamedCount == 0 )
 			break;
 	}
 
