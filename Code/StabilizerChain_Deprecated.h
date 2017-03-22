@@ -1,4 +1,4 @@
-// StabilizerChain.h
+// StabilizerChain_Deprecated.h
 
 #pragma once
 
@@ -9,12 +9,12 @@
 //                                   StabilizerChainGroup
 //------------------------------------------------------------------------------------------
 
-class StabilizerChainGroup
+class StabilizerChainGroup_Deprecated
 {
 public:
 
-	StabilizerChainGroup( void );
-	~StabilizerChainGroup( void );
+	StabilizerChainGroup_Deprecated( void );
+	~StabilizerChainGroup_Deprecated( void );
 
 	enum
 	{
@@ -41,7 +41,7 @@ public:
 	PermutationSet generatorSet;
 	PermutationSet transversalSet;
 
-	StabilizerChainGroup* subGroup;
+	StabilizerChainGroup_Deprecated* subGroup;
 
 	// This is the point stabilized by the subgroup.
 	uint stabilizerPoint;
@@ -57,4 +57,4 @@ public:
 	static bool SavePermutationSet( const PermutationSet& permutationSet, rapidjson::Value& arrayValue, rapidjson::Document::AllocatorType& allocator );
 };
 
-// StabilizerChain.h
+// StabilizerChain_Deprecated.h

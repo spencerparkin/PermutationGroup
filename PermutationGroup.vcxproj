@@ -22,13 +22,13 @@
     <ClCompile Include="Code\FactorGroup.cpp" />
     <ClCompile Include="Code\NaturalNumberSet.cpp" />
     <ClCompile Include="Code\Permutation.cpp" />
-    <ClCompile Include="Code\StabilizerChain.cpp" />
+    <ClCompile Include="Code\StabilizerChain_Deprecated.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Code\FactorGroup.h" />
     <ClInclude Include="Code\NaturalNumberSet.h" />
     <ClInclude Include="Code\Permutation.h" />
-    <ClInclude Include="Code\StabilizerChain.h" />
+    <ClInclude Include="Code\StabilizerChain_Deprecated.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DCB1164F-64FF-443E-AB56-2517145B33DC}</ProjectGuid>

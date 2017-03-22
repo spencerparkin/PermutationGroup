@@ -1,27 +1,27 @@
-// StabilizerChain.cpp
+// StabilizerChain_Deprecated.cpp
 
-#include "StabilizerChain.h"
+#include "StabilizerChain_Deprecated.h"
 #include <memory>
 #include <time.h>
 #include <rapidjson/writer.h>
 
 //------------------------------------------------------------------------------------------
-//                                   StabilizerChainGroup
+//                                   StabilizerChainGroup_Deprecated
 //------------------------------------------------------------------------------------------
 
-StabilizerChainGroup::StabilizerChainGroup( void )
+StabilizerChainGroup_Deprecated::StabilizerChainGroup_Deprecated( void )
 {
 	subGroup = nullptr;
 
 	stabilizerPoint = 0;
 }
 
-StabilizerChainGroup::~StabilizerChainGroup( void )
+StabilizerChainGroup_Deprecated::~StabilizerChainGroup_Deprecated( void )
 {
 	delete subGroup;
 }
 
-bool StabilizerChainGroup::LoadFromJsonString( const std::string& jsonString )
+bool StabilizerChainGroup_Deprecated::LoadFromJsonString( const std::string& jsonString )
 {
 	generatorSet.clear();
 	transversalSet.clear();
@@ -44,7 +44,7 @@ bool StabilizerChainGroup::LoadFromJsonString( const std::string& jsonString )
 	return true;
 }
 
-bool StabilizerChainGroup::SaveToJsonString( std::string& jsonString, uint flags /*= FLAG_REPRESENTATIVES | FLAG_GENERATORS*/ ) const
+bool StabilizerChainGroup_Deprecated::SaveToJsonString( std::string& jsonString, uint flags /*= FLAG_REPRESENTATIVES | FLAG_GENERATORS*/ ) const
 {
 	rapidjson::Document doc;
 	doc.SetObject();
@@ -64,7 +64,7 @@ bool StabilizerChainGroup::SaveToJsonString( std::string& jsonString, uint flags
 	return true;
 }
 
-bool StabilizerChainGroup::LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue )
+bool StabilizerChainGroup_Deprecated::LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue )
 {
 	if( !chainGroupValue.HasMember( "stabilizerPoint" ) )
 		return false;
@@ -87,7 +87,7 @@ bool StabilizerChainGroup::LoadRecursive( /*const*/ rapidjson::Value& chainGroup
 
 	if( chainGroupValue.HasMember( "subGroup" ) )
 	{
-		subGroup = new StabilizerChainGroup();
+		subGroup = new StabilizerChainGroup_Deprecated();
 
 		rapidjson::Value subGroupValue = chainGroupValue[ "subGroup" ].GetObject();
 		if( !subGroup->LoadRecursive( subGroupValue ) )
@@ -97,7 +97,7 @@ bool StabilizerChainGroup::LoadRecursive( /*const*/ rapidjson::Value& chainGroup
 	return true;
 }
 
-bool StabilizerChainGroup::SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator, uint flags ) const
+bool StabilizerChainGroup_Deprecated::SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator, uint flags ) const
 {
 	chainGroupValue.AddMember( "stabilizerPoint", stabilizerPoint, allocator );
 
@@ -131,7 +131,7 @@ bool StabilizerChainGroup::SaveRecursive( rapidjson::Value& chainGroupValue, rap
 	return true;
 }
 
-/*static*/ bool StabilizerChainGroup::LoadPermutationSet( PermutationSet& permutationSet, /*const*/ rapidjson::Value& arrayValue )
+/*static*/ bool StabilizerChainGroup_Deprecated::LoadPermutationSet( PermutationSet& permutationSet, /*const*/ rapidjson::Value& arrayValue )
 {
 	permutationSet.clear();
 
@@ -149,7 +149,7 @@ bool StabilizerChainGroup::SaveRecursive( rapidjson::Value& chainGroupValue, rap
 	return true;
 }
 
-/*static*/ bool StabilizerChainGroup::SavePermutationSet( const PermutationSet& permutationSet, rapidjson::Value& arrayValue, rapidjson::Document::AllocatorType& allocator )
+/*static*/ bool StabilizerChainGroup_Deprecated::SavePermutationSet( const PermutationSet& permutationSet, rapidjson::Value& arrayValue, rapidjson::Document::AllocatorType& allocator )
 {
 	for( PermutationSet::const_iterator iter = permutationSet.cbegin(); iter != permutationSet.cend(); iter++ )
 	{
@@ -163,7 +163,7 @@ bool StabilizerChainGroup::SaveRecursive( rapidjson::Value& chainGroupValue, rap
 	return true;
 }
 
-void StabilizerChainGroup::Print( std::ostream& ostream, uint flags /*= FLAG_REPRESENTATIVES*/ ) const
+void StabilizerChainGroup_Deprecated::Print( std::ostream& ostream, uint flags /*= FLAG_REPRESENTATIVES*/ ) const
 {
 	ostream << "==================================================================\n";
 	ostream << "Stabilizer point for subgroup is: " << stabilizerPoint << "\n";
@@ -189,7 +189,7 @@ void StabilizerChainGroup::Print( std::ostream& ostream, uint flags /*= FLAG_REP
 }
 
 // The order in which we stabilize points may have an impact on the size of the factorizations in the chain.
-bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint pointArrayOffset, bool generateWords, std::ostream* ostream /*= nullptr*/ )
+bool StabilizerChainGroup_Deprecated::Generate( uint* pointArray, uint pointArraySize, uint pointArrayOffset, bool generateWords, std::ostream* ostream /*= nullptr*/ )
 {
 	if( generatorSet.size() == 0 )
 	{
@@ -253,7 +253,7 @@ bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint
 	if( ostream )
 		*ostream << "Calculating Schreier generators...\n";
 
-	subGroup = new StabilizerChainGroup();
+	subGroup = new StabilizerChainGroup_Deprecated();
 
 	if( !CalculateSchreierGenerators( subGroup->generatorSet ) )
 		return false;
@@ -285,7 +285,7 @@ bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint
 // to do for the time being.
 //
 // From what I've found, finding a BSGS is done using Schreier-Sims.  :/  I need to figure that out.
-bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreierGeneratorSet )
+bool StabilizerChainGroup_Deprecated::CalculateSchreierGenerators( PermutationSet& schreierGeneratorSet )
 {
 	for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
 	{
@@ -316,7 +316,7 @@ bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreier
 	return true;
 }
 
-PermutationSet::iterator StabilizerChainGroup::FindCoset( const Permutation& permutation )
+PermutationSet::iterator StabilizerChainGroup_Deprecated::FindCoset( const Permutation& permutation )
 {
 	Permutation invPermutation;
 	invPermutation.SetInverse( permutation );
@@ -339,7 +339,7 @@ PermutationSet::iterator StabilizerChainGroup::FindCoset( const Permutation& per
 	return iter;
 }
 
-bool StabilizerChainGroup::FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const
+bool StabilizerChainGroup_Deprecated::FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const
 {
 	if( !subGroup )
 		return true;
@@ -347,7 +347,7 @@ bool StabilizerChainGroup::FactorInverse( const Permutation& permutation, Permut
 	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
 		return subGroup->FactorInverse( permutation, invPermutation );
 
-	PermutationSet::iterator iter = const_cast< StabilizerChainGroup* >( this )->FindCoset( permutation );
+	PermutationSet::iterator iter = const_cast< StabilizerChainGroup_Deprecated* >( this )->FindCoset( permutation );
 	if( iter == transversalSet.end() )
 		return false;
 
@@ -364,7 +364,7 @@ bool StabilizerChainGroup::FactorInverse( const Permutation& permutation, Permut
 	return FactorInverse( product, invPermutation );
 }
 
-uint StabilizerChainGroup::CountUnnamedRepresentatives( void ) const
+uint StabilizerChainGroup_Deprecated::CountUnnamedRepresentatives( void ) const
 {
 	uint count = 0;
 
@@ -378,7 +378,7 @@ uint StabilizerChainGroup::CountUnnamedRepresentatives( void ) const
 	return count;
 }
 
-uint StabilizerChainGroup::CountAllUnnamedRepresentatives( void ) const
+uint StabilizerChainGroup_Deprecated::CountAllUnnamedRepresentatives( void ) const
 {
 	uint count = CountUnnamedRepresentatives();
 
@@ -388,7 +388,7 @@ uint StabilizerChainGroup::CountAllUnnamedRepresentatives( void ) const
 	return count;
 }
 
-bool StabilizerChainGroup::MakeCompressInfo( CompressInfo& compressInfo )
+bool StabilizerChainGroup_Deprecated::MakeCompressInfo( CompressInfo& compressInfo )
 {
 	compressInfo.permutationMap.clear();
 	compressInfo.commuteMap.clear();
@@ -409,7 +409,7 @@ bool StabilizerChainGroup::MakeCompressInfo( CompressInfo& compressInfo )
 	return true;
 }
 
-void StabilizerChainGroup::NameGenerators( void )
+void StabilizerChainGroup_Deprecated::NameGenerators( void )
 {
 	char name = 'a';
 
@@ -439,9 +439,9 @@ void StabilizerChainGroup::NameGenerators( void )
 
 // The main idea here is taken from Minkwitz, although I'm sure this isn't exactly what he had in mind.
 // The idea of replacing transversal elements is most certainly taken from him.
-bool StabilizerChainGroup::Optimize( const CompressInfo& compressInfo, std::ostream* ostream /*= nullptr*/ )
+bool StabilizerChainGroup_Deprecated::Optimize( const CompressInfo& compressInfo, std::ostream* ostream /*= nullptr*/ )
 {
-	StabilizerChainGroup* group = subGroup;
+	StabilizerChainGroup_Deprecated* group = subGroup;
 	while( group )
 	{
 		group->generatorSet.clear();
@@ -524,7 +524,7 @@ bool StabilizerChainGroup::Optimize( const CompressInfo& compressInfo, std::ostr
 	if( unnamedCount > 0 )
 	{
 		// TODO: This code hasn't yet been tested.
-		StabilizerChainGroup* group = this;
+		StabilizerChainGroup_Deprecated* group = this;
 		while( group && group->CountUnnamedRepresentatives() == 0 )
 		{
 			if( !group->subGroup )
@@ -543,7 +543,7 @@ bool StabilizerChainGroup::Optimize( const CompressInfo& compressInfo, std::ostr
 	return true;
 }
 
-bool StabilizerChainGroup::OptimizeWithPermutation( const Permutation& permutation, std::ostream* ostream /*= nullptr*/ )
+bool StabilizerChainGroup_Deprecated::OptimizeWithPermutation( const Permutation& permutation, std::ostream* ostream /*= nullptr*/ )
 {
 	if( !permutation.word )
 		return false;
@@ -584,7 +584,7 @@ bool StabilizerChainGroup::OptimizeWithPermutation( const Permutation& permutati
 	return subGroup->OptimizeWithPermutation( product, ostream );
 }
 
-void StabilizerChainGroup::EnqueueNewPermutations( const Permutation& permutation, PermutationSet& permutationQueue, PermutationSet* processedSet /*= nullptr*/ )
+void StabilizerChainGroup_Deprecated::EnqueueNewPermutations( const Permutation& permutation, PermutationSet& permutationQueue, PermutationSet* processedSet /*= nullptr*/ )
 {
 	for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
 	{
@@ -601,4 +601,4 @@ void StabilizerChainGroup::EnqueueNewPermutations( const Permutation& permutatio
 	}
 }
 
-// StabilizerChain.cpp
+// StabilizerChain_Deprecated.cpp

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
-#include "StabilizerChain.h"
+#include "StabilizerChain_Deprecated.h"
 
 enum Puzzle
 {
@@ -19,7 +19,7 @@ int main( int argc, char** argv )
 
 	std::cout << "Generating stabilizer chain...\n";
 
-	StabilizerChainGroup* chainGroup = new StabilizerChainGroup();
+	StabilizerChainGroup_Deprecated* chainGroup = new StabilizerChainGroup_Deprecated();
 
 	Permutation permutation;
 
