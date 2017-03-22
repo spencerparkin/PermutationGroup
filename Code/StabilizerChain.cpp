@@ -276,6 +276,13 @@ bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint
 // in the group, we can ignore it.  If it's not, we have to extend the chain somehow.
 // However we do that, we must end up with another full chain.  This is all quite fuzzy,
 // and not obvious to me at all.
+//
+// Alternative to Schreier-Sims might be the problem of generating a BSGS - base with strong
+// generating set.  It's not too hard to see how we can construct the chain form the SGS,
+// and if that SGS isn't too large (which is the problem we're trying to solve: reducing
+// unnecessary generators), then the construction will go smoothly.  This idea lets us continue
+// to build the chain top-down, instead of bottom-up, which I can't seem to image being able
+// to do for the time being.
 bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreierGeneratorSet )
 {
 	for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
