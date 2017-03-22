@@ -28,7 +28,7 @@ int main( int argc, char** argv )
 
 	const char* fileName = nullptr;
 
-	Puzzle puzzle = Rubiks2x3x3;
+	Puzzle puzzle = Rubiks3x3x3;
 
 	switch( puzzle )
 	{
@@ -208,7 +208,7 @@ int main( int argc, char** argv )
 
 			// -Z
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 32, 37, 39, 24 );
+			permutation.DefineCycle( 32, 37, 39, 34 );
 			permutation.DefineCycle( 33, 35, 38, 36 );
 			permutation.DefineCycle( 2, 31, 45, 8 );
 			permutation.DefineCycle( 1, 28, 46, 11 );
