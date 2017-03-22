@@ -264,11 +264,12 @@ bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint
 	return true;
 }
 
-// If I had a strong generating set for the chain I was trying to construct, then I would
-// not have to compute Schreier generators.  Hmmm.  Finding an SGS before chain construction
-// may be a potential optimization.  On the other hand, maybe there is a way to reduce Schreier
-// generators as we go along.  BTW, once the chain is completed, we have an SGS, but is it too
-// big to be practical anyway?
+// After doing some research online, I'm still doing things the naive way!
+// The Schreier-Sims ways of generating the chain is to actually build it from
+// the bottom up.  The beauty of this is that we can use the partially constructed
+// change to weed out unnecessary Schreier generators.  That's brilliant!  But I
+// need to wrap my head around how we would build the chain bottom-up instead of
+// top-down.  It is not immediately obvious to me.
 bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreierGeneratorSet )
 {
 	for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
