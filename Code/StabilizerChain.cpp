@@ -283,6 +283,8 @@ bool StabilizerChainGroup::Generate( uint* pointArray, uint pointArraySize, uint
 // unnecessary generators), then the construction will go smoothly.  This idea lets us continue
 // to build the chain top-down, instead of bottom-up, which I can't seem to image being able
 // to do for the time being.
+//
+// From what I've found, finding a BSGS is done using Schreier-Sims.  :/  I need to figure that out.
 bool StabilizerChainGroup::CalculateSchreierGenerators( PermutationSet& schreierGeneratorSet )
 {
 	for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
