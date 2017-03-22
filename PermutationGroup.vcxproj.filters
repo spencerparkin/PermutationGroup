@@ -19,6 +19,9 @@
     <ClCompile Include="Code\StabilizerChain_Deprecated.cpp">
       <Filter>Code</Filter>
     </ClCompile>
+    <ClCompile Include="Code\StabilizerChain.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Code\NaturalNumberSet.h">
@@ -31,6 +34,9 @@
       <Filter>Code</Filter>
     </ClInclude>
     <ClInclude Include="Code\StabilizerChain_Deprecated.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\StabilizerChain.h">
       <Filter>Code</Filter>
     </ClInclude>
   </ItemGroup>
