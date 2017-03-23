@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
-#include "StabilizerChain_Deprecated.h"
+#include "StabilizerChain.h"
 
 enum Puzzle
 {
@@ -19,16 +19,14 @@ int main( int argc, char** argv )
 
 	std::cout << "Generating stabilizer chain...\n";
 
-	StabilizerChainGroup_Deprecated* chainGroup = new StabilizerChainGroup_Deprecated();
-
+	StabilizerChain* stabChain = new StabilizerChain();
 	Permutation permutation;
-
-	uint* pointArray = nullptr;
-	uint pointArraySize = 0;
-
+	UintArray baseArray;
 	const char* fileName = nullptr;
+	Puzzle puzzle = Bubbloid3x3x3;
+	PermutationSet generatorSet;
 
-	Puzzle puzzle = Rubiks3x3x3;
+	stabChain->ostream = &std::cout;
 
 	switch( puzzle )
 	{
@@ -41,7 +39,7 @@ int main( int argc, char** argv )
 			permutation.Define( 12, 13 );
 			permutation.Define( 13, 14 );
 			permutation.Define( 14, 12 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.Define( 1, 5 );
@@ -50,7 +48,7 @@ int main( int argc, char** argv )
 			permutation.Define( 15, 16 );
 			permutation.Define( 16, 17 );
 			permutation.Define( 17, 15 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.Define( 2, 6 );
@@ -59,7 +57,7 @@ int main( int argc, char** argv )
 			permutation.Define( 18, 19 );
 			permutation.Define( 19, 20 );
 			permutation.Define( 20, 18 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.Define( 3, 7 );
@@ -68,7 +66,7 @@ int main( int argc, char** argv )
 			permutation.Define( 21, 22 );
 			permutation.Define( 22, 23 );
 			permutation.Define( 23, 21 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.Define( 0, 11 );
@@ -77,7 +75,7 @@ int main( int argc, char** argv )
 			permutation.Define( 24, 25 );
 			permutation.Define( 25, 26 );
 			permutation.Define( 26, 24 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.Define( 1, 8 );
@@ -86,7 +84,7 @@ int main( int argc, char** argv )
 			permutation.Define( 27, 28 );
 			permutation.Define( 28, 29 );
 			permutation.Define( 29, 27 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.Define( 2, 9 );
@@ -95,7 +93,7 @@ int main( int argc, char** argv )
 			permutation.Define( 30, 31 );
 			permutation.Define( 31, 32 );
 			permutation.Define( 32, 30 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.Define( 3, 10 );
@@ -104,13 +102,28 @@ int main( int argc, char** argv )
 			permutation.Define( 33, 34 );
 			permutation.Define( 34, 35 );
 			permutation.Define( 35, 33 );
-			chainGroup->generatorSet.insert( permutation );
-
-			static uint __pointArray[20] = { 12, 15, 18, 21, 24, 27, 30, 33, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-			uint __pointArraySize = sizeof( __pointArray ) / sizeof( uint );
-
-			pointArray = __pointArray;
-			pointArraySize = __pointArraySize;
+			generatorSet.insert( permutation );
+			
+			baseArray.push_back( 12 );
+			baseArray.push_back( 15 );
+			baseArray.push_back( 18 );
+			baseArray.push_back( 21 );
+			baseArray.push_back( 24 );
+			baseArray.push_back( 27 );
+			baseArray.push_back( 30 );
+			baseArray.push_back( 33 );
+			baseArray.push_back( 0 );
+			baseArray.push_back( 1 );
+			baseArray.push_back( 2 );
+			baseArray.push_back( 3 );
+			baseArray.push_back( 4 );
+			baseArray.push_back( 5 );
+			baseArray.push_back( 6 );
+			baseArray.push_back( 7 );
+			baseArray.push_back( 8 );
+			baseArray.push_back( 9 );
+			baseArray.push_back( 10 );
+			baseArray.push_back( 11 );
 
 			fileName = "Bubbloid3x3x3.txt";
 
@@ -122,43 +135,40 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 0, 1, 2, 3 );
 			permutation.DefineCycle( 13, 18, 7, 20 );
 			permutation.DefineCycle( 14, 19, 4, 21 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 4, 5, 6, 7 );
 			permutation.DefineCycle( 2, 18, 8, 22 );
 			permutation.DefineCycle( 1, 17, 11, 21 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 8, 9, 10, 11 );
 			permutation.DefineCycle( 5, 16, 15, 22 );
 			permutation.DefineCycle( 6, 17, 12, 23 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 12, 13, 14, 15 );
 			permutation.DefineCycle( 0, 20, 10, 16 );
 			permutation.DefineCycle( 3, 23, 9, 19 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 16, 17, 18, 19 );
 			permutation.DefineCycle( 0, 12, 8, 4 );
 			permutation.DefineCycle( 1, 13, 9, 5 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 20, 21, 22, 23 );
 			permutation.DefineCycle( 2, 6, 10, 14 );
 			permutation.DefineCycle( 3, 7, 11, 15 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
-			static uint __pointArray[24] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };
-			uint __pointArraySize = sizeof( __pointArray ) / sizeof( uint );
-
-			pointArray = __pointArray;
-			pointArraySize = __pointArraySize;
+			for( uint i = 0; i < 24; i++ )
+				baseArray.push_back(i);
 
 			fileName = "Rubiks2x2x2.txt";
 
@@ -166,10 +176,6 @@ int main( int argc, char** argv )
 		}
 		case Rubiks3x3x3:
 		{
-			// TODO: Unless I can reduce the number of Schreier generators, this
-			//       will always run out of memory.  Hmmm...  What if I came up with
-			//       my own generators for each stage based on what I know about the 3x3x3?
-
 			// +Y
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 0, 5, 7, 2 );
@@ -177,7 +183,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 8, 16, 24, 32 );
 			permutation.DefineCycle( 9, 17, 25, 33 );
 			permutation.DefineCycle( 10, 18, 26, 34 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			// -X
 			permutation.DefineIdentity();
@@ -186,7 +192,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 0, 39, 40, 16 );
 			permutation.DefineCycle( 3, 36, 43, 19 );
 			permutation.DefineCycle( 5, 34, 45, 21 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			// +Z
 			permutation.DefineIdentity();
@@ -195,7 +201,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 5, 15, 42, 24 );
 			permutation.DefineCycle( 6, 12, 41, 27 );
 			permutation.DefineCycle( 7, 10, 40, 29 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			// +X
 			permutation.DefineIdentity();
@@ -204,7 +210,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 2, 18, 42, 37 );
 			permutation.DefineCycle( 4, 20, 44, 35 );
 			permutation.DefineCycle( 7, 23, 47, 32 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			// -Z
 			permutation.DefineIdentity();
@@ -213,7 +219,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 2, 31, 45, 8 );
 			permutation.DefineCycle( 1, 28, 46, 11 );
 			permutation.DefineCycle( 0, 26, 47, 13 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			// -Y
 			permutation.DefineIdentity();
@@ -222,38 +228,31 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 13, 37, 29, 21 );
 			permutation.DefineCycle( 14, 38, 30, 22 );
 			permutation.DefineCycle( 15, 39, 31, 23 );
-			chainGroup->generatorSet.insert( permutation );
-
-			static uint __pointArray[20];
+			generatorSet.insert( permutation );
 
 			// Stabilize corners...
-			__pointArray[0] = 5;
-			__pointArray[1] = 7;
-			__pointArray[2] = 15;
-			__pointArray[3] = 23;
-			__pointArray[4] = 0;
-			__pointArray[5] = 2;
-			__pointArray[6] = 45;
-			__pointArray[7] = 47;
+			baseArray.push_back( 5 );
+			baseArray.push_back( 7 );
+			baseArray.push_back( 15 );
+			baseArray.push_back( 23 );
+			baseArray.push_back( 0 );
+			baseArray.push_back( 2 );
+			baseArray.push_back( 45 );
+			baseArray.push_back( 47 );
 
 			// Stabilize edges...
-			__pointArray[8] = 12;
-			__pointArray[9] = 20;
-			__pointArray[10] = 17;
-			__pointArray[11] = 22;
-			__pointArray[12] = 3;
-			__pointArray[13] = 4;
-			__pointArray[14] = 44;
-			__pointArray[15] = 43;
-			__pointArray[16] = 35;
-			__pointArray[17] = 36;
-			__pointArray[18] = 33;
-			__pointArray[19] = 38;
-
-			uint __pointArraySize = sizeof( __pointArray ) / sizeof( uint );
-
-			pointArray = __pointArray;
-			pointArraySize = __pointArraySize;
+			baseArray.push_back( 12 );
+			baseArray.push_back( 20 );
+			baseArray.push_back( 17 );
+			baseArray.push_back( 22 );
+			baseArray.push_back( 3 );
+			baseArray.push_back( 4 );
+			baseArray.push_back( 44 );
+			baseArray.push_back( 43 );
+			baseArray.push_back( 35 );
+			baseArray.push_back( 36 );
+			baseArray.push_back( 33 );
+			baseArray.push_back( 38 );
 
 			fileName = "Rubiks3x3x3.txt";
 
@@ -267,7 +266,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 8, 11, 14, 17 );
 			permutation.DefineCycle( 9, 12, 15, 18 );
 			permutation.DefineCycle( 10, 13, 16, 19 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 0, 34 );
@@ -278,7 +277,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 8, 22 );
 			permutation.DefineCycle( 9, 21 );
 			permutation.DefineCycle( 10, 20 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 2, 36 );
@@ -289,7 +288,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 11, 25 );
 			permutation.DefineCycle( 12, 24 );
 			permutation.DefineCycle( 13, 23 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 4, 38 );
@@ -300,7 +299,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 14, 28 );
 			permutation.DefineCycle( 15, 27 );
 			permutation.DefineCycle( 16, 26 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 6, 32 );
@@ -311,18 +310,24 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 17, 31 );
 			permutation.DefineCycle( 18, 30 );
 			permutation.DefineCycle( 19, 29 );
-			chainGroup->generatorSet.insert( permutation );
+			generatorSet.insert( permutation );
 
-			static uint __pointArray[16] =
-			{
-				0, 2, 4, 6, 32, 34, 36, 38,
-				1, 3, 5, 7, 33, 35, 37, 39
-			};
-
-			uint __pointArraySize = sizeof( __pointArray ) / sizeof( uint );
-
-			pointArray = __pointArray;
-			pointArraySize = __pointArraySize;
+			baseArray.push_back( 0 );
+			baseArray.push_back( 2 );
+			baseArray.push_back( 4 );
+			baseArray.push_back( 6 );
+			baseArray.push_back( 32 );
+			baseArray.push_back( 34 );
+			baseArray.push_back( 36 );
+			baseArray.push_back( 38 );
+			baseArray.push_back( 1 );
+			baseArray.push_back( 3 );
+			baseArray.push_back( 5 );
+			baseArray.push_back( 7 );
+			baseArray.push_back( 33 );
+			baseArray.push_back( 35 );
+			baseArray.push_back( 37 );
+			baseArray.push_back( 39 );
 
 			fileName = "Rubiks2x3x3.txt";
 
@@ -330,34 +335,40 @@ int main( int argc, char** argv )
 		}
 	}
 
-	chainGroup->Generate( pointArray, pointArraySize, 0, false, &std::cout );
+	if( !stabChain->Generate( generatorSet, baseArray ) )
+		std::cout << "Failed!\n";
+	else
+	{
+		// This is where we're going to want to assigned factorizations to everything in the chain.
 
-	std::cout << "Optimizing stabilizer chain...\n";
+		/*std::cout << "Optimizing stabilizer chain...\n";
 
-	chainGroup->NameGenerators();
+		chainGroup->NameGenerators();
 
-	CompressInfo compressInfo;
-	chainGroup->MakeCompressInfo( compressInfo );
+		CompressInfo compressInfo;
+		chainGroup->MakeCompressInfo( compressInfo );
 
-	chainGroup->Optimize( compressInfo, &std::cout );
+		chainGroup->Optimize( compressInfo, &std::cout );
 
-	chainGroup->Print( std::cout );
+		chainGroup->Print( std::cout );
 
-	std::string jsonString;
-	chainGroup->SaveToJsonString( jsonString );
+		std::string jsonString;
+		chainGroup->SaveToJsonString( jsonString );
+		
+		std::fstream fstream;
+		fstream.open( fileName, std::fstream::out );
+		fstream << jsonString;
+		fstream.close();
+		*/
+	}
 
 	t = clock() - t;
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
 	std::cout << "Time taken: " << elapsed_time << " sec\n";
 
-	std::fstream fstream;
-	fstream.open( fileName, std::fstream::out );
-	fstream << jsonString;
-	fstream.close();
-
 	getchar();
 
-	delete chainGroup;
+	delete stabChain;
 
 	return 0;
 }

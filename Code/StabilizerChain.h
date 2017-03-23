@@ -5,6 +5,8 @@
 #include "Permutation.h"
 #include "NaturalNumberSet.h"
 #include <vector>
+#include <iostream>
+#include <string>
 
 typedef std::vector< uint > UintArray;
 
@@ -58,6 +60,7 @@ public:
 
 	Group* group;
 	UintArray baseArray;
+	std::ostream* ostream;
 };
 
 // StabilizerChain.h

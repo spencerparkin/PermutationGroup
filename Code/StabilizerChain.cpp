@@ -5,6 +5,7 @@
 StabilizerChain::StabilizerChain( void )
 {
 	group = nullptr;
+	ostream = nullptr;
 }
 
 /*virtual*/ StabilizerChain::~StabilizerChain( void )
@@ -22,9 +23,22 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 	delete group;
 	group = new Group( this, 0 );
 
+	if( ostream )
+		*ostream << "Generating stabilizer chain!!!\n";
+
 	for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
 	{
 		const Permutation& generator = *iter;
+
+		if( ostream )
+		{
+			*ostream << "===============================================\n";
+			*ostream << "                 NEW GENERATOR                 \n";
+			*ostream << "===============================================\n";
+			generator.Print( *ostream );
+			*ostream << "===============================================\n";
+		}
+		
 		if( !group->Extend( generator ) )
 			return false;
 	}
@@ -58,6 +72,14 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 {
 	if( IsMember( generator ) )
 		return true;
+
+	std::ostream* ostream = stabChain->ostream;
+
+	if( ostream )
+	{
+		*ostream << "Extending group with new generator.\n";
+		generator.Print( *ostream );
+	}
 
 	generatorSet.insert( generator );
 
@@ -208,6 +230,13 @@ bool StabilizerChain::OrbitNode::Grow( Group* group, const PermutationSet& gener
 		if( !group->orbitSet.IsMember( point ) )
 		{
 			group->orbitSet.AddMember( point );
+
+			std::ostream* ostream = group->stabChain->ostream;
+			if( ostream )
+			{
+				*ostream << "Found new orbit: " << point << "\n";
+				permutation.Print( *ostream );
+			}
 
 			group->transversalSet.insert( permutation );
 			PermutationSet::iterator iter = group->transversalSet.find( permutation );
