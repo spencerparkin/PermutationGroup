@@ -23,8 +23,15 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 	delete group;
 	group = new Group( this, 0 );
 
+	freeOffsetSet.RemoveAllMembers();
+	for( uint i = 1; i < baseArray.size(); i++ )
+		freeOffsetSet.AddMember(i);
+
 	if( logStream )
 		*logStream << "Generating stabilizer chain!!!\n";
+
+	uint size = generatorSet.size();
+	uint count = 0;
 
 	for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
 	{
@@ -32,8 +39,9 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 
 		if( logStream )
 		{
+			count++;
 			*logStream << "===============================================\n";
-			*logStream << "                 NEW GENERATOR                 \n";
+			*logStream << "              NEW GENERATOR (" << count << "/" << size << ")\n";
 			*logStream << "===============================================\n";
 			generator.Print( *logStream );
 			*logStream << "===============================================\n";
@@ -107,9 +115,10 @@ uint StabilizerChain::Group::GetSubgroupStabilizerPoint( void ) const
 	return stabChain->baseArray[ stabilizerOffset ];
 }
 
-// TODO: I have to rewrite this so that we never get consecutive, nested, non-proper subgroups.
 bool StabilizerChain::Group::Extend( const Permutation& generator )
 {
+	// TODO: Is there a problem with the IsMember function?  I notcied that an element
+	//       and its inverse ended up a group's generating set.  That shouldn't happen, right?
 	if( IsMember( generator ) )
 		return true;
 
@@ -147,12 +156,6 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 	typedef std::list< Pair > PairList;
 	PairList pairList;
 
-	// This algorithm is NOT Schreier-Sims, and it may not even be correct either.
-	// The algorithm's running time is astronomical, but we get many consective
-	// nested subgroups, none of which are proper, and so we end up effectively
-	// looping over a tree with branch-factor the number of generators and depth
-	// the length of this nested sequence of non-proper subgroups.  It is very stupid!
-	// Maybe the order of the points needs to be such that we never get non-proper sub-chains?
 	for( PermutationSet::iterator iter = transversalSet.begin(); iter != transversalSet.end(); iter++ )
 	{
 		Pair pair;
@@ -202,11 +205,38 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 				return false;
 
 			if( !subGroup )
-				subGroup = new Group( stabChain, stabilizerOffset + 1 );
+			{
+				// If we don't choose the subgroup's stabilizer point like this,
+				// we can end up with non-proper subgroups in the change, and I believe
+				// this causes a major innefficiency.
+				uint i;
+				for( i = 0; i < stabChain->baseArray.size(); i++ )
+					if( !StabilizesPoint( stabChain->baseArray[i] ) && stabChain->freeOffsetSet.IsMember(i) )
+						break;
+
+				if( i == stabChain->baseArray.size() )
+					return false;
+
+				stabChain->freeOffsetSet.RemoveMember(i);
+
+				subGroup = new Group( stabChain, i );
+			}
 
 			if( !subGroup->Extend( schreierGenerator ) )
 				return false;
 		}
+	}
+
+	return true;
+}
+
+bool StabilizerChain::Group::StabilizesPoint( uint point ) const
+{
+	for( PermutationSet::const_iterator iter = generatorSet.cbegin(); iter != generatorSet.cend(); iter++ )
+	{
+		const Permutation& generator = *iter;
+		if( point != generator.Evaluate( point ) )
+			return false;
 	}
 
 	return true;

@@ -51,6 +51,7 @@ public:
 		PermutationSet::iterator FindCoset( const Permutation& permutation );
 		uint GetSubgroupStabilizerPoint( void ) const;
 		void Print( std::ostream& ostream ) const;
+		bool StabilizesPoint( uint point ) const;
 
 		NaturalNumberSet orbitSet;
 		OrbitNode* rootNode;
@@ -64,6 +65,7 @@ public:
 	Group* group;
 	UintArray baseArray;
 	std::ostream* logStream;
+	NaturalNumberSet freeOffsetSet;
 };
 
 // StabilizerChain.h
