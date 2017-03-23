@@ -26,7 +26,7 @@ int main( int argc, char** argv )
 	Puzzle puzzle = Bubbloid3x3x3;
 	PermutationSet generatorSet;
 
-	stabChain->ostream = &std::cout;
+	stabChain->logStream = &std::cout;
 
 	switch( puzzle )
 	{

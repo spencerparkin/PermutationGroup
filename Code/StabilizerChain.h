@@ -18,6 +18,7 @@ public:
 	virtual ~StabilizerChain( void );
 
 	bool Generate( const PermutationSet& generatorSet, const UintArray& baseArray );
+	void Print( std::ostream& ostream ) const;
 
 	class OrbitNode;
 	class Group;
@@ -48,6 +49,8 @@ public:
 		bool IsMember( const Permutation& permutation ) const;
 		bool FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const;
 		PermutationSet::iterator FindCoset( const Permutation& permutation );
+		uint GetSubgroupStabilizerPoint( void ) const;
+		void Print( std::ostream& ostream ) const;
 
 		NaturalNumberSet orbitSet;
 		OrbitNode* rootNode;
@@ -60,7 +63,7 @@ public:
 
 	Group* group;
 	UintArray baseArray;
-	std::ostream* ostream;
+	std::ostream* logStream;
 };
 
 // StabilizerChain.h

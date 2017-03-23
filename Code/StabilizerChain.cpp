@@ -5,7 +5,7 @@
 StabilizerChain::StabilizerChain( void )
 {
 	group = nullptr;
-	ostream = nullptr;
+	logStream = nullptr;
 }
 
 /*virtual*/ StabilizerChain::~StabilizerChain( void )
@@ -23,24 +23,27 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 	delete group;
 	group = new Group( this, 0 );
 
-	if( ostream )
-		*ostream << "Generating stabilizer chain!!!\n";
+	if( logStream )
+		*logStream << "Generating stabilizer chain!!!\n";
 
 	for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
 	{
 		const Permutation& generator = *iter;
 
-		if( ostream )
+		if( logStream )
 		{
-			*ostream << "===============================================\n";
-			*ostream << "                 NEW GENERATOR                 \n";
-			*ostream << "===============================================\n";
-			generator.Print( *ostream );
-			*ostream << "===============================================\n";
+			*logStream << "===============================================\n";
+			*logStream << "                 NEW GENERATOR                 \n";
+			*logStream << "===============================================\n";
+			generator.Print( *logStream );
+			*logStream << "===============================================\n";
 		}
 		
 		if( !group->Extend( generator ) )
 			return false;
+
+		if( logStream )
+			Print( *logStream );
 	}
 
 	Group* subGroup = group;
@@ -52,6 +55,18 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 	}
 
 	return true;
+}
+
+void StabilizerChain::Print( std::ostream& ostream ) const
+{
+	ostream << "===============================================\n";
+	ostream << "Stabilizer chain begin {\n";
+	if( !group )
+		ostream << "Empty!\n";
+	else
+		group->Print( ostream );
+	ostream << "} Stabilizer chain end.\n";
+	ostream << "===============================================\n";
 }
 
 StabilizerChain::Group::Group( StabilizerChain* stabChain, uint stabilizerOffset )
@@ -68,17 +83,46 @@ StabilizerChain::Group::Group( StabilizerChain* stabChain, uint stabilizerOffset
 	delete rootNode;
 }
 
+void StabilizerChain::Group::Print( std::ostream& ostream ) const
+{
+	ostream << "-----------------------------------------\n";
+	ostream << "Group has sub-group stabilizing: " << GetSubgroupStabilizerPoint() << "\n";
+
+	ostream << "Generator set:\n";
+
+	for( PermutationSet::const_iterator iter = generatorSet.cbegin(); iter != generatorSet.cend(); iter++ )
+		( *iter ).Print( ostream );
+
+	ostream << "Transversal set:\n";
+
+	for( PermutationSet::const_iterator iter = transversalSet.cbegin(); iter != transversalSet.cend(); iter++ )
+		( *iter ).Print( ostream );
+
+	if( subGroup )
+		subGroup->Print( ostream );
+}
+
+uint StabilizerChain::Group::GetSubgroupStabilizerPoint( void ) const
+{
+	return stabChain->baseArray[ stabilizerOffset ];
+}
+
 bool StabilizerChain::Group::Extend( const Permutation& generator )
 {
 	if( IsMember( generator ) )
 		return true;
 
-	std::ostream* ostream = stabChain->ostream;
+	std::ostream* logStream = stabChain->logStream;
 
-	if( ostream )
+	// A major innefficiency in what I'm trying to do here may be that
+	// I'm getting many consecutive nested subgroups, none of which are proper.
+	// This causes us to do the same math over and over with exponential time complexity.
+	// What I have here is definitely NOT a correct implimentation of Schreier-Sims.
+
+	if( logStream )
 	{
-		*ostream << "Extending group with new generator.\n";
-		generator.Print( *ostream );
+		//*logStream << "Extending group with new generator.\n";
+		//generator.Print( *logStream );
 	}
 
 	generatorSet.insert( generator );
@@ -94,6 +138,7 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 		transversalSet.insert( identity );
 		PermutationSet::iterator iter = transversalSet.find( identity );
 		rootNode = new OrbitNode( &( *iter ) );
+		orbitSet.AddMember( GetSubgroupStabilizerPoint() );
 		fresh = true;
 	}
 
@@ -140,7 +185,7 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 
 PermutationSet::iterator StabilizerChain::Group::FindCoset( const Permutation& permutation )
 {
-	uint stabilizerPoint = stabChain->baseArray[ stabilizerOffset ];
+	uint stabilizerPoint = GetSubgroupStabilizerPoint();
 
 	Permutation invPermutation;
 	invPermutation.SetInverse( permutation );
@@ -168,7 +213,12 @@ PermutationSet::iterator StabilizerChain::Group::FindCoset( const Permutation& p
 bool StabilizerChain::Group::IsMember( const Permutation& permutation ) const
 {
 	Permutation invPermutation;
-	return FactorInverse( permutation, invPermutation );
+	FactorInverse( permutation, invPermutation );
+
+	Permutation product;
+	product.Multiply( permutation, invPermutation );
+
+	return product.IsIdentity();
 }
 
 bool StabilizerChain::Group::FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const
@@ -176,7 +226,7 @@ bool StabilizerChain::Group::FactorInverse( const Permutation& permutation, Perm
 	if( !subGroup )
 		return true;
 
-	uint stabilizerPoint = stabChain->baseArray[ stabilizerOffset ];
+	uint stabilizerPoint = GetSubgroupStabilizerPoint();
 	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
 		return subGroup->FactorInverse( permutation, invPermutation );
 
@@ -210,7 +260,7 @@ StabilizerChain::OrbitNode::~OrbitNode( void )
 
 bool StabilizerChain::OrbitNode::Grow( Group* group, const PermutationSet& generatorSet, const PermutationSet& singletonSet, bool fresh )
 {
-	uint stabilizerPoint = group->stabChain->baseArray[ group->stabilizerOffset ];
+	uint stabilizerPoint = group->GetSubgroupStabilizerPoint();
 
 	const PermutationSet* permutationSet = &generatorSet;
 	if( !fresh )
@@ -231,11 +281,11 @@ bool StabilizerChain::OrbitNode::Grow( Group* group, const PermutationSet& gener
 		{
 			group->orbitSet.AddMember( point );
 
-			std::ostream* ostream = group->stabChain->ostream;
-			if( ostream )
+			std::ostream* logStream = group->stabChain->logStream;
+			if( logStream )
 			{
-				*ostream << "Found new orbit: " << point << "\n";
-				permutation.Print( *ostream );
+				*logStream << "Found new orbit: " << point << "\n";
+				permutation.Print( *logStream );
 			}
 
 			group->transversalSet.insert( permutation );
