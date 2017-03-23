@@ -21,7 +21,7 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 		this->baseArray.push_back( baseArray[i] );
 
 	delete group;
-	group = new Group( this, 0 );
+	group = new Group( this, nullptr, 0 );
 
 	freeOffsetSet.RemoveAllMembers();
 	for( uint i = 1; i < baseArray.size(); i++ )
@@ -77,9 +77,10 @@ void StabilizerChain::Print( std::ostream& ostream ) const
 	ostream << "===============================================\n";
 }
 
-StabilizerChain::Group::Group( StabilizerChain* stabChain, uint stabilizerOffset )
+StabilizerChain::Group::Group( StabilizerChain* stabChain, Group* supGroup, uint stabilizerOffset )
 {
 	this->stabChain = stabChain;
+	this->supGroup = supGroup;
 	this->stabilizerOffset = stabilizerOffset;
 	subGroup = nullptr;
 	rootNode = nullptr;
@@ -130,6 +131,9 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 		//generator.Print( *logStream );
 	}
 
+	// TODO: I know there's a major bug here, because we spend most of our time in a state where
+	//       when we go to add a generator to this set, it's already in the set!  This tells me
+	//       that the "IsMember()" method is just not working right.
 	generatorSet.insert( generator );
 
 	PermutationSet singletonSet;
@@ -219,7 +223,7 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 
 				stabChain->freeOffsetSet.RemoveMember(i);
 
-				subGroup = new Group( stabChain, i );
+				subGroup = new Group( stabChain, this, i );
 			}
 
 			if( !subGroup->Extend( schreierGenerator ) )
@@ -267,12 +271,16 @@ PermutationSet::iterator StabilizerChain::Group::FindCoset( const Permutation& p
 	return iter;
 }
 
-// Assuming that the stabilizer chain rooted as this node is valid, tell
-// us if the given permutation element is a member of this group.
+// Assuming that the stabilizer chain rooted as this node is valid, and that
+// the given permutation is in the parent group, tell us if the given permutation
+// element is a member of this group.
 bool StabilizerChain::Group::IsMember( const Permutation& permutation ) const
 {
+	if( !supGroup )
+		return false;
+
 	Permutation invPermutation;
-	FactorInverse( permutation, invPermutation );
+	supGroup->FactorInverse( permutation, invPermutation );
 
 	Permutation product;
 	product.Multiply( permutation, invPermutation );

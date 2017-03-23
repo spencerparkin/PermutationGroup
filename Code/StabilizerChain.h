@@ -42,7 +42,7 @@ public:
 	{
 	public:
 
-		Group( StabilizerChain* stabChain, uint stabilizerOffset );
+		Group( StabilizerChain* stabChain, Group* supGroup, uint stabilizerOffset );
 		virtual ~Group( void );
 
 		bool Extend( const Permutation& generator );
@@ -59,6 +59,7 @@ public:
 		PermutationSet generatorSet;
 		PermutationSet transversalSet;
 		Group* subGroup;
+		Group* supGroup;
 		StabilizerChain* stabChain;
 	};
 
