@@ -32,7 +32,7 @@ public:
 		OrbitNode( const Permutation* cosetRepresentative );
 		~OrbitNode( void );
 
-		bool Grow( Group* group, const PermutationSet& generatorSet, const PermutationSet& singletonSet, bool fresh );
+		bool Grow( Group* group, const PermutationSet& generatorSet, const PermutationSet& singletonSet, bool fresh, OrbitNodeArray& newOrbitArray );
 
 		const Permutation* cosetRepresentative;
 		OrbitNodeArray adjacentNodeArray;

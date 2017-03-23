@@ -107,17 +107,13 @@ uint StabilizerChain::Group::GetSubgroupStabilizerPoint( void ) const
 	return stabChain->baseArray[ stabilizerOffset ];
 }
 
+// TODO: I have to rewrite this so that we never get consecutive, nested, non-proper subgroups.
 bool StabilizerChain::Group::Extend( const Permutation& generator )
 {
 	if( IsMember( generator ) )
 		return true;
 
 	std::ostream* logStream = stabChain->logStream;
-
-	// A major innefficiency in what I'm trying to do here may be that
-	// I'm getting many consecutive nested subgroups, none of which are proper.
-	// This causes us to do the same math over and over with exponential time complexity.
-	// What I have here is definitely NOT a correct implimentation of Schreier-Sims.
 
 	if( logStream )
 	{
@@ -142,41 +138,74 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 		fresh = true;
 	}
 
-	if( !rootNode->Grow( this, generatorSet, singletonSet, fresh ) )
+	struct Pair
+	{
+		const Permutation* cosetRepresentative;
+		const Permutation* generator;
+	};
+
+	typedef std::list< Pair > PairList;
+	PairList pairList;
+
+	// This algorithm is NOT Schreier-Sims, and it may not even be correct either.
+	// The algorithm's running time is astronomical, but we get many consective
+	// nested subgroups, none of which are proper, and so we end up effectively
+	// looping over a tree with branch-factor the number of generators and depth
+	// the length of this nested sequence of non-proper subgroups.  It is very stupid!
+	// Maybe the order of the points needs to be such that we never get non-proper sub-chains?
+	for( PermutationSet::iterator iter = transversalSet.begin(); iter != transversalSet.end(); iter++ )
+	{
+		Pair pair;
+		pair.cosetRepresentative = &( *iter );
+		pair.generator = &generator;
+		pairList.push_back( pair );
+	}
+
+	OrbitNodeArray newOrbitArray;
+	if( !rootNode->Grow( this, generatorSet, singletonSet, fresh, newOrbitArray ) )
 		return false;
 
-	for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
+	for( uint i = 0; i < newOrbitArray.size(); i++ )
 	{
-		const Permutation& generator = *genIter;
-
-		for( PermutationSet::iterator transIter = transversalSet.begin(); transIter != transversalSet.end(); transIter++ )
+		const Permutation* cosetRepresentative = newOrbitArray[i]->cosetRepresentative;
+		for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
 		{
-			const Permutation& cosetRepresentative = *transIter;
+			Pair pair;
+			pair.generator = &( *genIter );
+			pair.cosetRepresentative = cosetRepresentative;
+			pairList.push_back( pair );
+		}
+	}
 
-			Permutation product;
-			product.Multiply( cosetRepresentative, generator );
+	for( PairList::iterator pairIter = pairList.begin(); pairIter != pairList.end(); pairIter++ )
+	{
+		Pair& pair = *pairIter;
+		const Permutation& cosetRepresentative = *pair.cosetRepresentative;
+		const Permutation& generator = *pair.generator;
 
-			PermutationSet::iterator iter = FindCoset( product );
-			if( iter == transversalSet.end() )
-				return false;		// Something went wrong with our math!
+		Permutation product;
+		product.Multiply( cosetRepresentative, generator );
 
-			Permutation invCosetRepresentative;
-			invCosetRepresentative.SetInverse( *iter );
+		PermutationSet::iterator iter = FindCoset( product );
+		if( iter == transversalSet.end() )
+			return false;		// Something went wrong with our math!
 
-			Permutation schreierGenerator;
-			schreierGenerator.Multiply( product, invCosetRepresentative );
+		Permutation invCosetRepresentative;
+		invCosetRepresentative.SetInverse( *iter );
 
-			if( !schreierGenerator.IsIdentity() )
-			{
-				if( stabilizerOffset >= stabChain->baseArray.size() )
-					return false;
+		Permutation schreierGenerator;
+		schreierGenerator.Multiply( product, invCosetRepresentative );
 
-				if( !subGroup )
-					subGroup = new Group( stabChain, stabilizerOffset + 1 );
+		if( !schreierGenerator.IsIdentity() )
+		{
+			if( stabilizerOffset >= stabChain->baseArray.size() )
+				return false;
 
-				if( !subGroup->Extend( schreierGenerator ) )
-					return false;
-			}
+			if( !subGroup )
+				subGroup = new Group( stabChain, stabilizerOffset + 1 );
+
+			if( !subGroup->Extend( schreierGenerator ) )
+				return false;
 		}
 	}
 
@@ -258,7 +287,7 @@ StabilizerChain::OrbitNode::~OrbitNode( void )
 		delete adjacentNodeArray[i];
 }
 
-bool StabilizerChain::OrbitNode::Grow( Group* group, const PermutationSet& generatorSet, const PermutationSet& singletonSet, bool fresh )
+bool StabilizerChain::OrbitNode::Grow( Group* group, const PermutationSet& generatorSet, const PermutationSet& singletonSet, bool fresh, OrbitNodeArray& newOrbitArray )
 {
 	uint stabilizerPoint = group->GetSubgroupStabilizerPoint();
 
@@ -292,14 +321,15 @@ bool StabilizerChain::OrbitNode::Grow( Group* group, const PermutationSet& gener
 			PermutationSet::iterator iter = group->transversalSet.find( permutation );
 
 			OrbitNode* orbitNode = new OrbitNode( &( *iter ) );
+			newOrbitArray.push_back( orbitNode );
 			adjacentNodeArray.push_back( orbitNode );
-			if( !orbitNode->Grow( group, generatorSet, singletonSet, true ) )
+			if( !orbitNode->Grow( group, generatorSet, singletonSet, true, newOrbitArray ) )
 				return false;
 		}
 	}
 
 	for( uint i = 0; i < nonFreshSize; i++ )
-		adjacentNodeArray[i]->Grow( group, generatorSet, singletonSet, false );
+		adjacentNodeArray[i]->Grow( group, generatorSet, singletonSet, false, newOrbitArray );
 
 	return true;
 }
