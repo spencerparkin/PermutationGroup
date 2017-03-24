@@ -21,7 +21,7 @@ int main( int argc, char** argv )
 	Permutation permutation;
 	UintArray baseArray;
 	const char* fileName = nullptr;
-	Puzzle puzzle = Bubbloid3x3x3;
+	Puzzle puzzle = Rubiks3x3x3;
 	PermutationSet generatorSet;
 
 	stabChain->logStream = &std::cout;
@@ -333,9 +333,15 @@ int main( int argc, char** argv )
 		}
 	}
 
-	if( !stabChain->Generate( generatorSet, baseArray ) )
+	bool success = stabChain->Generate( generatorSet, baseArray );
+	if( !success )
 		std::cout << "Failed!\n";
-	else
+
+	t = clock() - t;
+	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
+	std::cout << "Time taken: " << elapsed_time << " sec\n";
+
+	if( success )
 	{
 		stabChain->Print( std::cout );
 
@@ -356,10 +362,6 @@ int main( int argc, char** argv )
 		fstream.close();
 		*/
 	}
-
-	t = clock() - t;
-	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
-	std::cout << "Time taken: " << elapsed_time << " sec\n";
 
 	getchar();
 

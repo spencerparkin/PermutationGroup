@@ -392,6 +392,10 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
 
 	while( permutationQueue.size() > 0 )
 	{
+		// TODO: We need to impliment a container for permutations that
+		//       sorts by word-length and then pull the shortest words
+		//       off the queue each iteration.  An AVL tree can do this,
+		//       but maybe I can use a standard container for this.
 		PermutationSet::iterator iter = permutationQueue.begin();
 		Permutation permutation = *iter;
 		permutationQueue.erase( iter );
