@@ -117,8 +117,6 @@ uint StabilizerChain::Group::GetSubgroupStabilizerPoint( void ) const
 
 bool StabilizerChain::Group::Extend( const Permutation& generator )
 {
-	// TODO: Is there a problem with the IsMember function?  I notcied that an element
-	//       and its inverse ended up a group's generating set.  That shouldn't happen, right?
 	if( IsMember( generator ) )
 		return true;
 
@@ -130,9 +128,6 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 		//generator.Print( *logStream );
 	}
 
-	// TODO: I know there's a major bug here, because we spend most of our time in a state where
-	//       when we go to add a generator to this set, it's already in the set!  This tells me
-	//       that the "IsMember()" method is just not working right.
 	generatorSet.insert( generator );
 
 	PermutationSet singletonSet;
@@ -285,12 +280,14 @@ bool StabilizerChain::Group::IsMember( const Permutation& permutation ) const
 
 bool StabilizerChain::Group::FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const
 {
-	if( !subGroup )
-		return true;
-
 	uint stabilizerPoint = GetSubgroupStabilizerPoint();
 	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
+	{
+		if( !subGroup )
+			return false;
+
 		return subGroup->FactorInverse( permutation, invPermutation );
+	}
 
 	PermutationSet::iterator iter = const_cast< Group* >( this )->FindCoset( permutation );
 	if( iter == transversalSet.end() )
