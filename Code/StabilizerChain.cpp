@@ -2,6 +2,7 @@
 
 #include "StabilizerChain.h"
 #include <time.h>
+#include <rapidjson/writer.h>
 
 StabilizerChain::StabilizerChain( void )
 {
@@ -12,6 +13,63 @@ StabilizerChain::StabilizerChain( void )
 /*virtual*/ StabilizerChain::~StabilizerChain( void )
 {
 	delete group;
+}
+
+bool StabilizerChain::LoadFromJsonString( const std::string& jsonString )
+{
+	delete group;
+	group = new Group( this, 0 );
+
+	rapidjson::Document doc;
+	doc.Parse( jsonString.c_str() );
+	if( !doc.IsObject() )
+		return false;
+
+	if( !doc.HasMember( "group" ) )
+		return false;
+
+	rapidjson::Value chainGroupValue = doc[ "group" ].GetObject();
+	if( !group->LoadRecursive( chainGroupValue ) )
+		return false;
+
+	if( !doc.HasMember( "baseArray" ) )
+		return false;
+
+	baseArray.clear();
+	rapidjson::Value baseArrayValue = doc[ "baseArray" ].GetArray();
+	for( uint i = 0; i < baseArrayValue.Size(); i++ )
+		baseArray.push_back( baseArrayValue[i].GetInt() );
+
+	return true;
+}
+
+bool StabilizerChain::SaveToJsonString( std::string& jsonString ) const
+{
+	if( !group )
+		return false;
+
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	rapidjson::Value chainGroupValue( rapidjson::kObjectType );
+	if( !group->SaveRecursive( chainGroupValue, doc.GetAllocator() ) )
+		return false;
+
+	doc.AddMember( "group", chainGroupValue, doc.GetAllocator() );
+
+	rapidjson::Value baseArrayValue( rapidjson::kArrayType );
+	for( uint i = 0; i < baseArray.size(); i++ )
+		baseArrayValue[i] = baseArray[i];
+
+	doc.AddMember( "baseArray", baseArrayValue, doc.GetAllocator() );
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer< rapidjson::StringBuffer > writer( buffer );
+	if( !doc.Accept( writer ) )
+		return false;
+
+	jsonString = buffer.GetString();
+	return true;
 }
 
 // This is an attempt to impliment the Schreier-Sims algorithm.
@@ -337,11 +395,72 @@ bool StabilizerChain::Group::MakeCompressInfo( CompressInfo& compressInfo )
 	return true;
 }
 
+bool StabilizerChain::Group::LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue )
+{
+	if( !chainGroupValue.HasMember( "stabilizerOffset" ) )
+		return false;
+
+	stabilizerOffset = chainGroupValue[ "stabilizerOffset" ].GetInt();
+
+	if( chainGroupValue.HasMember( "generators" ) )
+	{
+		rapidjson::Value generatorsValue = chainGroupValue[ "generators" ].GetArray();
+		if( !Permutation::LoadPermutationSet( generatorSet, generatorsValue ) )
+			return false;
+	}
+
+	if( chainGroupValue.HasMember( "transversals" ) )
+	{
+		rapidjson::Value transversalsValue = chainGroupValue[ "transversals" ].GetArray();
+		if( !Permutation::LoadPermutationSet( transversalSet, transversalsValue ) )
+			return false;
+	}
+
+	if( chainGroupValue.HasMember( "subGroup" ) )
+	{
+		subGroup = new Group( stabChain, 0 );
+
+		rapidjson::Value subGroupValue = chainGroupValue[ "subGroup" ].GetObject();
+		if( !subGroup->LoadRecursive( subGroupValue ) )
+			return false;
+	}
+
+	return true;
+}
+
+bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator ) const
+{
+	chainGroupValue.AddMember( "stabilizerOffset", stabilizerOffset, allocator );
+
+	rapidjson::Value generatorsValue( rapidjson::kArrayType );
+	if( !Permutation::SavePermutationSet( generatorSet, generatorsValue, allocator ) )
+		return false;
+
+	chainGroupValue.AddMember( "generators", generatorsValue, allocator );
+
+	rapidjson::Value transversalsValue( rapidjson::kArrayType );
+	if( !Permutation::SavePermutationSet( transversalSet, transversalsValue, allocator ) )
+		return false;
+
+	chainGroupValue.AddMember( "transversals", transversalsValue, allocator );
+
+	if( subGroup )
+	{
+		rapidjson::Value subGroupValue( rapidjson::kObjectType );
+		if( !subGroup->SaveRecursive( subGroupValue, allocator ) )
+			return false;
+
+		chainGroupValue.AddMember( "subGroup", subGroupValue, allocator );
+	}
+
+	return true;
+}
+
 // The key idea here is taken from Minkwitz, although I'm sure that it's use here is not exactly what he had in mind.
 // It would be worth reviewing his paper again, and it would be worth trying to come up with some sort of theory
 // behind assigning shortest possible words to representatives in a stabilizer-chain.  The algorithm here is surely
 // naive, and surely there must be a smarter way to try to find shortest possible words for all representatives.
-bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
+bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
 {
 	std::ostream* logStream = stabChain->logStream;
 
@@ -372,7 +491,6 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
 	permutationQueue.insert( identity );
 
 	clock_t lastOptimizationTime = clock();
-	double timeOutSec = 60.0;
 	uint allUnnamedCount = -1;
 
 	while( permutationQueue.size() > 0 )

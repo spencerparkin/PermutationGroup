@@ -350,17 +350,15 @@ int main( int argc, char** argv )
 		CompressInfo compressInfo;
 		stabChain->group->MakeCompressInfo( compressInfo );
 
-		stabChain->group->OptimizeNames( compressInfo );
+		stabChain->group->OptimizeNames( compressInfo, 20.0 );
 
-		/*
 		std::string jsonString;
-		chainGroup->SaveToJsonString( jsonString );
+		stabChain->SaveToJsonString( jsonString );
 		
 		std::fstream fstream;
 		fstream.open( fileName, std::fstream::out );
 		fstream << jsonString;
 		fstream.close();
-		*/
 	}
 
 	getchar();

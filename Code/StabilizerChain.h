@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <rapidjson/document.h>
 
 typedef std::vector< uint > UintArray;
 
@@ -19,6 +20,8 @@ public:
 
 	bool Generate( const PermutationSet& generatorSet, const UintArray& baseArray );
 	void Print( std::ostream& ostream ) const;
+	bool LoadFromJsonString( const std::string& jsonString );
+	bool SaveToJsonString( std::string& jsonString ) const;
 
 	class OrbitNode;
 	class Group;
@@ -54,10 +57,12 @@ public:
 		bool StabilizesPoint( uint point ) const;
 		void NameGenerators( void );
 		bool MakeCompressInfo( CompressInfo& compressInfo );
-		bool OptimizeNames( const CompressInfo& compressInfo );
+		bool OptimizeNames( const CompressInfo& compressInfo, double timeOutSec = 60.0 );
 		bool OptimizeNameWithPermutation( const Permutation& permutation );
 		uint CountUnnamedRepresentatives( void ) const;
 		uint CountAllUnnamedRepresentatives( void ) const;
+		bool LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue );
+		bool SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator ) const;
 
 		NaturalNumberSet orbitSet;
 		OrbitNode* rootNode;

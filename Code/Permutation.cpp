@@ -546,6 +546,38 @@ bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 	return true;
 }
 
+/*static*/ bool Permutation::LoadPermutationSet( PermutationSet& permutationSet, /*const*/ rapidjson::Value& arrayValue )
+{
+	permutationSet.clear();
+
+	for( uint i = 0; i < arrayValue.Size(); i++ )
+	{
+		rapidjson::Value permutationValue = arrayValue[i].GetObject();
+
+		Permutation permutation;
+		if( !permutation.SetFromJsonValue( permutationValue ) )
+			return false;
+
+		permutationSet.insert( permutation );
+	}
+
+	return true;
+}
+
+/*static*/ bool Permutation::SavePermutationSet( const PermutationSet& permutationSet, rapidjson::Value& arrayValue, rapidjson::Document::AllocatorType& allocator )
+{
+	for( PermutationSet::const_iterator iter = permutationSet.cbegin(); iter != permutationSet.cend(); iter++ )
+	{
+		rapidjson::Value permutationValue( rapidjson::kObjectType );
+		if( !( *iter ).GetToJsonValue( permutationValue, allocator ) )
+			return false;
+
+		arrayValue.PushBack( permutationValue, allocator );
+	}
+
+	return true;
+}
+
 // This doesn't do everything that could possibly be done to compress a word.
 // It might be worth looking into what else can be done.
 // TODO: I'm finding "cc^{-1}" and "cc" in words that were supposedly compressed.  :(

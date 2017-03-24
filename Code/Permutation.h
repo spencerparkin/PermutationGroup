@@ -16,6 +16,8 @@ class Permutation;
 typedef std::list< Permutation > PermutationList;
 typedef std::map< std::string, Permutation > PermutationMap;
 typedef std::vector< Permutation > PermutationArray;
+typedef std::unordered_set< Permutation > PermutationSet;
+typedef std::set< Permutation > OrderedPermutationSet;
 
 typedef unsigned int uint;
 
@@ -96,6 +98,8 @@ public:
 	bool CompressWord( const CompressInfo& compressInfo );
 	static bool LexigraphicCompare( const Permutation& permLeft, const Permutation& permRight );
 	std::string MakeKeyForLexigraphicCompare( void ) const;
+	static bool LoadPermutationSet( PermutationSet& permutationSet, /*const*/ rapidjson::Value& arrayValue );
+	static bool SavePermutationSet( const PermutationSet& permutationSet, rapidjson::Value& arrayValue, rapidjson::Document::AllocatorType& allocator );
 
 	ElementList* word;
 	uint map[ MAX_MAP_SIZE ];
@@ -121,8 +125,5 @@ namespace std
 		}
 	};
 }
-
-typedef std::unordered_set< Permutation > PermutationSet;
-typedef std::set< Permutation > OrderedPermutationSet;
 
 // Permutation.h
