@@ -71,7 +71,6 @@ public:
 	Group* group;
 	UintArray baseArray;
 	std::ostream* logStream;
-	NaturalNumberSet freeOffsetSet;
 };
 
 // StabilizerChain.h

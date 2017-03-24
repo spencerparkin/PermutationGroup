@@ -24,10 +24,6 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 	delete group;
 	group = new Group( this, 0 );
 
-	freeOffsetSet.RemoveAllMembers();
-	for( uint i = 1; i < baseArray.size(); i++ )
-		freeOffsetSet.AddMember(i);
-
 	if( logStream )
 		*logStream << "Generating stabilizer chain!!!\n";
 
@@ -204,21 +200,7 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 				return false;
 
 			if( !subGroup )
-			{
-				/*uint i;
-				for( i = 0; i < stabChain->baseArray.size(); i++ )
-					if( !StabilizesPoint( stabChain->baseArray[i] ) && stabChain->freeOffsetSet.IsMember(i) )
-						break;
-
-				if( i == stabChain->baseArray.size() )
-					return false;
-
-				stabChain->freeOffsetSet.RemoveMember(i);
-
-				subGroup = new Group( stabChain, i );*/
-
 				subGroup = new Group( stabChain, stabilizerOffset + 1 );
-			}
 
 			if( !subGroup->Extend( schreierGenerator ) )
 				return false;
@@ -408,13 +390,6 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
 
 		// TODO: I'm finding "cc^{-1}" and "cc" in words that were supposedly compressed.  :(
 		permutation.CompressWord( compressInfo );
-
-		bool hack = false;
-		if( hack )
-		{
-			permutation.DefineIdentity();
-			permutation.DefineCycle( 9, 11, 10 );
-		}
 
 		if( OptimizeNameWithPermutation( permutation ) )
 		{
