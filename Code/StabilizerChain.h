@@ -52,6 +52,12 @@ public:
 		uint GetSubgroupStabilizerPoint( void ) const;
 		void Print( std::ostream& ostream ) const;
 		bool StabilizesPoint( uint point ) const;
+		void NameGenerators( void );
+		bool MakeCompressInfo( CompressInfo& compressInfo );
+		bool OptimizeNames( const CompressInfo& compressInfo );
+		bool OptimizeNameWithPermutation( const Permutation& permutation );
+		uint CountUnnamedRepresentatives( void ) const;
+		uint CountAllUnnamedRepresentatives( void ) const;
 
 		NaturalNumberSet orbitSet;
 		OrbitNode* rootNode;

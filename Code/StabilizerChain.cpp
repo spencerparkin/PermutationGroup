@@ -1,6 +1,7 @@
 // StabilizerChain.cpp
 
 #include "StabilizerChain.h"
+#include <time.h>
 
 StabilizerChain::StabilizerChain( void )
 {
@@ -204,10 +205,7 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 
 			if( !subGroup )
 			{
-				// If we don't choose the subgroup's stabilizer point like this,
-				// we can end up with non-proper subgroups in the change, and I believe
-				// this causes a major innefficiency.
-				uint i;
+				/*uint i;
 				for( i = 0; i < stabChain->baseArray.size(); i++ )
 					if( !StabilizesPoint( stabChain->baseArray[i] ) && stabChain->freeOffsetSet.IsMember(i) )
 						break;
@@ -217,7 +215,9 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 
 				stabChain->freeOffsetSet.RemoveMember(i);
 
-				subGroup = new Group( stabChain, i );
+				subGroup = new Group( stabChain, i );*/
+
+				subGroup = new Group( stabChain, stabilizerOffset + 1 );
 			}
 
 			if( !subGroup->Extend( schreierGenerator ) )
@@ -284,7 +284,7 @@ bool StabilizerChain::Group::FactorInverse( const Permutation& permutation, Perm
 	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
 	{
 		if( !subGroup )
-			return false;
+			return true;
 
 		return subGroup->FactorInverse( permutation, invPermutation );
 	}
@@ -304,6 +304,245 @@ bool StabilizerChain::Group::FactorInverse( const Permutation& permutation, Perm
 	invPermutation.MultiplyOnRight( invCosetRepresentative );
 
 	return FactorInverse( product, invPermutation );
+}
+
+void StabilizerChain::Group::NameGenerators( void )
+{
+	char name = 'a';
+
+	PermutationSet::iterator iter = generatorSet.begin();
+	while( iter != generatorSet.end() )
+	{
+		PermutationSet::iterator nextIter = iter;
+		nextIter++;
+
+		Permutation permutation = *iter;
+		if( !permutation.word )
+		{
+			Element element;
+			element.name = name++;
+			element.exponent = 1;
+
+			permutation.word = new ElementList;
+			permutation.word->push_back( element );
+
+			generatorSet.erase( iter );
+			generatorSet.insert( permutation );
+		}
+
+		iter = nextIter;
+	}
+}
+
+bool StabilizerChain::Group::MakeCompressInfo( CompressInfo& compressInfo )
+{
+	compressInfo.permutationMap.clear();
+	compressInfo.commuteMap.clear();
+	compressInfo.orderMap.clear();
+
+	for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
+	{
+		const Permutation& generator = *iter;
+
+		if( !generator.word || generator.word->size() != 1 )
+			return false;
+
+		const Element& element = *generator.word->begin();
+
+		compressInfo.permutationMap.insert( std::pair< std::string, Permutation >( element.name, generator ) );
+	}
+
+	return true;
+}
+
+// The key idea here is taken from Minkwitz, although I'm sure that it's use here is not exactly what he had in mind.
+bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
+{
+	std::ostream* logStream = stabChain->logStream;
+
+	Group* group = this;
+	while( group )
+	{
+		// The identity element must be used as a coset representative, so give it a name now.
+		for( PermutationSet::iterator iter = group->transversalSet.begin(); iter != group->transversalSet.end(); iter++ )
+		{
+			const Permutation& permutation = *iter;
+			if( permutation.IsIdentity() && !permutation.word )
+			{
+				group->transversalSet.erase( iter );
+				Permutation identity;
+				identity.word = new ElementList;
+				group->transversalSet.insert( identity );
+				break;
+			}
+		}
+
+		group = group->subGroup;
+	}
+
+	PermutationSet processedSet;
+	PermutationSet permutationQueue;
+	Permutation identity;
+	identity.word = new ElementList;
+	permutationQueue.insert( identity );
+
+	clock_t lastOptimizationTime = clock();
+	double timeOutSec = 60.0;
+	uint allUnnamedCount = -1;
+
+	while( permutationQueue.size() > 0 )
+	{
+		PermutationSet::iterator iter = permutationQueue.begin();
+		Permutation permutation = *iter;
+		permutationQueue.erase( iter );
+
+		if( logStream )
+		{
+			//*logStream << "Trying...\n";
+			//permutation.Print( *ostream );
+		}
+
+		// TODO: I'm finding "cc^{-1}" and "cc" in words that were supposedly compressed.  :(
+		permutation.CompressWord( compressInfo );
+
+		bool hack = false;
+		if( hack )
+		{
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 9, 11, 10 );
+		}
+
+		if( OptimizeNameWithPermutation( permutation ) )
+		{
+			lastOptimizationTime = clock();
+
+			allUnnamedCount = CountAllUnnamedRepresentatives();
+			if( logStream )
+				*logStream << "Unnamed count: " << allUnnamedCount << "\n";
+		}
+
+		processedSet.insert( permutation );
+		
+		for( iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
+		{
+			const Permutation& generator = *iter;
+
+			Permutation newPermutation;
+			newPermutation.Multiply( permutation, generator );
+
+			if( processedSet.find( newPermutation ) == processedSet.end() &&
+				permutationQueue.find( newPermutation ) == permutationQueue.end() )
+			{
+				permutationQueue.insert( newPermutation );
+			}
+		}
+
+		clock_t currentTime = clock();
+		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
+
+		if( elapsedTimeSec > timeOutSec && CountUnnamedRepresentatives() == 0 )
+			break;
+
+		// When this count goes to zero, we can bail at any time, but by staying in longer,
+		// we can hopefully optimize more representatives.  Ideally we could get all of them
+		// to be under a certain word length.
+		if( elapsedTimeSec > timeOutSec && allUnnamedCount == 0 )
+			break;
+	}
+
+	stabChain->Print( *logStream );
+
+	processedSet.clear();
+	permutationQueue.clear();
+
+	/*
+	uint unnamedCount = CountAllUnnamedRepresentatives();
+	if( unnamedCount > 0 )
+	{
+		group = this;
+		while( group && group->CountUnnamedRepresentatives() == 0 )
+			group = group->subGroup;
+
+		if( !group )
+			return false;
+
+		// This won't work, because the generators for this sub-group
+		// would have to have factorizations in terms of the original generators.
+		// If we carried them through using Schreier's lemma, they would be huge!
+		return group->OptimizeNames( compressInfo );
+	}*/
+
+	return true;
+}
+
+bool StabilizerChain::Group::OptimizeNameWithPermutation( const Permutation& permutation )
+{
+	if( !permutation.word )
+		return false;
+
+	uint stabilizerPoint = GetSubgroupStabilizerPoint();
+	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
+	{
+		if( !subGroup )
+			return false;
+
+		return subGroup->OptimizeNameWithPermutation( permutation );
+	}
+
+	PermutationSet::iterator iter = FindCoset( permutation );
+	if( iter == transversalSet.end() )
+		return false;
+
+	std::ostream* logStream = stabChain->logStream;
+
+	const Permutation& cosetRepresentative = *iter;
+
+	if( ( cosetRepresentative.word && permutation.word->size() < cosetRepresentative.word->size() ) || !cosetRepresentative.word )
+	{
+		if( logStream )
+		{
+			*logStream << "Replacing...\n";
+			cosetRepresentative.Print( *logStream );
+			*logStream << "...with...\n";
+			permutation.Print( *logStream );
+		}
+
+		transversalSet.erase( iter );
+		transversalSet.insert( permutation );
+		return true;
+	}
+
+	Permutation invPermutation;
+	permutation.GetInverse( invPermutation );
+
+	Permutation product;
+	product.Multiply( cosetRepresentative, invPermutation );
+
+	return OptimizeNameWithPermutation( product );
+}
+
+uint StabilizerChain::Group::CountUnnamedRepresentatives( void ) const
+{
+	uint count = 0;
+
+	for( PermutationSet::const_iterator iter = transversalSet.cbegin(); iter != transversalSet.cend(); iter++ )
+	{
+		const Permutation& permutation = *iter;
+		if( !permutation.word )
+			count++;
+	}
+
+	return count;
+}
+
+uint StabilizerChain::Group::CountAllUnnamedRepresentatives( void ) const
+{
+	uint count = CountUnnamedRepresentatives();
+
+	if( subGroup )
+		count += subGroup->CountAllUnnamedRepresentatives();
+
+	return count;
 }
 
 StabilizerChain::OrbitNode::OrbitNode( const Permutation* cosetRepresentative )

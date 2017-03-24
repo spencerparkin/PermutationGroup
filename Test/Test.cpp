@@ -17,8 +17,6 @@ int main( int argc, char** argv )
 {
 	clock_t t = clock();
 
-	std::cout << "Generating stabilizer chain...\n";
-
 	StabilizerChain* stabChain = new StabilizerChain();
 	Permutation permutation;
 	UintArray baseArray;
@@ -339,19 +337,16 @@ int main( int argc, char** argv )
 		std::cout << "Failed!\n";
 	else
 	{
-		// This is where we're going to want to assigned factorizations to everything in the chain.
+		stabChain->Print( std::cout );
 
-		/*std::cout << "Optimizing stabilizer chain...\n";
-
-		chainGroup->NameGenerators();
+		stabChain->group->NameGenerators();
 
 		CompressInfo compressInfo;
-		chainGroup->MakeCompressInfo( compressInfo );
+		stabChain->group->MakeCompressInfo( compressInfo );
 
-		chainGroup->Optimize( compressInfo, &std::cout );
+		stabChain->group->OptimizeNames( compressInfo );
 
-		chainGroup->Print( std::cout );
-
+		/*
 		std::string jsonString;
 		chainGroup->SaveToJsonString( jsonString );
 		
