@@ -436,6 +436,46 @@ std::string Permutation::GetName( void ) const
 	return stream.str();
 }
 
+/*static*/ bool Permutation::LexigraphicCompare( const Permutation& permLeft, const Permutation& permRight )
+{
+	uint leftSize = permLeft.word ? permLeft.word->size() : 0;
+	uint rightSize = permRight.word ? permRight.word->size() : 0;
+
+	if( leftSize < rightSize )
+		return true;
+	else if( leftSize > rightSize )
+		return false;
+
+	std::string leftKey = permLeft.MakeKeyForLexigraphicCompare();
+	std::string rightKey = permRight.MakeKeyForLexigraphicCompare();
+
+	int cmp = strcmp( leftKey.c_str(), rightKey.c_str() );
+	if( cmp < 0 )
+		return true;
+	return false;
+}
+
+std::string Permutation::MakeKeyForLexigraphicCompare( void ) const
+{
+	if( !word || word->size() == 0 )
+		return "";
+
+	std::stringstream stream;
+
+	for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
+	{
+		const Element& element = *iter;
+		stream << element.name;
+		if( element.exponent > 0 )
+			stream << "p";
+		else
+			stream << "m";
+		stream << abs( element.exponent );
+	}
+
+	return stream.str();
+}
+
 bool Permutation::GetToJsonValue( rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator ) const
 {
 	rapidjson::Value wordArray( rapidjson::kArrayType );
@@ -508,6 +548,7 @@ bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 
 // This doesn't do everything that could possibly be done to compress a word.
 // It might be worth looking into what else can be done.
+// TODO: I'm finding "cc^{-1}" and "cc" in words that were supposedly compressed.  :(
 bool Permutation::CompressWord( const CompressInfo& compressInfo )
 {
 	if( !word )

@@ -94,6 +94,8 @@ public:
 	bool GetToJsonValue( rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator ) const;
 	bool SetFromJsonValue( /*const*/ rapidjson::Value& value );
 	bool CompressWord( const CompressInfo& compressInfo );
+	static bool LexigraphicCompare( const Permutation& permLeft, const Permutation& permRight );
+	std::string MakeKeyForLexigraphicCompare( void ) const;
 
 	ElementList* word;
 	uint map[ MAX_MAP_SIZE ];
@@ -109,8 +111,18 @@ namespace std
 			return permutation.CalcHash();
 		}
 	};
+
+	template<>
+	struct less< Permutation >
+	{
+		bool operator()( const Permutation& permLeft, const Permutation& permRight ) const
+		{
+			return Permutation::LexigraphicCompare( permLeft, permRight );
+		}
+	};
 }
 
 typedef std::unordered_set< Permutation > PermutationSet;
+typedef std::set< Permutation > OrderedPermutationSet;
 
 // Permutation.h

@@ -338,6 +338,9 @@ bool StabilizerChain::Group::MakeCompressInfo( CompressInfo& compressInfo )
 }
 
 // The key idea here is taken from Minkwitz, although I'm sure that it's use here is not exactly what he had in mind.
+// It would be worth reviewing his paper again, and it would be worth trying to come up with some sort of theory
+// behind assigning shortest possible words to representatives in a stabilizer-chain.  The algorithm here is surely
+// naive, and surely there must be a smarter way to try to find shortest possible words for all representatives.
 bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
 {
 	std::ostream* logStream = stabChain->logStream;
@@ -363,7 +366,7 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
 	}
 
 	PermutationSet processedSet;
-	PermutationSet permutationQueue;
+	OrderedPermutationSet permutationQueue;
 	Permutation identity;
 	identity.word = new ElementList;
 	permutationQueue.insert( identity );
@@ -374,22 +377,15 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
 
 	while( permutationQueue.size() > 0 )
 	{
-		// TODO: We need to impliment a container for permutations that
-		//       sorts by word-length and then pull the shortest words
-		//       off the queue each iteration.  An AVL tree can do this,
-		//       but maybe I can use a standard container for this.
-		PermutationSet::iterator iter = permutationQueue.begin();
+		OrderedPermutationSet::iterator iter = permutationQueue.begin();
 		Permutation permutation = *iter;
 		permutationQueue.erase( iter );
 
-		if( logStream )
+		/*if( logStream )
 		{
-			//*logStream << "Trying...\n";
-			//permutation.Print( *ostream );
-		}
-
-		// TODO: I'm finding "cc^{-1}" and "cc" in words that were supposedly compressed.  :(
-		permutation.CompressWord( compressInfo );
+			*logStream << "Trying...\n";
+			permutation.Print( *logStream );
+		}*/
 
 		if( OptimizeNameWithPermutation( permutation ) )
 		{
@@ -402,12 +398,14 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
 
 		processedSet.insert( permutation );
 		
-		for( iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
+		for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
 		{
-			const Permutation& generator = *iter;
+			const Permutation& generator = *genIter;
 
 			Permutation newPermutation;
 			newPermutation.Multiply( permutation, generator );
+
+			newPermutation.CompressWord( compressInfo );
 
 			if( processedSet.find( newPermutation ) == processedSet.end() &&
 				permutationQueue.find( newPermutation ) == permutationQueue.end() )
@@ -448,6 +446,7 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo )
 		// This won't work, because the generators for this sub-group
 		// would have to have factorizations in terms of the original generators.
 		// If we carried them through using Schreier's lemma, they would be huge!
+		// We might consider just moving one step down the chain to narrow the search.
 		return group->OptimizeNames( compressInfo );
 	}*/
 
