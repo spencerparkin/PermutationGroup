@@ -580,7 +580,6 @@ bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 
 // This doesn't do everything that could possibly be done to compress a word.
 // It might be worth looking into what else can be done.
-// TODO: I'm finding "cc^{-1}" and "cc" in words that were supposedly compressed.  :(
 bool Permutation::CompressWord( const CompressInfo& compressInfo )
 {
 	if( !word )

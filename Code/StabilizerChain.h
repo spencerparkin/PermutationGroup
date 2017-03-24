@@ -58,7 +58,7 @@ public:
 		void NameGenerators( void );
 		bool MakeCompressInfo( CompressInfo& compressInfo );
 		bool OptimizeNames( const CompressInfo& compressInfo, double timeOutSec = 60.0 );
-		bool OptimizeNameWithPermutation( const Permutation& permutation );
+		bool OptimizeNameWithPermutation( Permutation& permutation, const CompressInfo& compressInfo );
 		uint CountUnnamedRepresentatives( void ) const;
 		uint CountAllUnnamedRepresentatives( void ) const;
 		bool LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue );

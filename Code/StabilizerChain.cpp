@@ -59,7 +59,7 @@ bool StabilizerChain::SaveToJsonString( std::string& jsonString ) const
 
 	rapidjson::Value baseArrayValue( rapidjson::kArrayType );
 	for( uint i = 0; i < baseArray.size(); i++ )
-		baseArrayValue[i] = baseArray[i];
+		baseArrayValue.PushBack( baseArray[i], doc.GetAllocator() );
 
 	doc.AddMember( "baseArray", baseArrayValue, doc.GetAllocator() );
 
@@ -505,7 +505,7 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo, do
 			permutation.Print( *logStream );
 		}*/
 
-		if( OptimizeNameWithPermutation( permutation ) )
+		if( OptimizeNameWithPermutation( permutation, compressInfo ) )
 		{
 			lastOptimizationTime = clock();
 
@@ -571,7 +571,7 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo, do
 	return true;
 }
 
-bool StabilizerChain::Group::OptimizeNameWithPermutation( const Permutation& permutation )
+bool StabilizerChain::Group::OptimizeNameWithPermutation( Permutation& permutation, const CompressInfo& compressInfo )
 {
 	if( !permutation.word )
 		return false;
@@ -582,7 +582,7 @@ bool StabilizerChain::Group::OptimizeNameWithPermutation( const Permutation& per
 		if( !subGroup )
 			return false;
 
-		return subGroup->OptimizeNameWithPermutation( permutation );
+		return subGroup->OptimizeNameWithPermutation( permutation, compressInfo );
 	}
 
 	PermutationSet::iterator iter = FindCoset( permutation );
@@ -614,7 +614,9 @@ bool StabilizerChain::Group::OptimizeNameWithPermutation( const Permutation& per
 	Permutation product;
 	product.Multiply( cosetRepresentative, invPermutation );
 
-	return OptimizeNameWithPermutation( product );
+	product.CompressWord( compressInfo );
+
+	return OptimizeNameWithPermutation( product, compressInfo );
 }
 
 uint StabilizerChain::Group::CountUnnamedRepresentatives( void ) const
