@@ -345,12 +345,31 @@ int main( int argc, char** argv )
 	{
 		stabChain->Print( std::cout );
 
+		if( puzzle == Rubiks3x3x3 )
+		{
+			// At the expense of making it harder to name all transversal elements,
+			// shorten the chain to some extent.  Then, presuming we find good
+			// factorizations of the transversal elements, we should get overall shorter
+			// factorizations of any element.
+
+			uint oldDepth = stabChain->Depth();
+
+			// Note: We can't eliminate the first group, because we need its generators
+			//       to solve the factorization problem.
+			StabilizerChain::Group* group = stabChain->GetSubGroupAtDepth( oldDepth - 2 );
+			group->Eliminate();
+			delete group;
+
+			uint newDepth = stabChain->Depth();
+			newDepth = 0;
+		}
+
 		stabChain->group->NameGenerators();
 
 		CompressInfo compressInfo;
 		stabChain->group->MakeCompressInfo( compressInfo );
 
-		stabChain->group->OptimizeNames( compressInfo, 20.0 );
+		stabChain->group->OptimizeNames( compressInfo, 10.0 * 60.0 );
 
 		std::string jsonString;
 		stabChain->SaveToJsonString( jsonString );

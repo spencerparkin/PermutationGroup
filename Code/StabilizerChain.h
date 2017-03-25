@@ -15,6 +15,8 @@ class StabilizerChain
 {
 public:
 
+	class Group;
+
 	StabilizerChain( void );
 	virtual ~StabilizerChain( void );
 
@@ -22,6 +24,8 @@ public:
 	void Print( std::ostream& ostream ) const;
 	bool LoadFromJsonString( const std::string& jsonString );
 	bool SaveToJsonString( std::string& jsonString ) const;
+	uint Depth( void ) const;
+	Group* GetSubGroupAtDepth( uint depth );
 
 	class OrbitNode;
 	class Group;
@@ -45,10 +49,11 @@ public:
 	{
 	public:
 
-		Group( StabilizerChain* stabChain, uint stabilizerOffset );
+		Group( StabilizerChain* stabChain, Group* superGroup, uint stabilizerOffset );
 		virtual ~Group( void );
 
 		bool Extend( const Permutation& generator );
+		Group* Eliminate( void );
 		bool IsMember( const Permutation& permutation ) const;
 		bool FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const;
 		PermutationSet::iterator FindCoset( const Permutation& permutation );
@@ -63,6 +68,7 @@ public:
 		uint CountAllUnnamedRepresentatives( void ) const;
 		bool LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue );
 		bool SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator ) const;
+		long long Order( void ) const;
 
 		NaturalNumberSet orbitSet;
 		OrbitNode* rootNode;
@@ -70,6 +76,7 @@ public:
 		PermutationSet generatorSet;
 		PermutationSet transversalSet;
 		Group* subGroup;
+		Group* superGroup;
 		StabilizerChain* stabChain;
 	};
 

@@ -15,10 +15,38 @@ StabilizerChain::StabilizerChain( void )
 	delete group;
 }
 
+uint StabilizerChain::Depth( void ) const
+{
+	uint i = 0;
+
+	Group* subGroup = group;
+	while( subGroup )
+	{
+		i++;
+		subGroup = subGroup->subGroup;
+	}
+
+	return i;
+}
+
+StabilizerChain::Group* StabilizerChain::GetSubGroupAtDepth( uint depth )
+{
+	Group* foundGroup = group;
+
+	uint i = 0;
+	while( i < depth && foundGroup )
+	{
+		foundGroup = foundGroup->subGroup;
+		i++;
+	}
+
+	return foundGroup;
+}
+
 bool StabilizerChain::LoadFromJsonString( const std::string& jsonString )
 {
 	delete group;
-	group = new Group( this, 0 );
+	group = new Group( this, nullptr, 0 );
 
 	rapidjson::Document doc;
 	doc.Parse( jsonString.c_str() );
@@ -80,7 +108,7 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 		this->baseArray.push_back( baseArray[i] );
 
 	delete group;
-	group = new Group( this, 0 );
+	group = new Group( this, nullptr, 0 );
 
 	if( logStream )
 		*logStream << "Generating stabilizer chain!!!\n";
@@ -132,11 +160,12 @@ void StabilizerChain::Print( std::ostream& ostream ) const
 	ostream << "===============================================\n";
 }
 
-StabilizerChain::Group::Group( StabilizerChain* stabChain, uint stabilizerOffset )
+StabilizerChain::Group::Group( StabilizerChain* stabChain, Group* superGroup, uint stabilizerOffset )
 {
 	this->stabChain = stabChain;
 	this->stabilizerOffset = stabilizerOffset;
 	subGroup = nullptr;
+	this->superGroup = superGroup;
 	rootNode = nullptr;
 }
 
@@ -168,6 +197,60 @@ void StabilizerChain::Group::Print( std::ostream& ostream ) const
 uint StabilizerChain::Group::GetSubgroupStabilizerPoint( void ) const
 {
 	return stabChain->baseArray[ stabilizerOffset ];
+}
+
+StabilizerChain::Group* StabilizerChain::Group::Eliminate( void )
+{
+	if( !subGroup )
+		return nullptr;
+
+	std::vector< const Permutation* > permutationArray;
+
+	for( PermutationSet::iterator iter = subGroup->transversalSet.begin(); iter != subGroup->transversalSet.end(); iter++ )
+	{
+		const Permutation* permutation = &( *iter );
+		permutationArray.push_back( permutation );
+	}
+
+	for( PermutationSet::iterator iter = transversalSet.begin(); iter != transversalSet.end(); iter++ )
+	{
+		const Permutation& permutation = *iter;
+		if( permutation.IsIdentity() )
+			continue;
+
+		for( uint i = 0; i < permutationArray.size(); i++ )
+		{
+			Permutation product;
+			product.Multiply( *permutationArray[i], permutation );
+
+			// This should always increase the size of the set.
+			subGroup->transversalSet.insert( product );
+		}
+	}
+
+	if( !superGroup )
+	{
+		stabChain->group = subGroup;
+		subGroup->superGroup = nullptr;
+	}
+	else
+	{
+		superGroup->subGroup = subGroup;
+		subGroup->superGroup = superGroup;
+	}
+
+	subGroup = nullptr;
+	return this;
+}
+
+long long StabilizerChain::Group::Order( void ) const
+{
+	long long subGroupIndex = transversalSet.size();
+	long long subGroupOrder = 1;
+	if( subGroup )
+		subGroupOrder = subGroup->Order();
+	long long groupOrder = subGroupIndex * subGroupOrder;
+	return groupOrder;
 }
 
 bool StabilizerChain::Group::Extend( const Permutation& generator )
@@ -258,7 +341,7 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 				return false;
 
 			if( !subGroup )
-				subGroup = new Group( stabChain, stabilizerOffset + 1 );
+				subGroup = new Group( stabChain, this, stabilizerOffset + 1 );
 
 			if( !subGroup->Extend( schreierGenerator ) )
 				return false;
@@ -418,7 +501,7 @@ bool StabilizerChain::Group::LoadRecursive( /*const*/ rapidjson::Value& chainGro
 
 	if( chainGroupValue.HasMember( "subGroup" ) )
 	{
-		subGroup = new Group( stabChain, 0 );
+		subGroup = new Group( stabChain, this, 0 );
 
 		rapidjson::Value subGroupValue = chainGroupValue[ "subGroup" ].GetObject();
 		if( !subGroup->LoadRecursive( subGroupValue ) )
@@ -456,10 +539,16 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 	return true;
 }
 
-// The key idea here is taken from Minkwitz, although I'm sure that it's use here is not exactly what he had in mind.
-// It would be worth reviewing his paper again, and it would be worth trying to come up with some sort of theory
-// behind assigning shortest possible words to representatives in a stabilizer-chain.  The algorithm here is surely
-// naive, and surely there must be a smarter way to try to find shortest possible words for all representatives.
+// The idea here is taken from Minkwitz.
+//
+// In thinking about this, it might be better to completely optimize one entire transversal set
+// of a subgroup of the chain, before doing any element below that in the chain.  Alternatively,
+// instead of storing words with each permutation, you could just make a big tree out of all
+// transversal elements in the chain.  That way, if transversal element A was formulated using
+// transversal element B, and then later, B gets optimized, then so will A.
+//
+// Anyhow, I'm not sure I'm motivated to put any more effort into this until perhaps I've got some intriguing
+// theory on paper that might significantly improve the process.
 bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
 {
 	std::ostream* logStream = stabChain->logStream;
