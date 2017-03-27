@@ -56,6 +56,7 @@ public:
 		Group* Eliminate( void );
 		bool IsMember( const Permutation& permutation ) const;
 		bool FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const;
+		bool FactorInverseWithTrembling( const Permutation& permutation, Permutation& invPermutation, const PermutationSet& trembleSet, const CompressInfo& compressInfo ) const;
 		PermutationSet::iterator FindCoset( const Permutation& permutation );
 		uint GetSubgroupStabilizerPoint( void ) const;
 		void Print( std::ostream& ostream ) const;

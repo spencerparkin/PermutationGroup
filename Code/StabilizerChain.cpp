@@ -429,6 +429,50 @@ bool StabilizerChain::Group::FactorInverse( const Permutation& permutation, Perm
 	return FactorInverse( product, invPermutation );
 }
 
+// This idea comes from a paper by Egner and Puschel.  It is a smarter way of utilizing
+// a stabilizer chain to come up with a factorization for the given permutation.
+bool StabilizerChain::Group::FactorInverseWithTrembling( const Permutation& permutation, Permutation& invPermutation, const PermutationSet& trembleSet, const CompressInfo& compressInfo ) const
+{
+	if( !FactorInverse( permutation, invPermutation ) )
+		return false;
+
+	bool optimizationMade;
+
+	do
+	{
+		optimizationMade = false;
+
+		for( PermutationSet::const_iterator iter = trembleSet.cbegin(); iter != trembleSet.cend(); iter++ )
+		{
+			const Permutation& trembler = *iter;
+			if( !trembler.word )
+				return false;
+
+			Permutation product;
+			product.Multiply( permutation, trembler );
+
+			Permutation invProduct;
+			if( !FactorInverse( product, invProduct ) )
+				return false;
+
+			Permutation altInvPermutation;
+			altInvPermutation.Multiply( trembler, invProduct );
+
+			altInvPermutation.CompressWord( compressInfo );
+
+			if( altInvPermutation.word->size() < invProduct.word->size() )
+			{
+				optimizationMade = true;
+				altInvPermutation.GetCopy( invPermutation );
+				break;
+			}
+		}
+	}
+	while( optimizationMade );
+
+	return true;
+}
+
 void StabilizerChain::Group::NameGenerators( void )
 {
 	char name = 'a';
@@ -539,9 +583,12 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 	return true;
 }
 
-// The idea here is taken from Minkwitz.  I found another good paper by Egner and Puschel that
-// gives some more great ideas for filling in the traversal sets with short words.  Of particular
-// value in that paper, however, is the idea of "trembling."
+// The idea here is taken from Minkwitz, but I believe he did not have to do this as a
+// post-process of Schreier-Sims, because he already knew the order of the group.  So he
+// actually generated the chain while he was coming up with short words for the transversal
+// elements.  He knew he could stop when the product of the lengths of all transversal sets
+// was equal the group order.  More ideas for filling in the transversal element words can
+// be found in a paper by Egner and Puschel.
 bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
 {
 	std::ostream* logStream = stabChain->logStream;
