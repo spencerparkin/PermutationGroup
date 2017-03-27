@@ -352,7 +352,7 @@ int main( int argc, char** argv )
 			// factorizations of the transversal elements, we should get overall shorter
 			// factorizations of any element.
 
-			uint oldDepth = stabChain->Depth();
+			/*uint oldDepth = stabChain->Depth();
 
 			// Note: We can't eliminate the first group, because we need its generators
 			//       to solve the factorization problem.
@@ -361,7 +361,7 @@ int main( int argc, char** argv )
 			delete group;
 
 			uint newDepth = stabChain->Depth();
-			newDepth = 0;
+			newDepth = 0;*/
 		}
 
 		stabChain->group->NameGenerators();

@@ -539,16 +539,9 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 	return true;
 }
 
-// The idea here is taken from Minkwitz.
-//
-// In thinking about this, it might be better to completely optimize one entire transversal set
-// of a subgroup of the chain, before doing any element below that in the chain.  Alternatively,
-// instead of storing words with each permutation, you could just make a big tree out of all
-// transversal elements in the chain.  That way, if transversal element A was formulated using
-// transversal element B, and then later, B gets optimized, then so will A.
-//
-// Anyhow, I'm not sure I'm motivated to put any more effort into this until perhaps I've got some intriguing
-// theory on paper that might significantly improve the process.
+// The idea here is taken from Minkwitz.  I found another good paper by Egner and Puschel that
+// gives some more great ideas for filling in the traversal sets with short words.  Of particular
+// value in that paper, however, is the idea of "trembling."
 bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
 {
 	std::ostream* logStream = stabChain->logStream;
