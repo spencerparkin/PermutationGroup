@@ -346,6 +346,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 7, 23, 16, 14 );
 			generatorSet.insert( permutation );
 
+			// +X
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 1, 31 );
 			permutation.DefineCycle( 2, 28 );
@@ -357,6 +358,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 13, 25 );
 			generatorSet.insert( permutation );
 
+			// +Z
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 0, 28 );
 			permutation.DefineCycle( 1, 29 );
@@ -366,6 +368,30 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 6, 18 );
 			permutation.DefineCycle( 5, 17 );
 			permutation.DefineCycle( 4, 16 );
+			generatorSet.insert( permutation );
+
+			// -X
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 30 );
+			permutation.DefineCycle( 3, 29 );
+			permutation.DefineCycle( 10, 22 );
+			permutation.DefineCycle( 15, 27 );
+			permutation.DefineCycle( 14, 26 );
+			permutation.DefineCycle( 21, 18 );
+			permutation.DefineCycle( 20, 17 );
+			permutation.DefineCycle( 19, 16 );
+			generatorSet.insert( permutation );
+
+			// -Z
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 2, 30 );
+			permutation.DefineCycle( 3, 31 );
+			permutation.DefineCycle( 9, 21 );
+			permutation.DefineCycle( 8, 20 );
+			permutation.DefineCycle( 7, 19 );
+			permutation.DefineCycle( 11, 14 );
+			permutation.DefineCycle( 15, 12 );
+			permutation.DefineCycle( 10, 13 );
 			generatorSet.insert( permutation );
 
 			baseArray.push_back( 5 );
