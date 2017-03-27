@@ -11,6 +11,7 @@ enum Puzzle
 	Rubiks2x2x2,
 	Rubiks3x3x3,
 	Rubiks2x3x3,
+	Rubiks2x2x3,
 };
 
 int main( int argc, char** argv )
@@ -21,7 +22,7 @@ int main( int argc, char** argv )
 	Permutation permutation;
 	UintArray baseArray;
 	const char* fileName = nullptr;
-	Puzzle puzzle = Rubiks3x3x3;
+	Puzzle puzzle = Rubiks2x2x3;
 	PermutationSet generatorSet;
 
 	stabChain->logStream = &std::cout;
@@ -328,6 +329,61 @@ int main( int argc, char** argv )
 			baseArray.push_back( 39 );
 
 			fileName = "Rubiks2x3x3.txt";
+
+			break;
+		}
+		case Rubiks2x2x3:
+		{
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 1, 2, 3 );
+			permutation.DefineCycle( 4, 11, 19, 26 );
+			permutation.DefineCycle( 9, 10, 18, 25 );
+			generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 28, 29, 30, 31 );
+			permutation.DefineCycle( 6, 22, 21, 13 );
+			permutation.DefineCycle( 7, 23, 16, 14 );
+			generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 1, 31 );
+			permutation.DefineCycle( 2, 28 );
+			permutation.DefineCycle( 4, 7 );
+			permutation.DefineCycle( 6, 9 );
+			permutation.DefineCycle( 5, 8 );
+			permutation.DefineCycle( 11, 23 );
+			permutation.DefineCycle( 12, 24 );
+			permutation.DefineCycle( 13, 25 );
+			generatorSet.insert( permutation );
+
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 28 );
+			permutation.DefineCycle( 1, 29 );
+			permutation.DefineCycle( 26, 23 );
+			permutation.DefineCycle( 27, 24 );
+			permutation.DefineCycle( 22, 25 );
+			permutation.DefineCycle( 6, 18 );
+			permutation.DefineCycle( 5, 17 );
+			permutation.DefineCycle( 4, 16 );
+			generatorSet.insert( permutation );
+
+			baseArray.push_back( 5 );
+			baseArray.push_back( 12 );
+			baseArray.push_back( 20 );
+			baseArray.push_back( 27 );
+
+			baseArray.push_back( 25 );
+			baseArray.push_back( 9 );
+			baseArray.push_back( 10 );
+			baseArray.push_back( 18 );
+
+			baseArray.push_back( 23 );
+			baseArray.push_back( 7 );
+			baseArray.push_back( 14 );
+			baseArray.push_back( 16 );
+
+			fileName = "Rubiks2x2x3.txt";
 
 			break;
 		}
