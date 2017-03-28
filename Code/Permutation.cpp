@@ -206,21 +206,22 @@ uint Permutation::Order( void ) const
 void Permutation::SetCopy( const Permutation& permutation )
 {
 	permutation.GetCopy( *this );
-
-	if( permutation.word )
-	{
-		delete word;
-		word = new ElementList;
-
-		for( ElementList::const_iterator iter = permutation.word->cbegin(); iter != permutation.word->cend(); iter++ )
-			word->push_back( *iter );
-	}
 }
 
 void Permutation::GetCopy( Permutation& permutation ) const
 {
 	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
 		permutation.map[i] = map[i];
+
+	delete permutation.word;
+	permutation.word = nullptr;
+
+	if( word )
+	{
+		permutation.word = new ElementList;
+		for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
+			permutation.word->push_back( *iter );
+	}
 }
 
 bool Permutation::SetInverse( const Permutation& permutation )
@@ -330,7 +331,8 @@ void Permutation::Print( std::ostream& ostream, bool isCycle /*= false*/ ) const
 	if( !isCycle )
 	{
 		std::string name = GetName();
-		ostream << name << " = ";
+		if( name.length() > 0 )
+			ostream << name << " = ";
 
 		PermutationList permutationList;
 		if( !Factor( permutationList ) )
@@ -421,7 +423,7 @@ std::string Permutation::GetName( void ) const
 	std::stringstream stream;
 
 	if( word->size() == 0 )
-		stream << "identity";
+		stream << "";
 	else
 	{
 		for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
@@ -478,10 +480,10 @@ std::string Permutation::MakeKeyForLexigraphicCompare( void ) const
 
 bool Permutation::GetToJsonValue( rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator ) const
 {
-	rapidjson::Value wordArray( rapidjson::kArrayType );
-
 	if( word )
 	{
+		rapidjson::Value wordArray( rapidjson::kArrayType );
+
 		for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
 		{
 			const Element& element = *iter;
@@ -494,9 +496,9 @@ bool Permutation::GetToJsonValue( rapidjson::Value& value, rapidjson::Document::
 			elementValue.AddMember( "exponent", element.exponent, allocator );
 			wordArray.PushBack( elementValue, allocator );
 		}
-	}
 
-	value.AddMember( "word", wordArray, allocator );
+		value.AddMember( "word", wordArray, allocator );
+	}
 
 	// We could certainly store this more compactly.
 	rapidjson::Value mapArray( rapidjson::kArrayType );

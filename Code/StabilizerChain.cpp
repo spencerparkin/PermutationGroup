@@ -452,15 +452,17 @@ bool StabilizerChain::Group::FactorInverseWithTrembling( const Permutation& perm
 			product.Multiply( permutation, trembler );
 
 			Permutation invProduct;
+			invProduct.word = new ElementList;
 			if( !FactorInverse( product, invProduct ) )
 				return false;
 
 			Permutation altInvPermutation;
+			altInvPermutation.word = new ElementList;
 			altInvPermutation.Multiply( trembler, invProduct );
 
 			altInvPermutation.CompressWord( compressInfo );
 
-			if( altInvPermutation.word->size() < invProduct.word->size() )
+			if( altInvPermutation.word->size() < invPermutation.word->size() )
 			{
 				optimizationMade = true;
 				altInvPermutation.GetCopy( invPermutation );

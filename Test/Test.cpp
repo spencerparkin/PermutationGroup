@@ -22,7 +22,7 @@ int main( int argc, char** argv )
 	Permutation permutation;
 	UintArray baseArray;
 	const char* fileName = nullptr;
-	Puzzle puzzle = Rubiks2x2x3;
+	Puzzle puzzle = Rubiks3x3x3;
 	PermutationSet generatorSet;
 
 	stabChain->logStream = &std::cout;
