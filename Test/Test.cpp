@@ -427,31 +427,24 @@ int main( int argc, char** argv )
 	{
 		stabChain->Print( std::cout );
 
-		if( puzzle == Rubiks3x3x3 )
-		{
-			// At the expense of making it harder to name all transversal elements,
-			// shorten the chain to some extent.  Then, presuming we find good
-			// factorizations of the transversal elements, we should get overall shorter
-			// factorizations of any element.
-
-			/*uint oldDepth = stabChain->Depth();
-
-			// Note: We can't eliminate the first group, because we need its generators
-			//       to solve the factorization problem.
-			StabilizerChain::Group* group = stabChain->GetSubGroupAtDepth( oldDepth - 2 );
-			group->Eliminate();
-			delete group;
-
-			uint newDepth = stabChain->Depth();
-			newDepth = 0;*/
-		}
-
 		stabChain->group->NameGenerators();
 
 		CompressInfo compressInfo;
 		stabChain->group->MakeCompressInfo( compressInfo );
 
+		// TODO: Generalize this routine so that it takes a spigot of words.
+		//       One kind of spigot just spits out the group elements shortest-words-first.
+		//       Another kind spits out conjugates, another commutators, etc.
 		stabChain->group->OptimizeNames( compressInfo, 10.0 * 60.0 );
+
+		if( puzzle == Rubiks3x3x3 )
+		{
+			// TODO: Now go shorten the chain here.  By doing so, we incur a memory cost, but
+			//       the quality of the chain in terms of the factorizations it produces is
+			//       not affected.  Once shortened, then we could go throw a bunch of conjugates
+			//       and commutators and conjugates of commutators at it to try to get it optimized
+			//       further, but without the pressure of needing to fill the entire chain.
+		}
 
 		std::string jsonString;
 		stabChain->SaveToJsonString( jsonString );

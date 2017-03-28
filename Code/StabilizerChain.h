@@ -11,6 +11,10 @@
 
 typedef std::vector< uint > UintArray;
 
+// One idea that would certainly reduce factorization sizes is to use a stabilizer tree, instead of a chain.
+// This would come at high memory cost, unless the tree wasn't as full as it could be.  In any case, the sifting
+// process could make a decision about which branch of the tree to go down in order to minimize collisions with
+// transversal elements.
 class StabilizerChain
 {
 public:
