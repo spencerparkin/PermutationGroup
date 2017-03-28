@@ -11,6 +11,8 @@
 
 typedef std::vector< uint > UintArray;
 
+class PermutationStabGroupStream;
+
 // One idea that would certainly reduce factorization sizes is to use a stabilizer tree, instead of a chain.
 // This would come at high memory cost, unless the tree wasn't as full as it could be.  In any case, the sifting
 // process could make a decision about which branch of the tree to go down in order to minimize collisions with
@@ -68,7 +70,6 @@ public:
 		bool StabilizesPoint( uint point ) const;
 		void NameGenerators( void );
 		bool MakeCompressInfo( CompressInfo& compressInfo );
-		bool OptimizeNames( const CompressInfo& compressInfo, double timeOutSec = 60.0 );
 		bool OptimizeNameWithPermutation( Permutation& permutation, const CompressInfo& compressInfo );
 		uint CountUnnamedRepresentatives( void ) const;
 		uint CountAllUnnamedRepresentatives( void ) const;
@@ -85,6 +86,8 @@ public:
 		Group* superGroup;
 		StabilizerChain* stabChain;
 	};
+
+	bool OptimizeNames( PermutationStabGroupStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0 );
 
 	Group* group;
 	UintArray baseArray;

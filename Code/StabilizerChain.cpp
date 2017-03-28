@@ -1,6 +1,7 @@
 // StabilizerChain.cpp
 
 #include "StabilizerChain.h"
+#include "PermutationStream.h"
 #include <time.h>
 #include <rapidjson/writer.h>
 
@@ -591,83 +592,46 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 // elements.  He knew he could stop when the product of the lengths of all transversal sets
 // was equal the group order.  More ideas for filling in the transversal element words can
 // be found in a paper by Egner and Puschel.
-bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
+bool StabilizerChain::OptimizeNames( PermutationStabGroupStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
 {
-	std::ostream* logStream = stabChain->logStream;
-
-	Group* group = this;
-	while( group )
+	Group* subGroup = group;
+	while( subGroup )
 	{
-		// The identity element must be used as a coset representative, so give it a name now.
-		for( PermutationSet::iterator iter = group->transversalSet.begin(); iter != group->transversalSet.end(); iter++ )
+		// The identity element must be used as a coset representative, so give it
+		// a name now that is sure not to be replaced by anything else.
+		for( PermutationSet::iterator iter = subGroup->transversalSet.begin(); iter != subGroup->transversalSet.end(); iter++ )
 		{
 			const Permutation& permutation = *iter;
 			if( permutation.IsIdentity() && !permutation.word )
 			{
-				group->transversalSet.erase( iter );
+				subGroup->transversalSet.erase( iter );
 				Permutation identity;
 				identity.word = new ElementList;
-				group->transversalSet.insert( identity );
+				subGroup->transversalSet.insert( identity );
 				break;
 			}
 		}
 
-		group = group->subGroup;
+		subGroup = subGroup->subGroup;
 	}
-
-	PermutationSet processedSet;
-	OrderedPermutationSet permutationQueue;
-	Permutation identity;
-	identity.word = new ElementList;
-	permutationQueue.insert( identity );
 
 	clock_t lastOptimizationTime = clock();
 	uint allUnnamedCount = -1;
 
-	while( permutationQueue.size() > 0 )
+	Permutation permutation;
+	while( permutationStream.OutputPermutation( permutation ) )
 	{
-		OrderedPermutationSet::iterator iter = permutationQueue.begin();
-		Permutation permutation = *iter;
-		permutationQueue.erase( iter );
-
-		/*if( logStream )
-		{
-			*logStream << "Trying...\n";
-			permutation.Print( *logStream );
-		}*/
-
-		if( OptimizeNameWithPermutation( permutation, compressInfo ) )
+		if( group->OptimizeNameWithPermutation( permutation, compressInfo ) )
 		{
 			lastOptimizationTime = clock();
 
-			allUnnamedCount = CountAllUnnamedRepresentatives();
+			allUnnamedCount = group->CountAllUnnamedRepresentatives();
 			if( logStream )
 				*logStream << "Unnamed count: " << allUnnamedCount << "\n";
 		}
 
-		processedSet.insert( permutation );
-		
-		for( PermutationSet::iterator genIter = generatorSet.begin(); genIter != generatorSet.end(); genIter++ )
-		{
-			const Permutation& generator = *genIter;
-
-			Permutation newPermutation;
-			newPermutation.Multiply( permutation, generator );
-
-			newPermutation.CompressWord( compressInfo );
-
-			if( processedSet.find( newPermutation ) == processedSet.end() &&
-				permutationQueue.find( newPermutation ) == permutationQueue.end() )
-			{
-				permutationQueue.insert( newPermutation );
-			}
-		}
-
 		clock_t currentTime = clock();
 		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
-
-		if( elapsedTimeSec > timeOutSec && CountUnnamedRepresentatives() == 0 )
-			break;
 
 		// When this count goes to zero, we can bail at any time, but by staying in longer,
 		// we can hopefully optimize more representatives.  Ideally we could get all of them
@@ -675,29 +639,6 @@ bool StabilizerChain::Group::OptimizeNames( const CompressInfo& compressInfo, do
 		if( elapsedTimeSec > timeOutSec && allUnnamedCount == 0 )
 			break;
 	}
-
-	stabChain->Print( *logStream );
-
-	processedSet.clear();
-	permutationQueue.clear();
-
-	/*
-	uint unnamedCount = CountAllUnnamedRepresentatives();
-	if( unnamedCount > 0 )
-	{
-		group = this;
-		while( group && group->CountUnnamedRepresentatives() == 0 )
-			group = group->subGroup;
-
-		if( !group )
-			return false;
-
-		// This won't work, because the generators for this sub-group
-		// would have to have factorizations in terms of the original generators.
-		// If we carried them through using Schreier's lemma, they would be huge!
-		// We might consider just moving one step down the chain to narrow the search.
-		return group->OptimizeNames( compressInfo );
-	}*/
 
 	return true;
 }

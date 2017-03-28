@@ -4,6 +4,7 @@
 #include <fstream>
 #include <time.h>
 #include "StabilizerChain.h"
+#include "PermutationStream.h"
 
 enum Puzzle
 {
@@ -432,27 +433,53 @@ int main( int argc, char** argv )
 		CompressInfo compressInfo;
 		stabChain->group->MakeCompressInfo( compressInfo );
 
-		// TODO: Generalize this routine so that it takes a spigot of words.
-		//       One kind of spigot just spits out the group elements shortest-words-first.
-		//       Another kind spits out conjugates, another commutators, etc.
-		stabChain->group->OptimizeNames( compressInfo, 10.0 * 60.0 );
+		PermutationWordStream wordStream( stabChain->group, &compressInfo );
 
-		if( puzzle == Rubiks3x3x3 )
+		if( stabChain->OptimizeNames( wordStream, compressInfo, 20.0 ) )
 		{
-			// TODO: Now go shorten the chain here.  By doing so, we incur a memory cost, but
-			//       the quality of the chain in terms of the factorizations it produces is
-			//       not affected.  Once shortened, then we could go throw a bunch of conjugates
-			//       and commutators and conjugates of commutators at it to try to get it optimized
-			//       further, but without the pressure of needing to fill the entire chain.
-		}
+			if( puzzle == Rubiks3x3x3 )
+			{
+				uint i = 1;
+				while( true )
+				{
+					StabilizerChain::Group* group = stabChain->GetSubGroupAtDepth(i);
+					if( !group )
+						break;
 
-		std::string jsonString;
-		stabChain->SaveToJsonString( jsonString );
+					if( !group->Eliminate() )
+						break;
+
+					delete group;
+					i++;
+				}
+
+				// At a fairly high memory cost, we have just shortened the chain, but
+				// maybe we can now optimize much further using conjugates and commutators?
+
+				PermutationCommutatorStream commutatorStream;
+
+				wordStream.Reset();
+				wordStream.LoadPermutationArray( commutatorStream.permutationArray, 32 );
+
+				PermutationConjugateStream conjugateStream( stabChain->group, &compressInfo );
+
+				commutatorStream.LoadPermutationArray( conjugateStream.permutationArray, 512 );
+				
+				if( stabChain->OptimizeNames( conjugateStream, compressInfo, 60.0 ) )
+				{
+					// TODO: It would be nice to track the maximum word size across the chain,
+					//       and maybe the maximum word size per subgroup.
+				}
+			}
+
+			std::string jsonString;
+			stabChain->SaveToJsonString( jsonString );
 		
-		std::fstream fstream;
-		fstream.open( fileName, std::fstream::out );
-		fstream << jsonString;
-		fstream.close();
+			std::fstream fstream;
+			fstream.open( fileName, std::fstream::out );
+			fstream << jsonString;
+			fstream.close();
+		}
 	}
 
 	getchar();

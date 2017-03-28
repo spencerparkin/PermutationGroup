@@ -22,9 +22,11 @@
     <ClCompile Include="Code\FactorGroup.cpp" />
     <ClCompile Include="Code\NaturalNumberSet.cpp" />
     <ClCompile Include="Code\Permutation.cpp" />
+    <ClCompile Include="Code\PermutationStream.cpp" />
     <ClCompile Include="Code\StabilizerChain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Code\PermutationStream.h" />
     <ClInclude Include="Code\FactorGroup.h" />
     <ClInclude Include="Code\NaturalNumberSet.h" />
     <ClInclude Include="Code\Permutation.h" />
