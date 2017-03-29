@@ -230,6 +230,40 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 15, 39, 31, 23 );
 			generatorSet.insert( permutation );
 
+			// The following would not normally be needed except
+			// that my program lets the user move the middle slices,
+			// and it's hard to pretend that doing so is a pair of
+			// face turns.  So what we have here isn't the official
+			// Rubik's Cube group, but it is necessary for my program
+			// to work properly.  Essentially what it means is that
+			// I consider different orientations of the puzzles as
+			// different states as well.
+
+			// X slice
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 17, 41, 38, 1 );
+			permutation.DefineCycle( 22, 46, 33, 6 );
+			permutation.DefineCycle( 50, 48, 52, 53 );
+			generatorSet.insert( permutation );
+
+			// Y slice
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 20, 28, 36, 12 );
+			permutation.DefineCycle( 19, 27, 35, 11 );
+			permutation.DefineCycle( 50, 51, 52, 49 );
+			generatorSet.insert( permutation );
+
+			// Z slice
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 44, 25, 3, 14 );
+			permutation.DefineCycle( 43, 30, 4, 9 );
+			permutation.DefineCycle( 48, 51, 53, 49 );
+			generatorSet.insert( permutation );
+
+			// Stabilize 2 of the 3 centers to get all centers stabilized.
+			baseArray.push_back( 51 );
+			baseArray.push_back( 53 );
+
 			// Stabilize corners...
 			baseArray.push_back( 5 );
 			baseArray.push_back( 7 );
@@ -435,7 +469,7 @@ int main( int argc, char** argv )
 
 		PermutationWordStream wordStream( stabChain->group, &compressInfo );
 
-		if( stabChain->OptimizeNames( wordStream, compressInfo, 20.0 ) )
+		if( stabChain->OptimizeNames( wordStream, compressInfo, 60.0 ) )
 		{
 			if( puzzle == Rubiks3x3x3 )
 			{
@@ -453,19 +487,27 @@ int main( int argc, char** argv )
 					i++;
 				}
 
+				// TODO: There is a bug here.  If I stop here and kick out the stab-chain file,
+				//       it should work.  But if we continue with further optimization, it won't.
+				//       The problem is that when we shortened the chain, we failed to indicate
+				//       that certain groups became stabilizers of more than one point.  We have
+				//       to generalize the stabilizer subgroups to more than one point before we
+				//       can continue here, and that shouldn't be very hard to do.
+
 				// At a fairly high memory cost, we have just shortened the chain, but
 				// maybe we can now optimize much further using conjugates and commutators?
 
 				PermutationCommutatorStream commutatorStream;
 
 				wordStream.Reset();
-				wordStream.LoadPermutationArray( commutatorStream.permutationArray, 32 );
+				wordStream.LoadPermutationArray( commutatorStream.permutationArray, 64 );
 
 				PermutationConjugateStream conjugateStream( stabChain->group, &compressInfo );
 
-				commutatorStream.LoadPermutationArray( conjugateStream.permutationArray, 512 );
-				
-				if( stabChain->OptimizeNames( conjugateStream, compressInfo, 60.0 ) )
+				commutatorStream.LoadPermutationArray( conjugateStream.permutationArray, 1024 );
+				conjugateStream.Reset();
+
+				if( stabChain->OptimizeNames( conjugateStream, compressInfo, 10 * 60.0 ) )
 				{
 					// TODO: It would be nice to track the maximum word size across the chain,
 					//       and maybe the maximum word size per subgroup.

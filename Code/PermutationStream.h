@@ -87,6 +87,7 @@ public:
 	PermutationConjugateStream( StabilizerChain::Group* group, const CompressInfo* compressInfo );
 	virtual ~PermutationConjugateStream( void );
 
+	virtual bool Reset( void ) override;
 	virtual bool OutputPermutation( Permutation& permutation ) override;
 
 	PermutationArray permutationArray;
@@ -106,6 +107,7 @@ public:
 	PermutationCommutatorStream( void );
 	virtual ~PermutationCommutatorStream( void );
 
+	virtual bool Reset( void ) override;
 	virtual bool OutputPermutation( Permutation& permutation ) override;
 
 	PermutationArray permutationArray;

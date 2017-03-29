@@ -10,7 +10,7 @@ FactorGroup::FactorGroup( void )
 {
 }
 
-// This is lame.
+// This is lame.  I should look up the Todd-Coxeter algorithm.
 void FactorGroup::Generate( const PermutationSet& generatorSet, std::ostream* ostream /*= nullptr*/ )
 {
 	PermutationSet processedSet;

@@ -157,26 +157,43 @@ PermutationConjugateStream::PermutationConjugateStream( StabilizerChain::Group* 
 {
 }
 
+/*virtual*/ bool PermutationConjugateStream::Reset( void )
+{
+	if( !PermutationWordStream::Reset() )
+		return false;
+
+	i = permutationArray.size();
+	return true;
+}
+
 /*virtual*/ bool PermutationConjugateStream::OutputPermutation( Permutation& permutation )
 {
-	if( i >= permutationArray.size() )
+	do
 	{
-		if( !PermutationWordStream::OutputPermutation( conjugatingPermutation ) )
-			return false;
+		if( i >= permutationArray.size() )
+		{
+			do
+			{
+				if( !PermutationWordStream::OutputPermutation( conjugatingPermutation ) )
+					return false;
+			}
+			while( conjugatingPermutation.IsIdentity() );
 
-		conjugatingPermutation.GetInverse( invConjugatingPermutation );
+			conjugatingPermutation.GetInverse( invConjugatingPermutation );
 
-		i = 0;
+			i = 0;
+		}
+
+		const Permutation& conjugatedPermutation = permutationArray[i];
+
+		Permutation product;
+		product.Multiply( conjugatingPermutation, conjugatedPermutation );
+
+		permutation.Multiply( product, invConjugatingPermutation );
+
+		i++;
 	}
-
-	const Permutation& conjugatedPermutation = permutationArray[i];
-
-	Permutation product;
-	product.Multiply( conjugatingPermutation, conjugatedPermutation );
-
-	permutation.Multiply( product, invConjugatingPermutation );
-
-	i++;
+	while( permutation.IsIdentity() );
 
 	return true;
 }
@@ -187,40 +204,51 @@ PermutationConjugateStream::PermutationConjugateStream( StabilizerChain::Group* 
 
 PermutationCommutatorStream::PermutationCommutatorStream( void )
 {
-	i = j = 0;
+	Reset();
 }
 
 /*virtual*/ PermutationCommutatorStream::~PermutationCommutatorStream( void )
 {
 }
 
+/*virtual*/ bool PermutationCommutatorStream::Reset( void )
+{
+	i = j = 0;
+	return true;
+}
+
 /*virtual*/ bool PermutationCommutatorStream::OutputPermutation( Permutation& permutation )
 {
-	if( i >= permutationArray.size() )
+	do
 	{
-		if( j >= permutationArray.size() )
-			return false;
+		if( i >= permutationArray.size() )
+		{
+			if( j >= permutationArray.size() )
+				return false;
 
-		i = 0;
-		j++;
+			i = 0;
+			j++;
+		}
+
+		const Permutation& permutationA = permutationArray[i];
+		const Permutation& permutationB = permutationArray[j];
+
+		Permutation invPermutationA, invPermutationB;
+
+		permutationA.GetInverse( invPermutationA );
+		permutationB.GetInverse( invPermutationB );
+
+		Permutation productA, productB;
+
+		productA.Multiply( permutationA, permutationB );
+		productB.Multiply( invPermutationA, invPermutationB );
+
+		permutation.Multiply( productA, productB );
+
+		i++;
 	}
+	while( permutation.IsIdentity() );
 
-	const Permutation& permutationA = permutationArray[i];
-	const Permutation& permutationB = permutationArray[j];
-
-	Permutation invPermutationA, invPermutationB;
-
-	permutationA.GetInverse( invPermutationA );
-	permutationB.GetInverse( invPermutationB );
-
-	Permutation productA, productB;
-
-	productA.Multiply( permutationA, permutationB );
-	productB.Multiply( invPermutationA, invPermutationB );
-
-	permutation.Multiply( productA, productB );
-
-	i++;
 	return true;
 }
 
