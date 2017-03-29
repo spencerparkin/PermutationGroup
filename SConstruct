@@ -6,7 +6,7 @@ obj_env = Environment()
 obj_env.Append( CCFLAGS = '--std=c++11' )
 obj_env.Append( CCFLAGS = '-DLINUX' )
 obj_env.Append( CCFLAGS = '-I../rapidjson/include' )
-obj_env.Append( CCFLAGS = '-I../../rapidjson/include' )
+obj_env.Append( CCFLAGS = '-I../../rapidjson/src/include' )
 #obj_env.Append( CCFLAGS = '-ggdb' )
 
 cpp_source_list = Glob( 'Code/*.cpp' )
