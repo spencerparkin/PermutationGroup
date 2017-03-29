@@ -35,6 +35,19 @@ uint Permutation::Evaluate( uint input ) const
 	return output;
 }
 
+bool Permutation::Stabilizes( const NaturalNumberSet& set ) const
+{
+	for( NaturalNumberSet::UintSet::const_iterator iter = set.set.cbegin(); iter != set.set.cend(); iter++ )
+	{
+		uint inputPoint = *iter;
+		uint outputPoint = Evaluate( inputPoint );
+		if( inputPoint != outputPoint )
+			return false;
+	}
+
+	return true;
+}
+
 void Permutation::DefineIdentity( void )
 {
 	for( int i = 0; i < MAX_MAP_SIZE; i++ )

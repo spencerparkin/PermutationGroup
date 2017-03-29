@@ -67,7 +67,11 @@ bool StabilizerChain::LoadFromJsonString( const std::string& jsonString )
 	baseArray.clear();
 	rapidjson::Value baseArrayValue = doc[ "baseArray" ].GetArray();
 	for( uint i = 0; i < baseArrayValue.Size(); i++ )
-		baseArray.push_back( baseArrayValue[i].GetInt() );
+	{
+		NaturalNumberSet stabilizerPointSet;
+		stabilizerPointSet.SetFromJsonValue( baseArrayValue[i] );
+		baseArray.push_back( stabilizerPointSet );
+	}
 
 	return true;
 }
@@ -88,7 +92,11 @@ bool StabilizerChain::SaveToJsonString( std::string& jsonString ) const
 
 	rapidjson::Value baseArrayValue( rapidjson::kArrayType );
 	for( uint i = 0; i < baseArray.size(); i++ )
-		baseArrayValue.PushBack( baseArray[i], doc.GetAllocator() );
+	{
+		rapidjson::Value setValue( rapidjson::kArrayType );
+		baseArray[i].GetToJsonValue( setValue, doc.GetAllocator() );
+		baseArrayValue.PushBack( setValue, doc.GetAllocator() );
+	}
 
 	doc.AddMember( "baseArray", baseArrayValue, doc.GetAllocator() );
 
@@ -106,7 +114,11 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 {
 	this->baseArray.clear();
 	for( uint i = 0; i < baseArray.size(); i++ )
-		this->baseArray.push_back( baseArray[i] );
+	{
+		NaturalNumberSet singletonSet;
+		singletonSet.AddMember( baseArray[i] );
+		this->baseArray.push_back( singletonSet );
+	}
 
 	delete group;
 	group = new Group( this, nullptr, 0 );
@@ -179,7 +191,9 @@ StabilizerChain::Group::Group( StabilizerChain* stabChain, Group* superGroup, ui
 void StabilizerChain::Group::Print( std::ostream& ostream ) const
 {
 	ostream << "-----------------------------------------\n";
-	ostream << "Group has sub-group stabilizing: " << GetSubgroupStabilizerPoint() << "\n";
+	ostream << "Group has sub-group stabilizing:\n";
+
+	GetSubgroupStabilizerPointSet().Print( ostream );
 
 	ostream << "Generator set:\n";
 
@@ -195,15 +209,20 @@ void StabilizerChain::Group::Print( std::ostream& ostream ) const
 		subGroup->Print( ostream );
 }
 
-uint StabilizerChain::Group::GetSubgroupStabilizerPoint( void ) const
+const NaturalNumberSet& StabilizerChain::Group::GetSubgroupStabilizerPointSet( void ) const
 {
 	return stabChain->baseArray[ stabilizerOffset ];
 }
 
-StabilizerChain::Group* StabilizerChain::Group::Eliminate( void )
+bool StabilizerChain::Group::Eliminate( void )
 {
 	if( !subGroup )
-		return nullptr;
+		return false;
+
+	const NaturalNumberSet& sourcePointSet = GetSubgroupStabilizerPointSet();
+	NaturalNumberSet& destinationPointSet = stabChain->baseArray[ subGroup->stabilizerOffset ];
+	for( NaturalNumberSet::UintSet::const_iterator iter = sourcePointSet.set.cbegin(); iter != sourcePointSet.set.cend(); iter++ )
+		destinationPointSet.AddMember( *iter );
 
 	std::vector< const Permutation* > permutationArray;
 
@@ -241,7 +260,7 @@ StabilizerChain::Group* StabilizerChain::Group::Eliminate( void )
 	}
 
 	subGroup = nullptr;
-	return this;
+	return true;
 }
 
 long long StabilizerChain::Group::Order( void ) const
@@ -275,12 +294,16 @@ bool StabilizerChain::Group::Extend( const Permutation& generator )
 	bool fresh = false;
 	if( !rootNode )
 	{
+		const NaturalNumberSet& stabilizerPointSet = GetSubgroupStabilizerPointSet();
+		if( !stabilizerPointSet.Cardinality() == 1 )
+			return false;
+
 		// The root of the orbit tree must be the identity to satisfy a requirement of Schreier's lemma.
 		Permutation identity;
 		transversalSet.insert( identity );
 		PermutationSet::iterator iter = transversalSet.find( identity );
 		rootNode = new OrbitNode( &( *iter ) );
-		orbitSet.AddMember( GetSubgroupStabilizerPoint() );
+		orbitSet.AddMember( *stabilizerPointSet.set.begin() );
 		fresh = true;
 	}
 
@@ -366,7 +389,7 @@ bool StabilizerChain::Group::StabilizesPoint( uint point ) const
 
 PermutationSet::iterator StabilizerChain::Group::FindCoset( const Permutation& permutation )
 {
-	uint stabilizerPoint = GetSubgroupStabilizerPoint();
+	const NaturalNumberSet& stabilizerPointSet = GetSubgroupStabilizerPointSet();
 
 	Permutation invPermutation;
 	invPermutation.SetInverse( permutation );
@@ -379,8 +402,7 @@ PermutationSet::iterator StabilizerChain::Group::FindCoset( const Permutation& p
 		Permutation product;
 		product.Multiply( cosetRepresentative, invPermutation );
 
-		uint point = product.Evaluate( stabilizerPoint );
-		if( point == stabilizerPoint )
+		if( product.Stabilizes( stabilizerPointSet ) )
 			break;
 
 		iter++;
@@ -404,8 +426,8 @@ bool StabilizerChain::Group::IsMember( const Permutation& permutation ) const
 
 bool StabilizerChain::Group::FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const
 {
-	uint stabilizerPoint = GetSubgroupStabilizerPoint();
-	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
+	const NaturalNumberSet& stabilizerPointSet = GetSubgroupStabilizerPointSet();
+	if( permutation.Stabilizes( stabilizerPointSet ) )
 	{
 		if( !subGroup )
 			return true;
@@ -648,8 +670,8 @@ bool StabilizerChain::Group::OptimizeNameWithPermutation( Permutation& permutati
 	if( !permutation.word )
 		return false;
 
-	uint stabilizerPoint = GetSubgroupStabilizerPoint();
-	if( permutation.Evaluate( stabilizerPoint ) == stabilizerPoint )
+	const NaturalNumberSet& stabilizerPointSet = GetSubgroupStabilizerPointSet();
+	if( permutation.Stabilizes( stabilizerPointSet ) )
 	{
 		if( !subGroup )
 			return false;
@@ -728,7 +750,16 @@ StabilizerChain::OrbitNode::~OrbitNode( void )
 
 bool StabilizerChain::OrbitNode::Grow( Group* group, const PermutationSet& generatorSet, const PermutationSet& singletonSet, bool fresh, OrbitNodeArray& newOrbitArray )
 {
-	uint stabilizerPoint = group->GetSubgroupStabilizerPoint();
+	// The orbit-stabilizer theorem does not generalize to stabilizer subgroups of multiple points.
+	// I did, however, find a generalization of the orbit-stabilizer theorem for permutations
+	// that stabilize a set of points.  Unfortunately, I couldn't see how that could be useful to me.
+	// In any case, the chain can be constructed in the traditional manner, then shortened to get the
+	// desired result anyway.
+	const NaturalNumberSet& stabilizerPointSet = group->GetSubgroupStabilizerPointSet();
+	if( stabilizerPointSet.Cardinality() != 1 )
+		return false;
+
+	uint stabilizerPoint = *stabilizerPointSet.set.begin();
 
 	const PermutationSet* permutationSet = &generatorSet;
 	if( !fresh )

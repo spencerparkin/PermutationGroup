@@ -4,8 +4,14 @@
 
 #include <set>
 #include <iostream>
+#include <vector>
+#include <rapidjson/document.h>
 
 typedef unsigned int uint;
+
+class NaturalNumberSet;
+
+typedef std::vector< NaturalNumberSet > NaturalNumberSetArray;
 
 //------------------------------------------------------------------------------------------
 //                                    NaturalNumberSet
@@ -16,6 +22,7 @@ class NaturalNumberSet
 public:
 
 	NaturalNumberSet( void );
+	NaturalNumberSet( const NaturalNumberSet& set );
 	virtual ~NaturalNumberSet( void );
 
 	bool IsEmpty( void ) const;
@@ -24,6 +31,9 @@ public:
 	void RemoveMember( uint x );
 	void RemoveAllMembers( void );
 	void Print( std::ostream& ostream ) const;
+
+	void GetToJsonValue( rapidjson::Value& setValue, rapidjson::Document::AllocatorType& allocator ) const;
+	void SetFromJsonValue( /*const*/ rapidjson::Value& setValue );
 
 	uint Cardinality( void ) const;
 

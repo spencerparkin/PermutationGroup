@@ -60,12 +60,12 @@ public:
 		virtual ~Group( void );
 
 		bool Extend( const Permutation& generator );
-		Group* Eliminate( void );
+		bool Eliminate( void );		// If successful, the caller owns the group memory and should delete it if they don't want it.
 		bool IsMember( const Permutation& permutation ) const;
 		bool FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const;
 		bool FactorInverseWithTrembling( const Permutation& permutation, Permutation& invPermutation, const PermutationSet& trembleSet, const CompressInfo& compressInfo ) const;
 		PermutationSet::iterator FindCoset( const Permutation& permutation );
-		uint GetSubgroupStabilizerPoint( void ) const;
+		const NaturalNumberSet& GetSubgroupStabilizerPointSet( void ) const;
 		void Print( std::ostream& ostream ) const;
 		bool StabilizesPoint( uint point ) const;
 		void NameGenerators( void );
@@ -90,7 +90,7 @@ public:
 	bool OptimizeNames( PermutationStabGroupStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0 );
 
 	Group* group;
-	UintArray baseArray;
+	NaturalNumberSetArray baseArray;
 	std::ostream* logStream;
 };
 

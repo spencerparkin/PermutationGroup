@@ -11,6 +11,11 @@ NaturalNumberSet::NaturalNumberSet( void )
 {
 }
 
+NaturalNumberSet::NaturalNumberSet( const NaturalNumberSet& set )
+{
+	Copy( set );
+}
+
 /*virtual*/ NaturalNumberSet::~NaturalNumberSet( void )
 {
 }
@@ -176,6 +181,19 @@ void NaturalNumberSet::Print( std::ostream& ostream ) const
 		iter = nextIter;
 	}
 	ostream << "}\n";
+}
+
+void NaturalNumberSet::GetToJsonValue( rapidjson::Value& setValue, rapidjson::Document::AllocatorType& allocator ) const
+{
+	for( UintSet::const_iterator iter = set.cbegin(); iter != set.cend(); iter++ )
+		setValue.PushBack( *iter, allocator );
+}
+
+void NaturalNumberSet::SetFromJsonValue( /*const*/ rapidjson::Value& setValue )
+{
+	RemoveAllMembers();
+	for( uint i = 0; i < setValue.Size(); i++ )
+		AddMember( setValue[i].GetUint() );
 }
 
 // NaturalNumberSet.cpp

@@ -487,13 +487,6 @@ int main( int argc, char** argv )
 					i++;
 				}
 
-				// TODO: There is a bug here.  If I stop here and kick out the stab-chain file,
-				//       it should work.  But if we continue with further optimization, it won't.
-				//       The problem is that when we shortened the chain, we failed to indicate
-				//       that certain groups became stabilizers of more than one point.  We have
-				//       to generalize the stabilizer subgroups to more than one point before we
-				//       can continue here, and that shouldn't be very hard to do.
-
 				// At a fairly high memory cost, we have just shortened the chain, but
 				// maybe we can now optimize much further using conjugates and commutators?
 

@@ -63,6 +63,7 @@ public:
 	virtual ~Permutation( void );
 
 	uint Evaluate( uint input ) const;
+	bool Stabilizes( const NaturalNumberSet& set ) const;
 	bool Define( uint input, uint output );
 	bool DefineCycle( uint a, uint b );
 	bool DefineCycle( uint a, uint b, uint c );
