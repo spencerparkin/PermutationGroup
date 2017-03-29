@@ -3,6 +3,7 @@
 #pragma once
 
 #include <set>
+#include <iostream>
 
 typedef unsigned int uint;
 

@@ -39,3 +39,6 @@ enc_temp_folder/
 *.aux
 *.log
 *.synctex.gz
+
+# Scons crap...
+.*.dblite
