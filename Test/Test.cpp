@@ -492,7 +492,7 @@ int main( int argc, char** argv )
 
 				PermutationCommutatorStream commutatorStream;
 
-				// TODO: We need to generate some 2nd and 3rd order commutators.
+				// TODO: We need to generate some 2nd and 3rd order commutators.  Use more streams to get it done.
 				wordStream.Reset();
 				wordStream.LoadPermutationArray( commutatorStream.permutationArray, 64 );
 
@@ -507,7 +507,9 @@ int main( int argc, char** argv )
 					//       maximum word size that can be produced by the chain.  This is the sum
 					//       of the largest word in each transversal.  It might not be hard to prove
 					//       that the product of these transversals gives us the worst possible case.
-					//       What what we'd be calculating is actually the tightest upper-bound.
+					//       Then what we'd be calculating is actually the tightest upper-bound.
+					//       We could also calculate an average word length by generating random group
+					//       elements, and then send them through the chain.
 				}
 			}
 
