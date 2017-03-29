@@ -492,6 +492,7 @@ int main( int argc, char** argv )
 
 				PermutationCommutatorStream commutatorStream;
 
+				// TODO: We need to generate some 2nd and 3rd order commutators.
 				wordStream.Reset();
 				wordStream.LoadPermutationArray( commutatorStream.permutationArray, 64 );
 
@@ -502,8 +503,11 @@ int main( int argc, char** argv )
 
 				if( stabChain->OptimizeNames( conjugateStream, compressInfo, 10 * 60.0 ) )
 				{
-					// TODO: It would be nice to track the maximum word size across the chain,
-					//       and maybe the maximum word size per subgroup.
+					// TODO: Write a method of the stab-chain that will return an upper-bound on the
+					//       maximum word size that can be produced by the chain.  This is the sum
+					//       of the largest word in each transversal.  It might not be hard to prove
+					//       that the product of these transversals gives us the worst possible case.
+					//       What what we'd be calculating is actually the tightest upper-bound.
 				}
 			}
 
