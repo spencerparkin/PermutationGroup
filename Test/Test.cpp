@@ -487,8 +487,10 @@ int main( int argc, char** argv )
 					i++;
 				}
 
-				// At a fairly high memory cost, we have just shortened the chain, but
-				// maybe we can now optimize much further using conjugates and commutators?
+				// The idea here is that if N < M, then the shortest possible words in a WSC of length N
+				// is going to give, on average, shorter factorizations than the shortest possible words in
+				// a WSC of length M.  The real question is whether we can actually find the shortest words
+				// for a WSC of any length.
 
 				PermutationCommutatorStream commutatorStream;
 
