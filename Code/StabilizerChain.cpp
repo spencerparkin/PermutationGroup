@@ -117,7 +117,7 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 	uint size = generatorSet.size();
 	uint count = 0;
 
-	for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
+	for( PermutationSet::const_iterator iter = generatorSet.cbegin(); iter != generatorSet.cend(); iter++ )
 	{
 		const Permutation& generator = *iter;
 

@@ -39,7 +39,7 @@ void FactorGroup::Generate( const PermutationSet& generatorSet, std::ostream* os
 			cosetRepresentativeSet.insert( permutation );
 		}
 
-		for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
+		for( PermutationSet::const_iterator iter = generatorSet.cbegin(); iter != generatorSet.cend(); iter++ )
 		{
 			const Permutation& generator = *iter;
 
