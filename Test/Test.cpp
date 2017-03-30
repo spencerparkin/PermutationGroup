@@ -494,6 +494,9 @@ int main( int argc, char** argv )
 
 				PermutationCommutatorStream commutatorStream;
 
+				// TODO: Study the commutator subgroup.  Is there a way to enumerate all of its elements
+				//       from smallest word to largest word?  Or, equivilanetly, from low order to large order.
+
 				// TODO: We need to generate some 2nd and 3rd order commutators.  Use more streams to get it done.
 				wordStream.Reset();
 				wordStream.LoadPermutationArray( commutatorStream.permutationArray, 64 );
