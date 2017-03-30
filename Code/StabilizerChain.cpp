@@ -263,13 +263,13 @@ bool StabilizerChain::Group::Eliminate( void )
 	return true;
 }
 
-long long StabilizerChain::Group::Order( void ) const
+unsigned long long StabilizerChain::Group::Order( void ) const
 {
-	long long subGroupIndex = transversalSet.size();
-	long long subGroupOrder = 1;
+	unsigned long long subGroupIndex = transversalSet.size();
+	unsigned long long subGroupOrder = 1;
 	if( subGroup )
 		subGroupOrder = subGroup->Order();
-	long long groupOrder = subGroupIndex * subGroupOrder;
+	unsigned long long groupOrder = subGroupIndex * subGroupOrder;
 	return groupOrder;
 }
 

@@ -75,7 +75,7 @@ public:
 		uint CountAllUnnamedRepresentatives( void ) const;
 		bool LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue );
 		bool SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator ) const;
-		long long Order( void ) const;
+		unsigned long long Order( void ) const;
 
 		NaturalNumberSet orbitSet;
 		OrbitNode* rootNode;
