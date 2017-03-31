@@ -263,6 +263,8 @@ bool StabilizerChain::Group::Eliminate( void )
 	return true;
 }
 
+// Note: Here we're limited to integer arithematic mod 2^64, which is not sufficient
+//       to calculate the order of the Rubik's Cube group!
 unsigned long long StabilizerChain::Group::Order( void ) const
 {
 	unsigned long long subGroupIndex = transversalSet.size();
