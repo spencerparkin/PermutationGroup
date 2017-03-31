@@ -158,6 +158,10 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 		subGroup = subGroup->subGroup;
 	}
 
+	// TODO: Unless we can do this inside the Extend method, here we should
+	//       remove the redundant sub-groups we have in the chain.  These are
+	//       the subgroups that have a transversal set of size one.
+
 	return true;
 }
 
