@@ -13,6 +13,7 @@ enum Puzzle
 	Rubiks3x3x3,
 	Rubiks2x3x3,
 	Rubiks2x2x3,
+	SymGroup,
 };
 
 int main( int argc, char** argv )
@@ -23,13 +24,29 @@ int main( int argc, char** argv )
 	Permutation permutation;
 	UintArray baseArray;
 	const char* fileName = nullptr;
-	Puzzle puzzle = Rubiks3x3x3;
+	Puzzle puzzle = SymGroup;
 	PermutationSet generatorSet;
 
 	stabChain->logStream = &std::cout;
 
 	switch( puzzle )
 	{
+		case SymGroup:
+		{
+			uint count = 8;
+
+			for( uint i = 0; i < count - 1; i++ )
+			{
+				permutation.DefineIdentity();
+				permutation.DefineCycle( i, i + 1 );
+				generatorSet.insert( permutation );
+			}
+
+			for( uint i = 0; i < count; i++ )
+				baseArray.push_back(i);
+
+			break;
+		}
 		case Bubbloid3x3x3:
 		{
 			permutation.DefineIdentity();
@@ -460,6 +477,8 @@ int main( int argc, char** argv )
 
 	if( success )
 	{
+		unsigned long long order = stabChain->group->Order();
+
 		stabChain->Print( std::cout );
 
 		stabChain->group->NameGenerators();
