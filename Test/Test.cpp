@@ -52,8 +52,9 @@ int main( int argc, char** argv )
 		{
 			// TODO: I think this is actually wrong, and would not model the MixupCube as a permutation group.
 			//       The problem is vertices shared between faces that slip past one another.  Try again, but
-			//       number the faces, not the vertices.  The group may turn out to be much smaller too, which
-			//       would be a bonus.
+			//       number the faces, not the vertices.  To do this, subdivide the faces so that they become
+			//       consistent.  We can imagine the cube being deformed as its moved, even if this isn't the
+			//       physical reality of the puzzle.
 
 			// +Y face
 			permutation.DefineIdentity();
