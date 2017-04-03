@@ -50,6 +50,11 @@ int main( int argc, char** argv )
 		}
 		case MixupCube:
 		{
+			// TODO: I think this is actually wrong, and would not model the MixupCube as a permutation group.
+			//       The problem is vertices shared between faces that slip past one another.  Try again, but
+			//       number the faces, not the vertices.  The group may turn out to be much smaller too, which
+			//       would be a bonus.
+
 			// +Y face
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 0, 1, 2, 3 );
