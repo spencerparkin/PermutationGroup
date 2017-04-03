@@ -110,6 +110,14 @@ bool Permutation::DefineCycle( uint a, uint b, uint c, uint d, uint e )
 	return true;
 }
 
+bool Permutation::DefineCycleArray( const uint* cycleArray, uint cycleArraySize )
+{
+	for( uint i = 0; i < cycleArraySize; i++ )
+		if( !Define( cycleArray[i], cycleArray[ ( i + 1 ) % cycleArraySize ] ) )
+			return false;
+	return true;
+}
+
 std::size_t Permutation::CalcHash( void ) const
 {
 	std::stringstream stream;

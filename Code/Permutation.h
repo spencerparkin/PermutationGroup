@@ -69,6 +69,7 @@ public:
 	bool DefineCycle( uint a, uint b, uint c );
 	bool DefineCycle( uint a, uint b, uint c, uint d );
 	bool DefineCycle( uint a, uint b, uint c, uint d, uint e );
+	bool DefineCycleArray( const uint* cycleArray, uint cycleArraySize );
 	void DefineIdentity( void );
 	bool IsValid( void ) const;
 	bool IsEven( void ) const;

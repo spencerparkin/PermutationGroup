@@ -13,6 +13,7 @@ enum Puzzle
 	Rubiks3x3x3,
 	Rubiks2x3x3,
 	Rubiks2x2x3,
+	MixupCube,
 	SymGroup,
 };
 
@@ -24,7 +25,7 @@ int main( int argc, char** argv )
 	Permutation permutation;
 	UintArray baseArray;
 	const char* fileName = nullptr;
-	Puzzle puzzle = SymGroup;
+	Puzzle puzzle = MixupCube;
 	PermutationSet generatorSet;
 
 	stabChain->logStream = &std::cout;
@@ -44,6 +45,99 @@ int main( int argc, char** argv )
 
 			for( uint i = 0; i < count; i++ )
 				baseArray.push_back(i);
+
+			break;
+		}
+		case MixupCube:
+		{
+			// +Y face
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 1, 2, 3 );
+			permutation.DefineCycle( 26, 28, 31, 25 );
+			permutation.DefineCycle( 27, 29, 30, 24 );
+			permutation.DefineCycle( 19, 4, 21, 14 );
+			permutation.DefineCycle( 18, 7, 20, 13 );
+			permutation.DefineCycle( 39, 36, 34, 33 );
+			generatorSet.insert( permutation );
+
+			// -Y face
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 8, 9, 10, 11 );
+			permutation.DefineCycle( 45, 42, 46, 41 );
+			permutation.DefineCycle( 44, 43, 47, 40 );
+			permutation.DefineCycle( 17, 12, 23, 6 );
+			permutation.DefineCycle( 16, 15, 22, 5 );
+			permutation.DefineCycle( 32, 35, 37, 38 );
+			generatorSet.insert( permutation );
+
+			// +X face
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 12, 13, 14, 15 );
+			permutation.DefineCycle( 32, 24, 34, 43 );
+			permutation.DefineCycle( 33, 25, 35, 42 );
+			permutation.DefineCycle( 16, 0, 20, 10 );
+			permutation.DefineCycle( 19, 3, 23, 9 );
+			permutation.DefineCycle( 26, 30, 46, 44 );
+			generatorSet.insert( permutation );
+
+			// -X face
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 4, 5, 6, 7 );
+			permutation.DefineCycle( 39, 40, 37, 29 );
+			permutation.DefineCycle( 38, 41, 36, 28 );
+			permutation.DefineCycle( 18, 8, 22, 2 );
+			permutation.DefineCycle( 17, 11, 12, 1 );
+			permutation.DefineCycle( 45, 47, 31, 27 );
+			generatorSet.insert( permutation );
+
+			// +Z face
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 20, 21, 22, 23 );
+			permutation.DefineCycle( 30, 36, 47, 35 );
+			permutation.DefineCycle( 31, 37, 46, 34 );
+			permutation.DefineCycle( 3, 7, 11, 15 );
+			permutation.DefineCycle( 2, 6, 10, 14 );
+			permutation.DefineCycle( 29, 41, 43, 25 );
+			generatorSet.insert( permutation );
+
+			// -Z face
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 16, 17, 18, 19 );
+			permutation.DefineCycle( 44, 38, 27, 33 );
+			permutation.DefineCycle( 45, 39, 26, 32 );
+			permutation.DefineCycle( 9, 5, 1, 13 );
+			permutation.DefineCycle( 8, 4, 0, 12 );
+			permutation.DefineCycle( 40, 28, 24, 42 );
+			generatorSet.insert( permutation );
+
+			// +X middle slice
+			permutation.DefineIdentity();
+			uint xSliceArrayA[] = { 0, 3, 30, 20, 23, 46, 10, 9, 44, 16, 19, 26 };
+			permutation.DefineCycleArray( xSliceArrayA, 12 );
+			uint xSliceArrayB[] = { 1, 2, 31, 21, 22, 47, 11, 8, 45, 17, 18, 27 };
+			permutation.DefineCycleArray( xSliceArrayB, 12 );
+			generatorSet.insert( permutation );
+
+			// +Y middle slice
+			permutation.DefineIdentity();
+			uint ySliceArrayA[] = { 21, 20, 34, 14, 13, 33, 19, 18, 39, 4, 7, 36 };
+			permutation.DefineCycleArray( ySliceArrayA, 12 );
+			uint ySliceArrayB[] = { 22, 23, 35, 15, 12, 32, 16, 17, 38, 5, 6, 37 };
+			permutation.DefineCycleArray( ySliceArrayB, 12 );
+			generatorSet.insert( permutation );
+
+			// +Z middle slice
+			permutation.DefineIdentity();
+			uint zSliceArrayA[] = { 3, 2, 29, 7, 6, 41, 11, 10, 43, 15, 14, 25 };
+			permutation.DefineCycleArray( zSliceArrayA, 12 );
+			uint zSliceArrayB[] = { 0, 1, 28, 4, 5, 40, 8, 9, 42, 12, 13, 24 };
+			permutation.DefineCycleArray( zSliceArrayB, 12 );
+			generatorSet.insert( permutation );
+
+			for( uint i = 0; i < 48; i++ )
+				baseArray.push_back(i);
+
+			fileName = "MixupCube.txt";
 
 			break;
 		}

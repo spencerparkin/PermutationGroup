@@ -133,6 +133,9 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 	{
 		const Permutation& generator = *iter;
 
+		if( !generator.IsValid() )
+			return false;
+
 		if( logStream )
 		{
 			count++;
