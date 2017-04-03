@@ -44,6 +44,11 @@ StabilizerChain::Group* StabilizerChain::GetSubGroupAtDepth( uint depth )
 	return foundGroup;
 }
 
+const StabilizerChain::Group* StabilizerChain::GetSubGroupAtDepth( uint depth ) const
+{
+	return const_cast< StabilizerChain* >( this )->GetSubGroupAtDepth( depth );
+}
+
 bool StabilizerChain::LoadFromJsonString( const std::string& jsonString )
 {
 	delete group;
@@ -635,7 +640,7 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 // elements.  He knew he could stop when the product of the lengths of all transversal sets
 // was equal the group order.  More ideas for filling in the transversal element words can
 // be found in a paper by Egner and Puschel.
-bool StabilizerChain::OptimizeNames( PermutationStabGroupStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
+bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
 {
 	Group* subGroup = group;
 	while( subGroup )

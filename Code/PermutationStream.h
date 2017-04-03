@@ -27,6 +27,37 @@ public:
 };
 
 //------------------------------------------------------------------------------------------
+//                                PermutationProductStream
+//------------------------------------------------------------------------------------------
+
+// This could be used in conjunction with a stabilizer chain to enumerate
+// all elements of a group without being limited by memory, only by running
+// time.  It also has some other uses too in other contexts.
+class PermutationProductStream : public PermutationStream
+{
+public:
+
+	PermutationProductStream( void );
+	virtual ~PermutationProductStream( void );
+
+	virtual bool Reset( void ) override;
+	virtual bool OutputPermutation( Permutation& permutation ) override;
+
+	void Configure( const StabilizerChain* stabChain );
+	void Clear( void );
+
+	struct Component
+	{
+		uint offset;
+		PermutationConstPtrArray* permutationArray;
+	};
+
+	typedef std::vector< Component > ComponentArray;
+	ComponentArray componentArray;
+	bool wrapped;
+};
+
+//------------------------------------------------------------------------------------------
 //								  PermutationFifoStream
 //------------------------------------------------------------------------------------------
 
@@ -44,33 +75,42 @@ public:
 };
 
 //------------------------------------------------------------------------------------------
-//                               PermutationStabGroupStream
+//                              PermutationFreeGroupStream
 //------------------------------------------------------------------------------------------
 
-class PermutationStabGroupStream : public PermutationStream
+// This may not actually generate a free group on N symbols exactly as such is defined,
+// but it is an alternative to the PermutationWordStream that won't use up a ton of memory.
+class PermutationFreeGroupStream : public PermutationStream
 {
 public:
 
-	PermutationStabGroupStream( StabilizerChain::Group* group );
-	virtual ~PermutationStabGroupStream( void );
+	PermutationFreeGroupStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo );
+	virtual ~PermutationFreeGroupStream( void );
 
-	StabilizerChain::Group* group;
+	virtual bool Reset( void ) override;
+	virtual bool OutputPermutation( Permutation& permutation ) override;
+
+	PermutationArray generatorArray;
+	const CompressInfo* compressInfo;
+	uint wordSize;
+	PermutationProductStream* productStream;
 };
 
 //------------------------------------------------------------------------------------------
 //                               PermutationWordStream
 //------------------------------------------------------------------------------------------
 
-class PermutationWordStream : public PermutationStabGroupStream
+class PermutationWordStream : public PermutationStream
 {
 public:
 
-	PermutationWordStream( StabilizerChain::Group* group, const CompressInfo* compressInfo );
+	PermutationWordStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo );
 	virtual ~PermutationWordStream( void );
 
 	virtual bool Reset( void ) override;
 	virtual bool OutputPermutation( Permutation& permutation ) override;
 
+	const PermutationSet* generatorSet;
 	const CompressInfo* compressInfo;
 	PermutationSet processedSet;
 	OrderedPermutationSet permutationQueue;
@@ -84,7 +124,7 @@ class PermutationConjugateStream : public PermutationWordStream
 {
 public:
 
-	PermutationConjugateStream( StabilizerChain::Group* group, const CompressInfo* compressInfo );
+	PermutationConjugateStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo );
 	virtual ~PermutationConjugateStream( void );
 
 	virtual bool Reset( void ) override;

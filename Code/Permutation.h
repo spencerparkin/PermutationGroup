@@ -16,6 +16,7 @@ class Permutation;
 typedef std::list< Permutation > PermutationList;
 typedef std::map< std::string, Permutation > PermutationMap;
 typedef std::vector< Permutation > PermutationArray;
+typedef std::vector< const Permutation* > PermutationConstPtrArray;
 typedef std::unordered_set< Permutation > PermutationSet;
 typedef std::set< Permutation > OrderedPermutationSet;
 

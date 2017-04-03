@@ -47,6 +47,158 @@ void PermutationStream::UnloadPermutationArray( const PermutationArray& permutat
 }
 
 //------------------------------------------------------------------------------------------
+//                                PermutationProductStream
+//------------------------------------------------------------------------------------------
+
+PermutationProductStream::PermutationProductStream( void )
+{
+	wrapped = false;
+}
+
+/*virtual*/ PermutationProductStream::~PermutationProductStream( void )
+{
+	Clear();
+}
+
+void PermutationProductStream::Clear( void )
+{
+	for( uint i = 0; i < componentArray.size(); i++ )
+		delete componentArray[i].permutationArray;
+	componentArray.clear();
+}
+
+/*virtual*/ bool PermutationProductStream::Reset( void )
+{
+	for( uint i = 0; i < componentArray.size(); i++ )
+		componentArray[i].offset = 0;
+	return true;
+}
+
+/*virtual*/ bool PermutationProductStream::OutputPermutation( Permutation& permutation )
+{
+	permutation.DefineIdentity();
+	delete permutation.word;
+	permutation.word = new ElementList;
+	uint i;
+	for( i = 0; i < componentArray.size(); i++ )
+		permutation.MultiplyOnRight( *( *componentArray[i].permutationArray )[ componentArray[i].offset ] );
+
+	wrapped = false;
+	for( i = 0; i < componentArray.size(); i++ )
+	{
+		Component* component = &componentArray[i];
+		component->offset++;
+		if( component->offset < component->permutationArray->size() )
+			break;
+		component->offset = 0;
+	}
+
+	if( i == componentArray.size() )
+		wrapped = true;
+
+	return true;
+}
+
+void PermutationProductStream::Configure( const StabilizerChain* stabChain )
+{
+	Clear();
+
+	uint depth = stabChain->Depth();
+
+	for( uint i = 0; i < depth; i++ )
+	{
+		const StabilizerChain::Group* subGroup = stabChain->GetSubGroupAtDepth( depth - 1 - i );
+
+		Component component;
+		component.offset = 0;
+		component.permutationArray = new PermutationConstPtrArray;
+
+		for( PermutationSet::const_iterator iter = subGroup->transversalSet.cbegin(); iter != subGroup->transversalSet.cend(); iter++ )
+			component.permutationArray->push_back( &( *iter ) );
+
+		componentArray.push_back( component );
+	}
+}
+
+//------------------------------------------------------------------------------------------
+//                              PermutationFreeGroupStream
+//------------------------------------------------------------------------------------------
+
+PermutationFreeGroupStream::PermutationFreeGroupStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo )
+{
+	for( PermutationSet::const_iterator iter = generatorSet->cbegin(); iter != generatorSet->cend(); iter++ )
+	{
+		const Permutation& generator = *iter;
+
+		Permutation invGenerator;
+		generator.GetInverse( invGenerator );
+
+		generatorArray.push_back( generator );
+		generatorArray.push_back( invGenerator );
+	}
+
+	this->compressInfo = compressInfo;
+	productStream = nullptr;
+	wordSize = 0;
+}
+
+/*virtual*/ PermutationFreeGroupStream::~PermutationFreeGroupStream( void )
+{
+	delete productStream;
+}
+
+/*virtual*/ bool PermutationFreeGroupStream::Reset( void )
+{
+	delete productStream;
+	productStream = nullptr;
+	wordSize = 0;
+	return true;
+}
+
+/*virtual*/ bool PermutationFreeGroupStream::OutputPermutation( Permutation& permutation )
+{
+	if( !productStream )
+	{
+		if( wordSize == 0 )
+		{
+			permutation.DefineIdentity();
+			wordSize++;
+			return true;
+		}
+		else
+		{
+			productStream = new PermutationProductStream();
+
+			for( uint i = 0; i < wordSize; i++ )
+			{
+				PermutationProductStream::Component component;
+				component.offset = 0;
+				component.permutationArray = new PermutationConstPtrArray;
+
+				for( uint j = 0; j < generatorArray.size(); j++ )
+					component.permutationArray->push_back( &generatorArray[j] );
+
+				productStream->componentArray.push_back( component );
+			}
+
+			wordSize++;
+		}
+	}
+
+	if( !productStream->OutputPermutation( permutation ) )
+		return false;
+
+	if( productStream->wrapped )
+	{
+		delete productStream;
+		productStream = nullptr;
+	}
+
+	permutation.CompressWord( *compressInfo );
+	return true;
+}
+
+//------------------------------------------------------------------------------------------
 //								  PermutationFifoStream
 //------------------------------------------------------------------------------------------
 
@@ -75,24 +227,12 @@ PermutationFifoStream::PermutationFifoStream( void )
 }
 
 //------------------------------------------------------------------------------------------
-//                               PermutationStabGroupStream
-//------------------------------------------------------------------------------------------
-
-PermutationStabGroupStream::PermutationStabGroupStream( StabilizerChain::Group* group )
-{
-	this->group = group;
-}
-
-/*virtual*/ PermutationStabGroupStream::~PermutationStabGroupStream( void )
-{
-}
-
-//------------------------------------------------------------------------------------------
 //                               PermutationWordStream
 //------------------------------------------------------------------------------------------
 
-PermutationWordStream::PermutationWordStream( StabilizerChain::Group* group, const CompressInfo* compressInfo ) : PermutationStabGroupStream( group )
+PermutationWordStream::PermutationWordStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo )
 {
+	this->generatorSet = generatorSet;
 	this->compressInfo = compressInfo;
 
 	Reset();
@@ -125,7 +265,7 @@ PermutationWordStream::PermutationWordStream( StabilizerChain::Group* group, con
 
 	processedSet.insert( permutation );
 
-	for( PermutationSet::const_iterator genIter = group->generatorSet.cbegin(); genIter != group->generatorSet.cend(); genIter++ )
+	for( PermutationSet::const_iterator genIter = generatorSet->cbegin(); genIter != generatorSet->cend(); genIter++ )
 	{
 		const Permutation& generator = *genIter;
 
@@ -148,7 +288,7 @@ PermutationWordStream::PermutationWordStream( StabilizerChain::Group* group, con
 //                                PermutationConjugateStream
 //------------------------------------------------------------------------------------------
 
-PermutationConjugateStream::PermutationConjugateStream( StabilizerChain::Group* group, const CompressInfo* compressInfo ) : PermutationWordStream( group, compressInfo )
+PermutationConjugateStream::PermutationConjugateStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo ) : PermutationWordStream( generatorSet, compressInfo )
 {
 	i = permutationArray.size();
 }

@@ -580,10 +580,13 @@ int main( int argc, char** argv )
 		CompressInfo compressInfo;
 		stabChain->group->MakeCompressInfo( compressInfo );
 
-		PermutationWordStream wordStream( stabChain->group, &compressInfo );
+		//PermutationWordStream wordStream( stabChain->group, &compressInfo );
 
-		if( stabChain->OptimizeNames( wordStream, compressInfo, 60.0 ) )
+		PermutationFreeGroupStream freeGroupStream( &stabChain->group->generatorSet, &compressInfo );
+
+		if( stabChain->OptimizeNames( freeGroupStream, compressInfo, 60.0 ) )
 		{
+#if 0
 			if( puzzle == Rubiks3x3x3 )
 			{
 				uint i = 1;
@@ -630,6 +633,7 @@ int main( int argc, char** argv )
 					//       elements, and then send them through the chain.
 				}
 			}
+#endif
 
 			std::string jsonString;
 			stabChain->SaveToJsonString( jsonString );

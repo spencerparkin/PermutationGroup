@@ -11,7 +11,7 @@
 
 typedef std::vector< uint > UintArray;
 
-class PermutationStabGroupStream;
+class PermutationStream;
 
 // One idea that would certainly reduce factorization sizes is to use a stabilizer tree, instead of a chain.
 // This would come at high memory cost, unless the tree wasn't as full as it could be.  In any case, the sifting
@@ -33,6 +33,7 @@ public:
 	bool SaveToJsonString( std::string& jsonString ) const;
 	uint Depth( void ) const;
 	Group* GetSubGroupAtDepth( uint depth );
+	const Group* GetSubGroupAtDepth( uint depth ) const;
 
 	class OrbitNode;
 	class Group;
@@ -87,7 +88,7 @@ public:
 		StabilizerChain* stabChain;
 	};
 
-	bool OptimizeNames( PermutationStabGroupStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0 );
+	bool OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0 );
 
 	Group* group;
 	NaturalNumberSetArray baseArray;
