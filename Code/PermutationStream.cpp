@@ -285,111 +285,101 @@ PermutationWordStream::PermutationWordStream( const PermutationSet* generatorSet
 }
 
 //------------------------------------------------------------------------------------------
-//                                PermutationConjugateStream
+//                                PermutationRandomStream
 //------------------------------------------------------------------------------------------
 
-PermutationConjugateStream::PermutationConjugateStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo ) : PermutationWordStream( generatorSet, compressInfo )
+PermutationRandomStream::PermutationRandomStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo ) : conjugateStream( generatorSet, compressInfo ), nonCommutatorStream( generatorSet, compressInfo )
 {
-	i = permutationArray.size();
+	maxCommutatorDepth = 4;
+	maxConjugateCount = 32;
+	currentConjugateCount = 1024;
 }
 
-/*virtual*/ PermutationConjugateStream::~PermutationConjugateStream( void )
+/*virtual*/ PermutationRandomStream::~PermutationRandomStream( void )
 {
 }
 
-/*virtual*/ bool PermutationConjugateStream::Reset( void )
+/*virtual*/ bool PermutationRandomStream::OutputPermutation( Permutation& permutation )
 {
-	if( !PermutationWordStream::Reset() )
+	if( currentConjugateCount >= maxConjugateCount )
+	{
+		for( uint i = 0; i < 32; i++ )
+		{
+			if( !nonCommutatorStream.OutputPermutation( permutation ) )
+				return false;
+			nonCommutatorPool.push_back( permutation );
+		}
+
+		GenerateRandomCommutator( randomCommutator, RandomInteger( 0, maxCommutatorDepth ) );
+		currentConjugateCount = 0;
+		conjugateStream.Reset();
+	}
+
+	Permutation conjugator;
+	if( !conjugateStream.OutputPermutation( conjugator ) )
 		return false;
 
-	i = permutationArray.size();
+	Permutation invConjugator;
+	conjugator.GetInverse( invConjugator );
+
+	permutation.Multiply( conjugator, randomCommutator );
+	permutation.MultiplyOnRight( invConjugator );
+
+	currentConjugateCount++;
 	return true;
 }
 
-/*virtual*/ bool PermutationConjugateStream::OutputPermutation( Permutation& permutation )
+uint PermutationRandomStream::RandomInteger( uint min, uint max )
 {
-	do
+	uint r = rand();
+	double t = double(r) / double( RAND_MAX );
+	r = uint( double( min ) + t * double( max - min ) );
+	if( r < min )
+		r = min;
+	if( r > max )
+		r = max;
+	return r;
+}
+
+void PermutationRandomStream::GenerateRandomCommutator( Permutation& commutator, uint depth )
+{
+	if( depth == 0 )
 	{
-		if( i >= permutationArray.size() )
-		{
-			do
-			{
-				if( !PermutationWordStream::OutputPermutation( conjugatingPermutation ) )
-					return false;
-			}
-			while( conjugatingPermutation.IsIdentity() );
-
-			conjugatingPermutation.GetInverse( invConjugatingPermutation );
-
-			i = 0;
-		}
-
-		const Permutation& conjugatedPermutation = permutationArray[i];
-
-		Permutation product;
-		product.Multiply( conjugatingPermutation, conjugatedPermutation );
-
-		permutation.Multiply( product, invConjugatingPermutation );
-
-		i++;
+		uint i = RandomInteger( 0, nonCommutatorPool.size() - 1 );
+		commutator.SetCopy( nonCommutatorPool[i] );
 	}
-	while( permutation.IsIdentity() );
-
-	return true;
-}
-
-//------------------------------------------------------------------------------------------
-//                                PermutationCommutatorStream
-//------------------------------------------------------------------------------------------
-
-PermutationCommutatorStream::PermutationCommutatorStream( void )
-{
-	Reset();
-}
-
-/*virtual*/ PermutationCommutatorStream::~PermutationCommutatorStream( void )
-{
-}
-
-/*virtual*/ bool PermutationCommutatorStream::Reset( void )
-{
-	i = j = 0;
-	return true;
-}
-
-/*virtual*/ bool PermutationCommutatorStream::OutputPermutation( Permutation& permutation )
-{
-	do
+	else
 	{
-		if( i >= permutationArray.size() )
+		do
 		{
-			if( j >= permutationArray.size() )
-				return false;
+			uint flags = RandomInteger( 1, 3 );
+		
+			Permutation permutationA, permutationB;
 
-			i = 0;
-			j++;
+			if( flags & 1 )
+				GenerateRandomCommutator( permutationA, depth - 1 );
+			else
+				GenerateRandomCommutator( permutationA, 0 );
+
+			if( flags & 2 )
+				GenerateRandomCommutator( permutationB, depth - 1 );
+			else
+				GenerateRandomCommutator( permutationB, 0 );
+
+			Permutation invPermutationA, invPermutationB;
+
+			permutationA.GetInverse( invPermutationA );
+			permutationB.GetInverse( invPermutationB );
+
+			Permutation productA, productB;
+
+			productA.Multiply( permutationA, permutationB );
+			productB.Multiply( invPermutationA, invPermutationB );
+
+			commutator.Multiply( productA, productB );
 		}
-
-		const Permutation& permutationA = permutationArray[i];
-		const Permutation& permutationB = permutationArray[j];
-
-		Permutation invPermutationA, invPermutationB;
-
-		permutationA.GetInverse( invPermutationA );
-		permutationB.GetInverse( invPermutationB );
-
-		Permutation productA, productB;
-
-		productA.Multiply( permutationA, permutationB );
-		productB.Multiply( invPermutationA, invPermutationB );
-
-		permutation.Multiply( productA, productB );
-
-		i++;
+		while( commutator.IsIdentity() );
 	}
-	while( permutation.IsIdentity() );
-
-	return true;
 }
 
 // PermutationStream.cpp

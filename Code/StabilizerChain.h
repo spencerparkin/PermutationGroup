@@ -88,7 +88,7 @@ public:
 		StabilizerChain* stabChain;
 	};
 
-	bool OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0 );
+	bool OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0, uint minAllUnnamedCount = 0 );
 
 	Group* group;
 	NaturalNumberSetArray baseArray;

@@ -640,7 +640,7 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 // elements.  He knew he could stop when the product of the lengths of all transversal sets
 // was equal the group order.  More ideas for filling in the transversal element words can
 // be found in a paper by Egner and Puschel.
-bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
+bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/, uint minAllUnnamedCount /*= 0*/ )
 {
 	Group* subGroup = group;
 	while( subGroup )
@@ -684,7 +684,7 @@ bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const
 		// When this count goes to zero, we can bail at any time, but by staying in longer,
 		// we can hopefully optimize more representatives.  Ideally we could get all of them
 		// to be under a certain word length.
-		if( elapsedTimeSec > timeOutSec && allUnnamedCount == 0 )
+		if( elapsedTimeSec > timeOutSec && allUnnamedCount <= minAllUnnamedCount )
 			break;
 	}
 

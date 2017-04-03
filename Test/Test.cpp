@@ -580,68 +580,22 @@ int main( int argc, char** argv )
 		CompressInfo compressInfo;
 		stabChain->group->MakeCompressInfo( compressInfo );
 
-		//PermutationWordStream wordStream( stabChain->group, &compressInfo );
-
 		PermutationFreeGroupStream freeGroupStream( &stabChain->group->generatorSet, &compressInfo );
 
-		if( stabChain->OptimizeNames( freeGroupStream, compressInfo, 60.0 ) )
+		if( stabChain->OptimizeNames( freeGroupStream, compressInfo, 60.0, 0 ) )
 		{
-#if 0
-			if( puzzle == Rubiks3x3x3 )
+			//PermutationRandomStream randomStream( &stabChain->group->generatorSet, &compressInfo );
+
+			//if( stabChain->OptimizeNames( randomStream, compressInfo, 60.0, 0 ) )
 			{
-				uint i = 1;
-				while( true )
-				{
-					StabilizerChain::Group* group = stabChain->GetSubGroupAtDepth(i);
-					if( !group )
-						break;
-
-					if( !group->Eliminate() )
-						break;
-
-					delete group;
-					i++;
-				}
-
-				// The idea here is that if N < M, then the shortest possible words in a WSC of length N
-				// is going to give, on average, shorter factorizations than the shortest possible words in
-				// a WSC of length M.  The real question is whether we can actually find the shortest words
-				// for a WSC of any length.
-
-				PermutationCommutatorStream commutatorStream;
-
-				// TODO: Study the commutator subgroup.  Is there a way to enumerate all of its elements
-				//       from smallest word to largest word?  Or, equivilanetly, from low order to large order.
-
-				// TODO: We need to generate some 2nd and 3rd order commutators.  Use more streams to get it done.
-				wordStream.Reset();
-				wordStream.LoadPermutationArray( commutatorStream.permutationArray, 64 );
-
-				PermutationConjugateStream conjugateStream( stabChain->group, &compressInfo );
-
-				commutatorStream.LoadPermutationArray( conjugateStream.permutationArray, 1024 );
-				conjugateStream.Reset();
-
-				if( stabChain->OptimizeNames( conjugateStream, compressInfo, 10 * 60.0 ) )
-				{
-					// TODO: Write a method of the stab-chain that will return an upper-bound on the
-					//       maximum word size that can be produced by the chain.  This is the sum
-					//       of the largest word in each transversal.  It might not be hard to prove
-					//       that the product of these transversals gives us the worst possible case.
-					//       Then what we'd be calculating is actually the tightest upper-bound.
-					//       We could also calculate an average word length by generating random group
-					//       elements, and then send them through the chain.
-				}
-			}
-#endif
-
-			std::string jsonString;
-			stabChain->SaveToJsonString( jsonString );
+				std::string jsonString;
+				stabChain->SaveToJsonString( jsonString );
 		
-			std::fstream fstream;
-			fstream.open( fileName, std::fstream::out );
-			fstream << jsonString;
-			fstream.close();
+				std::fstream fstream;
+				fstream.open( fileName, std::fstream::out );
+				fstream << jsonString;
+				fstream.close();
+			}
 		}
 	}
 

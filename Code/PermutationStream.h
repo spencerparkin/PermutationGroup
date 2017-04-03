@@ -117,41 +117,29 @@ public:
 };
 
 //------------------------------------------------------------------------------------------
-//                                PermutationConjugateStream
+//                                PermutationRandomStream
 //------------------------------------------------------------------------------------------
 
-class PermutationConjugateStream : public PermutationWordStream
+class PermutationRandomStream : public PermutationStream
 {
 public:
 
-	PermutationConjugateStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo );
-	virtual ~PermutationConjugateStream( void );
+	PermutationRandomStream( const PermutationSet* generatorSet, const CompressInfo* compressInfo );
+	virtual ~PermutationRandomStream( void );
 
-	virtual bool Reset( void ) override;
 	virtual bool OutputPermutation( Permutation& permutation ) override;
 
-	PermutationArray permutationArray;
-	Permutation conjugatingPermutation;
-	Permutation invConjugatingPermutation;
-	uint i;
-};
+	void GenerateRandomCommutator( Permutation& commutator, uint depth );
 
-//------------------------------------------------------------------------------------------
-//                                PermutationCommutatorStream
-//------------------------------------------------------------------------------------------
+	uint RandomInteger( uint min, uint max );
 
-class PermutationCommutatorStream : public PermutationStream
-{
-public:
-
-	PermutationCommutatorStream( void );
-	virtual ~PermutationCommutatorStream( void );
-
-	virtual bool Reset( void ) override;
-	virtual bool OutputPermutation( Permutation& permutation ) override;
-
-	PermutationArray permutationArray;
-	uint i, j;
+	uint maxCommutatorDepth;
+	uint maxConjugateCount;
+	uint currentConjugateCount;
+	Permutation randomCommutator;
+	PermutationArray nonCommutatorPool;
+	PermutationFreeGroupStream conjugateStream;
+	PermutationFreeGroupStream nonCommutatorStream;
 };
 
 // PermutationStream.h
