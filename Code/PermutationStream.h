@@ -4,6 +4,21 @@
 
 #include "StabilizerChain.h"
 
+class PermutationStream;
+
+//------------------------------------------------------------------------------------------
+//                                  PermutationStreamCreator
+//------------------------------------------------------------------------------------------
+class PermutationStreamCreator
+{
+public:
+
+	PermutationStreamCreator( void );
+	virtual ~PermutationStreamCreator( void );
+
+	virtual PermutationStream* CreateForGroup( StabilizerChain::Group* group, const CompressInfo* compressInfo ) = 0;
+};
+
 //------------------------------------------------------------------------------------------
 //                                 PermutationStream
 //------------------------------------------------------------------------------------------

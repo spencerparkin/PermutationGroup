@@ -11,6 +11,7 @@
 
 typedef std::vector< uint > UintArray;
 
+class PermutationStreamCreator;
 class PermutationStream;
 
 // One idea that would certainly reduce factorization sizes is to use a stabilizer tree, instead of a chain.
@@ -77,6 +78,8 @@ public:
 		bool LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue );
 		bool SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator ) const;
 		unsigned long long Order( void ) const;
+		bool FindGeneratorNames( PermutationStream& permutationStream );
+		bool IsSubGroupOf( const Group& group ) const;
 
 		NaturalNumberSet orbitSet;
 		OrbitNode* rootNode;
@@ -88,7 +91,7 @@ public:
 		StabilizerChain* stabChain;
 	};
 
-	bool OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0, uint minAllUnnamedCount = 0 );
+	bool OptimizeNames( PermutationStreamCreator& permutationStreamCreator, const CompressInfo& compressInfo, double timeOutSec = 60.0 );
 
 	Group* group;
 	NaturalNumberSetArray baseArray;

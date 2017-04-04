@@ -586,22 +586,26 @@ int main( int argc, char** argv )
 		CompressInfo compressInfo;
 		stabChain->group->MakeCompressInfo( compressInfo );
 
-		PermutationFreeGroupStream freeGroupStream( &stabChain->group->generatorSet, &compressInfo );
-
-		if( stabChain->OptimizeNames( freeGroupStream, compressInfo, 60.0, 0 ) )
+		class TestPermutationStreamCreator : public PermutationStreamCreator
 		{
-			//PermutationRandomStream randomStream( &stabChain->group->generatorSet, &compressInfo );
-
-			//if( stabChain->OptimizeNames( randomStream, compressInfo, 60.0, 0 ) )
+		public:
+			virtual PermutationStream* CreateForGroup( StabilizerChain::Group* group, const CompressInfo* compressInfo ) override
 			{
-				std::string jsonString;
-				stabChain->SaveToJsonString( jsonString );
-		
-				std::fstream fstream;
-				fstream.open( fileName, std::fstream::out );
-				fstream << jsonString;
-				fstream.close();
+				return new PermutationFreeGroupStream( &group->generatorSet, compressInfo );
 			}
+		};
+
+		TestPermutationStreamCreator streamCreator;
+
+		if( stabChain->OptimizeNames( streamCreator, compressInfo, 20.0 ) )
+		{
+			std::string jsonString;
+			stabChain->SaveToJsonString( jsonString );
+		
+			std::fstream fstream;
+			fstream.open( fileName, std::fstream::out );
+			fstream << jsonString;
+			fstream.close();
 		}
 	}
 

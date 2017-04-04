@@ -80,8 +80,8 @@ public:
 	bool CommutesWith( const Permutation& permutation ) const;
 	uint Order( void ) const;
 	uint CycleOrder( void ) const;
-	void SetCopy( const Permutation& permutation );
-	void GetCopy( Permutation& permutation ) const;
+	void SetCopy( const Permutation& permutation, bool copyWord = true );
+	void GetCopy( Permutation& permutation, bool copyWord = true ) const;
 	bool SetInverse( const Permutation& permutation );
 	bool GetInverse( Permutation& permutation ) const;
 	void Multiply( const Permutation& permutationA, const Permutation& permutationB );

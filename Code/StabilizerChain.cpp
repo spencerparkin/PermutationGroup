@@ -640,7 +640,7 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 // elements.  He knew he could stop when the product of the lengths of all transversal sets
 // was equal the group order.  More ideas for filling in the transversal element words can
 // be found in a paper by Egner and Puschel.
-bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/, uint minAllUnnamedCount /*= 0*/ )
+bool StabilizerChain::OptimizeNames( PermutationStreamCreator& permutationStreamCreator, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
 {
 	Group* subGroup = group;
 	while( subGroup )
@@ -663,32 +663,70 @@ bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const
 		subGroup = subGroup->subGroup;
 	}
 
-	clock_t lastOptimizationTime = clock();
-	uint allUnnamedCount = -1;
+	PermutationStream* permutationStream = permutationStreamCreator.CreateForGroup( group, &compressInfo );
+	if( !permutationStream )
+		return false;
 
-	Permutation permutation;
-	while( permutationStream.OutputPermutation( permutation ) )
+	bool success = true;
+
+	subGroup = group;
+	while( subGroup )
 	{
-		if( group->OptimizeNameWithPermutation( permutation, compressInfo ) )
-		{
-			lastOptimizationTime = clock();
+		clock_t lastOptimizationTime = clock();
+		uint allUnnamedCount = -1;
 
-			allUnnamedCount = group->CountAllUnnamedRepresentatives();
-			if( logStream )
-				*logStream << "Unnamed count: " << allUnnamedCount << "\n";
+		Permutation permutation;
+		while( permutationStream->OutputPermutation( permutation ) )
+		{
+			if( subGroup->OptimizeNameWithPermutation( permutation, compressInfo ) )
+			{
+				lastOptimizationTime = clock();
+
+				allUnnamedCount = group->CountAllUnnamedRepresentatives();
+				if( logStream )
+					*logStream << "Unnamed count: " << allUnnamedCount << "\n";
+			}
+
+			clock_t currentTime = clock();
+			double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
+
+			// We could break when the "allUnnamedCount" is zero, but we stay in longer to hopefully optimize more.
+			if( elapsedTimeSec > timeOutSec && subGroup->CountUnnamedRepresentatives() == 0 )
+				break;
 		}
 
-		clock_t currentTime = clock();
-		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
-
-		// When this count goes to zero, we can bail at any time, but by staying in longer,
-		// we can hopefully optimize more representatives.  Ideally we could get all of them
-		// to be under a certain word length.
-		if( elapsedTimeSec > timeOutSec && allUnnamedCount <= minAllUnnamedCount )
+		if( allUnnamedCount == 0 )
 			break;
+
+		// In this case, we must narrow the search, and the only way I know to do this is
+		// to move the search down the chain.  But to do this, we must name the generators
+		// in the desired subgroup.  Note that we can't narrow the search if we did not
+		// complete the transversal set for this group.  In that case, I guess we're out of luck.
+		if( subGroup->CountUnnamedRepresentatives() != 0 )
+		{
+			success = false;
+			break;
+		}
+		
+		subGroup = subGroup->subGroup;
+		if( subGroup )
+		{
+			delete permutationStream;
+			permutationStream = permutationStreamCreator.CreateForGroup( group, &compressInfo );
+			if( !subGroup->FindGeneratorNames( *permutationStream ) )
+			{
+				success = false;
+				break;
+			}
+
+			delete permutationStream;
+			permutationStream = permutationStreamCreator.CreateForGroup( subGroup, &compressInfo );
+		}
 	}
 
-	return true;
+	delete permutationStream;
+
+	return success;
 }
 
 bool StabilizerChain::Group::OptimizeNameWithPermutation( Permutation& permutation, const CompressInfo& compressInfo )
@@ -761,6 +799,87 @@ uint StabilizerChain::Group::CountAllUnnamedRepresentatives( void ) const
 		count += subGroup->CountAllUnnamedRepresentatives();
 
 	return count;
+}
+
+bool StabilizerChain::Group::FindGeneratorNames( PermutationStream& permutationStream )
+{
+	std::ostream* logStream = stabChain->logStream;
+
+	StabilizerChain subStabChain;
+
+	Group* subGroup = this;
+	while( subGroup )
+	{
+		const NaturalNumberSet& stabilizerPointSet = subGroup->GetSubgroupStabilizerPointSet();
+		if( stabilizerPointSet.Cardinality() != 1 )
+			return false;
+
+		NaturalNumberSet singletonSet;
+		singletonSet.AddMember( *stabilizerPointSet.set.begin() );
+		subStabChain.baseArray.push_back( singletonSet );
+		subGroup = subGroup->subGroup;
+	}
+
+	subStabChain.group = new StabilizerChain::Group( &subStabChain, nullptr, 0 );
+
+	PermutationSet wordedGeneratorSet;
+
+	if( logStream )
+		*logStream << "Searching for words for generating set...\n";
+
+	// The group at the top of the stabilizer chain that we are building
+	// is always a subgroup of this group.  We're done, then, when this
+	// group is a subgroup of that group.
+	while( !IsSubGroupOf( *subStabChain.group ) )
+	{
+		Permutation permutation;
+		do
+		{
+			if( !permutationStream.OutputPermutation( permutation ) )
+				return false;
+		}
+		while( !IsMember( permutation ) || permutation.IsIdentity() );
+
+		Permutation generator;
+		permutation.GetCopy( generator, false );
+
+		if( subStabChain.group->Extend( generator ) )
+		{
+			wordedGeneratorSet.insert( permutation );
+
+			if( logStream )
+			{
+				*logStream << "Found worded generator...\n";
+				permutation.Print( *logStream );
+			}
+		}
+	}
+
+	if( logStream )
+		*logStream << "Search complete!\n";
+
+	generatorSet.clear();
+
+	while( wordedGeneratorSet.size() > 0 )
+	{
+		PermutationSet::iterator iter = wordedGeneratorSet.begin();
+		generatorSet.insert( *iter );
+		wordedGeneratorSet.erase( iter );
+	}
+
+	return true;
+}
+
+bool StabilizerChain::Group::IsSubGroupOf( const Group& group ) const
+{
+	for( PermutationSet::const_iterator iter = generatorSet.cbegin(); iter != generatorSet.cend(); iter++ )
+	{
+		const Permutation& generator = *iter;
+		if( !group.IsMember( generator ) )
+			return false;
+	}
+
+	return true;
 }
 
 StabilizerChain::OrbitNode::OrbitNode( const Permutation* cosetRepresentative )

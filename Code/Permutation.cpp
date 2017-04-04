@@ -224,12 +224,12 @@ uint Permutation::Order( void ) const
 	return order;
 }
 
-void Permutation::SetCopy( const Permutation& permutation )
+void Permutation::SetCopy( const Permutation& permutation, bool copyWord /*= true*/ )
 {
-	permutation.GetCopy( *this );
+	permutation.GetCopy( *this, copyWord );
 }
 
-void Permutation::GetCopy( Permutation& permutation ) const
+void Permutation::GetCopy( Permutation& permutation, bool copyWord /*= true*/ ) const
 {
 	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
 		permutation.map[i] = map[i];
@@ -237,7 +237,7 @@ void Permutation::GetCopy( Permutation& permutation ) const
 	delete permutation.word;
 	permutation.word = nullptr;
 
-	if( word )
+	if( word && copyWord )
 	{
 		permutation.word = new ElementList;
 		for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
