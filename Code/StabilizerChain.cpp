@@ -299,10 +299,16 @@ unsigned long long StabilizerChain::Group::Order( void ) const
 	return groupOrder;
 }
 
-bool StabilizerChain::Group::Extend( const Permutation& generator )
+bool StabilizerChain::Group::Extend( const Permutation& generator, bool* extended /*= nullptr*/ )
 {
+	if( extended )
+		*extended = false;
+
 	if( IsMember( generator ) )
 		return true;
+
+	if( extended )
+		*extended = true;
 
 	std::ostream* logStream = stabChain->logStream;
 
@@ -691,7 +697,8 @@ bool StabilizerChain::OptimizeNames( PermutationStreamCreator& permutationStream
 			double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
 
 			// We could break when the "allUnnamedCount" is zero, but we stay in longer to hopefully optimize more.
-			if( elapsedTimeSec > timeOutSec && subGroup->CountUnnamedRepresentatives() == 0 )
+			//if( elapsedTimeSec > timeOutSec && subGroup->CountUnnamedRepresentatives() == 0 )
+			if( elapsedTimeSec > timeOutSec && allUnnamedCount == 0 )
 				break;
 		}
 
@@ -712,7 +719,7 @@ bool StabilizerChain::OptimizeNames( PermutationStreamCreator& permutationStream
 		if( subGroup )
 		{
 			delete permutationStream;
-			permutationStream = permutationStreamCreator.CreateForGroup( group, &compressInfo );
+			permutationStream = permutationStreamCreator.CreateForGroup( subGroup->superGroup, &compressInfo );
 			if( !subGroup->FindGeneratorNames( *permutationStream ) )
 			{
 				success = false;
@@ -801,6 +808,7 @@ uint StabilizerChain::Group::CountAllUnnamedRepresentatives( void ) const
 	return count;
 }
 
+// This doesn't work so well the further we go down the chain.  :/
 bool StabilizerChain::Group::FindGeneratorNames( PermutationStream& permutationStream )
 {
 	std::ostream* logStream = stabChain->logStream;
@@ -843,7 +851,11 @@ bool StabilizerChain::Group::FindGeneratorNames( PermutationStream& permutationS
 		Permutation generator;
 		permutation.GetCopy( generator, false );
 
-		if( subStabChain.group->Extend( generator ) )
+		bool extended = false;
+		if( !subStabChain.group->Extend( generator, &extended ) )
+			return false;
+
+		if( extended )
 		{
 			wordedGeneratorSet.insert( permutation );
 

@@ -50,100 +50,154 @@ int main( int argc, char** argv )
 		}
 		case MixupCube:
 		{
-			// TODO: I think this is actually wrong, and would not model the MixupCube as a permutation group.
-			//       The problem is vertices shared between faces that slip past one another.  Try again, but
-			//       number the faces, not the vertices.  To do this, subdivide the faces so that they become
-			//       consistent.  We can imagine the cube being deformed as its moved, even if this isn't the
-			//       physical reality of the puzzle.
+			// The numbering used here is the same as what might be used for the 4x4x4 Rubik's Cube,
+			// but I don't believe the group will be nearly as big as that.
 
 			// +Y face
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 0, 1, 2, 3 );
-			permutation.DefineCycle( 26, 28, 31, 25 );
-			permutation.DefineCycle( 27, 29, 30, 24 );
-			permutation.DefineCycle( 19, 4, 21, 14 );
-			permutation.DefineCycle( 18, 7, 20, 13 );
-			permutation.DefineCycle( 39, 36, 34, 33 );
+			permutation.DefineCycle( 12, 13, 14, 15 );
+			permutation.DefineCycle( 0, 3, 6, 9 );
+			permutation.DefineCycle( 1, 4, 7, 10 );
+			permutation.DefineCycle( 2, 5, 8, 11 );
+			permutation.DefineCycle( 41, 16, 67, 54 );
+			permutation.DefineCycle( 40, 27, 66, 53 );
+			permutation.DefineCycle( 39, 26, 65, 52 );
+			permutation.DefineCycle( 38, 25, 64, 51 );
 			generatorSet.insert( permutation );
 
 			// -Y face
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 8, 9, 10, 11 );
-			permutation.DefineCycle( 45, 42, 46, 41 );
-			permutation.DefineCycle( 44, 43, 47, 40 );
-			permutation.DefineCycle( 17, 12, 23, 6 );
-			permutation.DefineCycle( 16, 15, 22, 5 );
-			permutation.DefineCycle( 32, 35, 37, 38 );
+			permutation.DefineCycle( 92, 93, 94, 95 );
+			permutation.DefineCycle( 80, 83, 86, 89 );
+			permutation.DefineCycle( 81, 84, 87, 90 );
+			permutation.DefineCycle( 82, 85, 88, 91 );
+			permutation.DefineCycle( 35, 48, 73, 22 );
+			permutation.DefineCycle( 34, 59, 72, 21 );
+			permutation.DefineCycle( 33, 58, 71, 20 );
+			permutation.DefineCycle( 32, 57, 70, 19 );
 			generatorSet.insert( permutation );
 
 			// +X face
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 12, 13, 14, 15 );
-			permutation.DefineCycle( 32, 24, 34, 43 );
-			permutation.DefineCycle( 33, 25, 35, 42 );
-			permutation.DefineCycle( 16, 0, 20, 10 );
-			permutation.DefineCycle( 19, 3, 23, 9 );
-			permutation.DefineCycle( 26, 30, 46, 44 );
+			permutation.DefineCycle( 28, 29, 30, 31 );
+			permutation.DefineCycle( 16, 19, 22, 25 );
+			permutation.DefineCycle( 17, 20, 23, 26 );
+			permutation.DefineCycle( 18, 21, 24, 27 );
+			permutation.DefineCycle( 38, 80, 70, 6 );
+			permutation.DefineCycle( 37, 91, 69, 5 );
+			permutation.DefineCycle( 36, 90, 68, 4 );
+			permutation.DefineCycle( 35, 89, 67, 3 );
 			generatorSet.insert( permutation );
 
 			// -X face
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 4, 5, 6, 7 );
-			permutation.DefineCycle( 39, 40, 37, 29 );
-			permutation.DefineCycle( 38, 41, 36, 28 );
-			permutation.DefineCycle( 18, 8, 22, 2 );
-			permutation.DefineCycle( 17, 11, 12, 1 );
-			permutation.DefineCycle( 45, 47, 31, 27 );
+			permutation.DefineCycle( 60, 61, 62, 63 );
+			permutation.DefineCycle( 48, 51, 54, 57 );
+			permutation.DefineCycle( 49, 52, 55, 58 );
+			permutation.DefineCycle( 50, 53, 56, 59 );
+			permutation.DefineCycle( 32, 0, 64, 86 );
+			permutation.DefineCycle( 43, 11, 75, 85 );
+			permutation.DefineCycle( 42, 10, 74, 84 );
+			permutation.DefineCycle( 41, 9, 73, 83 );
 			generatorSet.insert( permutation );
 
 			// +Z face
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 20, 21, 22, 23 );
-			permutation.DefineCycle( 30, 36, 47, 35 );
-			permutation.DefineCycle( 31, 37, 46, 34 );
-			permutation.DefineCycle( 3, 7, 11, 15 );
-			permutation.DefineCycle( 2, 6, 10, 14 );
-			permutation.DefineCycle( 29, 41, 43, 25 );
+			permutation.DefineCycle( 44, 45, 46, 47 );
+			permutation.DefineCycle( 32, 35, 38, 41 );
+			permutation.DefineCycle( 33, 36, 39, 42 );
+			permutation.DefineCycle( 34, 37, 40, 43 );
+			permutation.DefineCycle( 83, 19, 3, 51 );
+			permutation.DefineCycle( 82, 18, 2, 50 );
+			permutation.DefineCycle( 81, 17, 1, 49 );
+			permutation.DefineCycle( 80, 16, 0, 48 );
 			generatorSet.insert( permutation );
 
 			// -Z face
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 16, 17, 18, 19 );
-			permutation.DefineCycle( 44, 38, 27, 33 );
-			permutation.DefineCycle( 45, 39, 26, 32 );
-			permutation.DefineCycle( 9, 5, 1, 13 );
-			permutation.DefineCycle( 8, 4, 0, 12 );
-			permutation.DefineCycle( 40, 28, 24, 42 );
+			permutation.DefineCycle( 76, 77, 78, 79 );
+			permutation.DefineCycle( 64, 67, 70, 73 );
+			permutation.DefineCycle( 65, 68, 71, 74 );
+			permutation.DefineCycle( 66, 69, 72, 75 );
+			permutation.DefineCycle( 9, 25, 89, 57 );
+			permutation.DefineCycle( 8, 24, 88, 56 );
+			permutation.DefineCycle( 7, 23, 87, 55 );
+			permutation.DefineCycle( 6, 22, 86, 54 );
 			generatorSet.insert( permutation );
 
 			// +X middle slice
 			permutation.DefineIdentity();
-			uint xSliceArrayA[] = { 0, 3, 30, 20, 23, 46, 10, 9, 44, 16, 19, 26 };
-			permutation.DefineCycleArray( xSliceArrayA, 12 );
-			uint xSliceArrayB[] = { 1, 2, 31, 21, 22, 47, 11, 8, 45, 17, 18, 27 };
-			permutation.DefineCycleArray( xSliceArrayB, 12 );
+			uint xSliceArrayA[] = { 14, 2, 46, 34, 92, 88, 78, 66 };
+			permutation.DefineCycleArray( xSliceArrayA, 8 );
+			uint xSliceArrayB[] = { 13, 39, 45, 81, 95, 71, 77, 7 };
+			permutation.DefineCycleArray( xSliceArrayB, 8 );
+			uint xSliceArrayC[] = { 15, 1, 47, 33, 93, 87, 79, 65 };
+			permutation.DefineCycleArray( xSliceArrayC, 8 );
+			uint xSliceArrayD[] = { 12, 40, 44, 82, 94, 72, 76, 8 };
+			permutation.DefineCycleArray( xSliceArrayD, 8 );
 			generatorSet.insert( permutation );
 
 			// +Y middle slice
 			permutation.DefineIdentity();
-			uint ySliceArrayA[] = { 21, 20, 34, 14, 13, 33, 19, 18, 39, 4, 7, 36 };
-			permutation.DefineCycleArray( ySliceArrayA, 12 );
-			uint ySliceArrayB[] = { 22, 23, 35, 15, 12, 32, 16, 17, 38, 5, 6, 37 };
-			permutation.DefineCycleArray( ySliceArrayB, 12 );
+			uint ySliceArrayA[] = { 45, 43, 60, 56, 79, 69, 30, 18 };
+			permutation.DefineCycleArray( ySliceArrayA, 8 );
+			uint ySliceArrayB[] = { 44, 49, 63, 74, 78, 23, 29, 36 };
+			permutation.DefineCycleArray( ySliceArrayB, 8 );
+			uint ySliceArrayC[] = { 46, 42, 61, 55, 76, 68, 31, 17 };
+			permutation.DefineCycleArray( ySliceArrayC, 8 );
+			uint ySliceArrayD[] = { 47, 50, 62, 75, 77, 24, 28, 37 };
+			permutation.DefineCycleArray( ySliceArrayD, 8 );
 			generatorSet.insert( permutation );
 
 			// +Z middle slice
 			permutation.DefineIdentity();
-			uint zSliceArrayA[] = { 3, 2, 29, 7, 6, 41, 11, 10, 43, 15, 14, 25 };
-			permutation.DefineCycleArray( zSliceArrayA, 12 );
-			uint zSliceArrayB[] = { 0, 1, 28, 4, 5, 40, 8, 9, 42, 12, 13, 24 };
-			permutation.DefineCycleArray( zSliceArrayB, 12 );
+			uint zSliceArrayA[] = { 29, 27, 13, 11, 61, 59, 93, 91 };
+			permutation.DefineCycleArray( zSliceArrayA, 8 );
+			uint zSliceArrayB[] = { 28, 4, 12, 52, 60, 84, 92, 20 };
+			permutation.DefineCycleArray( zSliceArrayB, 8 );
+			uint zSliceArrayC[] = { 30, 26, 14, 10, 62, 58, 94, 90 };
+			permutation.DefineCycleArray( zSliceArrayC, 8 );
+			uint zSliceArrayD[] = { 31, 5, 15, 53, 63, 85, 95, 21 };
+			permutation.DefineCycleArray( zSliceArrayD, 8 );
 			generatorSet.insert( permutation );
 
-			for( uint i = 0; i < 48; i++ )
-				baseArray.push_back(i);
+			// Stabilize 8 corners...
+			baseArray.push_back(0);
+			baseArray.push_back(3);
+			baseArray.push_back(6);
+			baseArray.push_back(9);
+			baseArray.push_back(80);
+			baseArray.push_back(83);
+			baseArray.push_back(86);
+			baseArray.push_back(89);
+
+			// Stabilize 6 centers...
+			baseArray.push_back(12);
+			baseArray.push_back(92);
+			baseArray.push_back(28);
+			baseArray.push_back(60);
+			baseArray.push_back(44);
+			baseArray.push_back(76);
+
+			// Stabilize 12 edges...
+			baseArray.push_back(1);
+			baseArray.push_back(4);
+			baseArray.push_back(7);
+			baseArray.push_back(10);
+			baseArray.push_back(81);
+			baseArray.push_back(84);
+			baseArray.push_back(87);
+			baseArray.push_back(90);
+			baseArray.push_back(42);
+			baseArray.push_back(17);
+			baseArray.push_back(68);
+			baseArray.push_back(55);
 
 			fileName = "MixupCube.txt";
+
+			// Note that we may be solving more than what is in the observable state of this puzzle.
+			// Taking advantage of only what's observable has something to do with homomorphisms, I think.
+			// In any case, I've never been able to get a firm intuitive grasp of such things.
 
 			break;
 		}

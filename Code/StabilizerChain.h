@@ -61,7 +61,7 @@ public:
 		Group( StabilizerChain* stabChain, Group* superGroup, uint stabilizerOffset );
 		virtual ~Group( void );
 
-		bool Extend( const Permutation& generator );
+		bool Extend( const Permutation& generator, bool* extended = nullptr );
 		bool Eliminate( void );		// If successful, the caller owns the group memory and should delete it if they don't want it.
 		bool IsMember( const Permutation& permutation ) const;
 		bool FactorInverse( const Permutation& permutation, Permutation& invPermutation ) const;
