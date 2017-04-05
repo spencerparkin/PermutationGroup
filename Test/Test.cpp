@@ -645,7 +645,8 @@ int main( int argc, char** argv )
 		public:
 			virtual PermutationStream* CreateForGroup( StabilizerChain::Group* group, const CompressInfo* compressInfo ) override
 			{
-				return new PermutationFreeGroupStream( &group->generatorSet, compressInfo );
+				//return new PermutationFreeGroupStream( &group->generatorSet, compressInfo );
+				return new PermutationWordStream( &group->generatorSet, compressInfo );
 			}
 		};
 
