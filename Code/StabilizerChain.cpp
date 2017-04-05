@@ -708,7 +708,7 @@ bool StabilizerChain::OptimizeNames( PermutationStreamCreator& permutationStream
 		// In this case, we must narrow the search, and the only way I know to do this is
 		// to move the search down the chain.  But to do this, we must name the generators
 		// in the desired subgroup.  Note that we can't narrow the search if we did not
-		// complete the transversal set for this group.  In that case, I guess we're out of luck.
+		// complete the transversal set for this group.  So in that case, I guess we're out of luck.
 		if( subGroup->CountUnnamedRepresentatives() != 0 )
 		{
 			success = false;
@@ -718,9 +718,7 @@ bool StabilizerChain::OptimizeNames( PermutationStreamCreator& permutationStream
 		subGroup = subGroup->subGroup;
 		if( subGroup )
 		{
-			delete permutationStream;
-			permutationStream = permutationStreamCreator.CreateForGroup( subGroup->superGroup, &compressInfo );
-			if( !subGroup->FindGeneratorNames( *permutationStream ) )
+			if( !subGroup->FindGeneratorNames() )
 			{
 				success = false;
 				break;
@@ -808,76 +806,55 @@ uint StabilizerChain::Group::CountAllUnnamedRepresentatives( void ) const
 	return count;
 }
 
-// This doesn't work so well the further we go down the chain.  :/
-bool StabilizerChain::Group::FindGeneratorNames( PermutationStream& permutationStream )
+// Here we just use Schreier's lemma to give names to the generators, so the
+// word lengths aren't necessarily going to be as short as we would hope.
+bool StabilizerChain::Group::FindGeneratorNames( void )
 {
+	if( !superGroup )
+		return false;
+
 	std::ostream* logStream = stabChain->logStream;
 
-	StabilizerChain subStabChain;
-
-	Group* subGroup = this;
-	while( subGroup )
+	for( PermutationSet::const_iterator genIter = superGroup->generatorSet.cbegin(); genIter != superGroup->generatorSet.cend(); genIter++ )
 	{
-		const NaturalNumberSet& stabilizerPointSet = subGroup->GetSubgroupStabilizerPointSet();
-		if( stabilizerPointSet.Cardinality() != 1 )
+		const Permutation& generator = *genIter;
+		if( !generator.word )
 			return false;
 
-		NaturalNumberSet singletonSet;
-		singletonSet.AddMember( *stabilizerPointSet.set.begin() );
-		subStabChain.baseArray.push_back( singletonSet );
-		subGroup = subGroup->subGroup;
-	}
-
-	subStabChain.group = new StabilizerChain::Group( &subStabChain, nullptr, 0 );
-
-	PermutationSet wordedGeneratorSet;
-
-	if( logStream )
-		*logStream << "Searching for words for generating set...\n";
-
-	// The group at the top of the stabilizer chain that we are building
-	// is always a subgroup of this group.  We're done, then, when this
-	// group is a subgroup of that group.
-	while( !IsSubGroupOf( *subStabChain.group ) )
-	{
-		Permutation permutation;
-		do
+		for( PermutationSet::const_iterator transIter = superGroup->transversalSet.cbegin(); transIter != superGroup->transversalSet.cend(); transIter++ )
 		{
-			if( !permutationStream.OutputPermutation( permutation ) )
+			const Permutation& cosetRepresentative = *transIter;
+			if( !cosetRepresentative.word )
 				return false;
-		}
-		while( !IsMember( permutation ) || permutation.IsIdentity() );
 
-		Permutation generator;
-		permutation.GetCopy( generator, false );
+			Permutation product;
+			product.word = new ElementList;
+			product.Multiply( cosetRepresentative, generator );
 
-		bool extended = false;
-		if( !subStabChain.group->Extend( generator, &extended ) )
-			return false;
+			PermutationSet::iterator iter = FindCoset( product );
+			if( iter == transversalSet.end() )
+				return false;
 
-		if( extended )
-		{
-			wordedGeneratorSet.insert( permutation );
+			Permutation invCosetRepresentative;
+			invCosetRepresentative.SetInverse( *iter );
+			if( !invCosetRepresentative.word )
+				return false;
 
-			if( logStream )
+			Permutation schreierGenerator;
+			schreierGenerator.Multiply( product, invCosetRepresentative );
+
+			PermutationSet::iterator foundIter = generatorSet.find( schreierGenerator );
+			if( foundIter != generatorSet.end() )
 			{
-				*logStream << "Found worded generator...\n";
-				permutation.Print( *logStream );
+				generatorSet.erase( foundIter );
+				generatorSet.insert( schreierGenerator );
 			}
 		}
 	}
 
-	if( logStream )
-		*logStream << "Search complete!\n";
-
-	generatorSet.clear();
-
-	while( wordedGeneratorSet.size() > 0 )
-	{
-		PermutationSet::iterator iter = wordedGeneratorSet.begin();
-		generatorSet.insert( *iter );
-		wordedGeneratorSet.erase( iter );
-	}
+	for( PermutationSet::const_iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
+		if( !( *iter ).word )
+			return false;
 
 	return true;
 }

@@ -78,7 +78,7 @@ public:
 		bool LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue );
 		bool SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator ) const;
 		unsigned long long Order( void ) const;
-		bool FindGeneratorNames( PermutationStream& permutationStream );
+		bool FindGeneratorNames( void );
 		bool IsSubGroupOf( const Group& group ) const;
 
 		NaturalNumberSet orbitSet;
