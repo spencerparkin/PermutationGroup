@@ -139,13 +139,13 @@ int main( int argc, char** argv )
 
 			// +Y middle slice
 			permutation.DefineIdentity();
-			uint ySliceArrayA[] = { 45, 43, 60, 56, 79, 69, 30, 18 };
+			uint ySliceArrayA[] = { 18, 30, 69, 79, 56, 60, 43, 45 };
 			permutation.DefineCycleArray( ySliceArrayA, 8 );
-			uint ySliceArrayB[] = { 44, 49, 63, 74, 78, 23, 29, 36 };
+			uint ySliceArrayB[] = { 36, 29, 23, 78, 74, 63, 49, 44 };
 			permutation.DefineCycleArray( ySliceArrayB, 8 );
-			uint ySliceArrayC[] = { 46, 42, 61, 55, 76, 68, 31, 17 };
+			uint ySliceArrayC[] = { 17, 31, 68, 76, 55, 61, 42, 46 };
 			permutation.DefineCycleArray( ySliceArrayC, 8 );
-			uint ySliceArrayD[] = { 47, 50, 62, 75, 77, 24, 28, 37 };
+			uint ySliceArrayD[] = { 37, 28, 24, 77, 75, 62, 50, 47 };
 			permutation.DefineCycleArray( ySliceArrayD, 8 );
 			generatorSet.insert( permutation );
 
