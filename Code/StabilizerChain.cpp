@@ -645,7 +645,10 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 // actually generated the chain while he was coming up with short words for the transversal
 // elements.  He knew he could stop when the product of the lengths of all transversal sets
 // was equal the group order.  More ideas for filling in the transversal element words can
-// be found in a paper by Egner and Puschel.
+// be found in a paper by Egner and Puschel.  For example, if you can find just one word in
+// a transversal set, then you can find words for all the others using the orbit-stabilizer
+// theorem, although these will grow in length the further they are from the root.  Still,
+// if I'm having trouble completing a transversal set, it's a good idea.
 bool StabilizerChain::OptimizeNames( PermutationStreamCreator& permutationStreamCreator, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
 {
 	Group* subGroup = group;
