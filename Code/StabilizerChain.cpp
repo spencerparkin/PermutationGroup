@@ -447,10 +447,6 @@ PermutationSet::iterator StabilizerChain::Group::FindCoset( const Permutation& p
 // us if the given permutation element is a member of this group.
 bool StabilizerChain::Group::IsMember( const Permutation& permutation ) const
 {
-	// TODO: Did I make this harder than it had to be?  All we really need to do
-	//       is find the coset containing the given permutation.  We don't have
-	//       to be recursive at all.
-
 	Permutation invPermutation;
 	FactorInverse( permutation, invPermutation );
 
