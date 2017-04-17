@@ -134,6 +134,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 0, 18, 21, 3 );
 			permutation.DefineCycle( 1, 12, 20, 9 );
 			permutation.DefineCycle( 2, 6, 19, 15 );
+			permutation.DefineCycle( 7, 13, 14, 8 );
 			generatorSet.insert( permutation );
 
 			// R1
@@ -141,6 +142,7 @@ int main( int argc, char** argv )
 			permutation.DefineCycle( 4, 22, 25, 7 );
 			permutation.DefineCycle( 5, 16, 24, 13 );
 			permutation.DefineCycle( 6, 10, 23, 19 );
+			permutation.DefineCycle( 11, 17, 18, 12 );
 			generatorSet.insert( permutation );
 
 			// V0
