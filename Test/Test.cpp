@@ -52,6 +52,8 @@ int main( int argc, char** argv )
 		}
 		case SymGrpMadPuzzleA:
 		{
+			// TODO: This is wrong; fix it.
+
 			// R0
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 0, 8, 10, 2 );
@@ -131,138 +133,244 @@ int main( int argc, char** argv )
 		{
 			// R0
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 0, 18, 21, 3 );
-			permutation.DefineCycle( 1, 12, 20, 9 );
-			permutation.DefineCycle( 2, 6, 19, 15 );
-			permutation.DefineCycle( 7, 13, 14, 8 );
+			permutation.DefineCycle( 0, 46, 51, 5 );
+			permutation.DefineCycle( 1, 36, 50, 11 );
+			permutation.DefineCycle( 2, 26, 49, 21 );
+			permutation.DefineCycle( 3, 16, 48, 31 );
+			permutation.DefineCycle( 4, 6, 47, 41 );
+			permutation.DefineCycle( 7, 37, 40, 10 );
+			permutation.DefineCycle( 8, 27, 39, 20 );
+			permutation.DefineCycle( 9, 17, 38, 30 );
+			permutation.DefineCycle( 18, 28, 29, 19 );
 			generatorSet.insert( permutation );
 
 			// R1
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 4, 22, 25, 7 );
-			permutation.DefineCycle( 5, 16, 24, 13 );
-			permutation.DefineCycle( 6, 10, 23, 19 );
-			permutation.DefineCycle( 11, 17, 18, 12 );
+			permutation.DefineCycle( 12, 58, 63, 17 );
+			permutation.DefineCycle( 13, 52, 62, 27 );
+			permutation.DefineCycle( 14, 42, 61, 37 );
+			permutation.DefineCycle( 15, 32, 60, 47 );
+			permutation.DefineCycle( 16, 22, 59, 57 );
+			permutation.DefineCycle( 23, 53, 56, 26 );
+			permutation.DefineCycle( 24, 43, 55, 36 );
+			permutation.DefineCycle( 25, 33, 54, 46 );
+			permutation.DefineCycle( 34, 44, 45, 35 );
 			generatorSet.insert( permutation );
 
 			// V0
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 0, 3 );
-			permutation.DefineCycle( 1, 2 );
-			permutation.DefineCycle( 6, 9 );
-			permutation.DefineCycle( 7, 8 );
-			permutation.DefineCycle( 12, 15 );
-			permutation.DefineCycle( 13, 14 );
-			permutation.DefineCycle( 18, 21 );
-			permutation.DefineCycle( 19, 20 );
+			permutation.DefineCycle( 0, 5 );
+			permutation.DefineCycle( 1, 4 );
+			permutation.DefineCycle( 2, 3 );
+			permutation.DefineCycle( 6, 11 );
+			permutation.DefineCycle( 7, 10 );
+			permutation.DefineCycle( 8, 9 );
+			permutation.DefineCycle( 16, 21 );
+			permutation.DefineCycle( 17, 20 );
+			permutation.DefineCycle( 18, 19 );
+			permutation.DefineCycle( 26, 31 );
+			permutation.DefineCycle( 27, 30 );
+			permutation.DefineCycle( 28, 29 );
+			permutation.DefineCycle( 36, 41 );
+			permutation.DefineCycle( 37, 40 );
+			permutation.DefineCycle( 38, 39 );
+			permutation.DefineCycle( 46, 51 );
+			permutation.DefineCycle( 47, 50 );
+			permutation.DefineCycle( 48, 49 );
 			generatorSet.insert( permutation );
 
 			// H0
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 0, 18 );
-			permutation.DefineCycle( 6, 12 );
-			permutation.DefineCycle( 1, 19 );
-			permutation.DefineCycle( 7, 13 );
-			permutation.DefineCycle( 2, 20 );
-			permutation.DefineCycle( 8, 14 );
-			permutation.DefineCycle( 3, 21 );
-			permutation.DefineCycle( 9, 15 );
+			permutation.DefineCycle( 0, 46 );
+			permutation.DefineCycle( 6, 36 );
+			permutation.DefineCycle( 16, 26 );
+			permutation.DefineCycle( 1, 47 );
+			permutation.DefineCycle( 7, 37 );
+			permutation.DefineCycle( 17, 27 );
+			permutation.DefineCycle( 2, 48 );
+			permutation.DefineCycle( 8, 38 );
+			permutation.DefineCycle( 18, 28 );
+			permutation.DefineCycle( 3, 49 );
+			permutation.DefineCycle( 9, 39 );
+			permutation.DefineCycle( 19, 29 );
+			permutation.DefineCycle( 4, 50 );
+			permutation.DefineCycle( 10, 40 );
+			permutation.DefineCycle( 20, 30 );
+			permutation.DefineCycle( 5, 51 );
+			permutation.DefineCycle( 11, 41 );
+			permutation.DefineCycle( 21, 31 );
 			generatorSet.insert( permutation );
 
 			// V1
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 4, 7 );
-			permutation.DefineCycle( 5, 6 );
-			permutation.DefineCycle( 10, 13 );
-			permutation.DefineCycle( 11, 12 );
-			permutation.DefineCycle( 16, 19 );
-			permutation.DefineCycle( 17, 18 );
-			permutation.DefineCycle( 22, 25 );
-			permutation.DefineCycle( 23, 24 );
+			permutation.DefineCycle( 12, 17 );
+			permutation.DefineCycle( 13, 16 );
+			permutation.DefineCycle( 14, 15 );
+			permutation.DefineCycle( 22, 27 );
+			permutation.DefineCycle( 23, 26 );
+			permutation.DefineCycle( 24, 25 );
+			permutation.DefineCycle( 32, 37 );
+			permutation.DefineCycle( 33, 36 );
+			permutation.DefineCycle( 34, 35 );
+			permutation.DefineCycle( 42, 47 );
+			permutation.DefineCycle( 43, 46 );
+			permutation.DefineCycle( 44, 45 );
+			permutation.DefineCycle( 52, 57 );
+			permutation.DefineCycle( 53, 56 );
+			permutation.DefineCycle( 54, 55 );
+			permutation.DefineCycle( 58, 63 );
+			permutation.DefineCycle( 59, 62 );
+			permutation.DefineCycle( 60, 61 );
 			generatorSet.insert( permutation );
 
 			// H1
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 4, 22 );
-			permutation.DefineCycle( 10, 16 );
-			permutation.DefineCycle( 5, 23 );
-			permutation.DefineCycle( 11, 17 );
-			permutation.DefineCycle( 6, 24 );
-			permutation.DefineCycle( 12, 18 );
-			permutation.DefineCycle( 7, 25 );
-			permutation.DefineCycle( 13, 19 );
+			permutation.DefineCycle( 12, 58 );
+			permutation.DefineCycle( 22, 52 );
+			permutation.DefineCycle( 32, 42 );
+			permutation.DefineCycle( 13, 59 );
+			permutation.DefineCycle( 23, 53 );
+			permutation.DefineCycle( 33, 43 );
+			permutation.DefineCycle( 14, 60 );
+			permutation.DefineCycle( 24, 54 );
+			permutation.DefineCycle( 34, 44 );
+			permutation.DefineCycle( 15, 61 );
+			permutation.DefineCycle( 25, 55 );
+			permutation.DefineCycle( 35, 45 );
+			permutation.DefineCycle( 16, 62 );
+			permutation.DefineCycle( 26, 56 );
+			permutation.DefineCycle( 36, 46 );
+			permutation.DefineCycle( 17, 63 );
+			permutation.DefineCycle( 27, 57 );
+			permutation.DefineCycle( 37, 47 );
 			generatorSet.insert( permutation );
 
 			// D0
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 1, 6 );
-			permutation.DefineCycle( 2, 12 );
-			permutation.DefineCycle( 3, 18 );
-			permutation.DefineCycle( 8, 13 );
-			permutation.DefineCycle( 9, 19 );
-			permutation.DefineCycle( 15, 20 );
+			permutation.DefineCycle( 2, 16 );
+			permutation.DefineCycle( 3, 26 );
+			permutation.DefineCycle( 8, 17 );
+			permutation.DefineCycle( 5, 46 );
+			permutation.DefineCycle( 10, 37 );
+			permutation.DefineCycle( 19, 28 );
+			permutation.DefineCycle( 11, 47 );
+			permutation.DefineCycle( 21, 48 );
+			permutation.DefineCycle( 30, 39 );
+			permutation.DefineCycle( 31, 49 );
+			permutation.DefineCycle( 41, 50 );
+			permutation.DefineCycle( 20, 38 );
+			permutation.DefineCycle( 4, 36 );
+			permutation.DefineCycle( 9, 27 );
 			generatorSet.insert( permutation );
 
 			// D0'
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 2, 9 );
-			permutation.DefineCycle( 1, 15 );
-			permutation.DefineCycle( 0, 21 );
-			permutation.DefineCycle( 7, 14 );
-			permutation.DefineCycle( 6, 20 );
-			permutation.DefineCycle( 12, 19 );
+			permutation.DefineCycle( 4, 11 );
+			permutation.DefineCycle( 3, 21 );
+			permutation.DefineCycle( 2, 31 );
+			permutation.DefineCycle( 9, 20 );
+			permutation.DefineCycle( 1, 41 );
+			permutation.DefineCycle( 0, 51 );
+			permutation.DefineCycle( 7, 40 );
+			permutation.DefineCycle( 18, 29 );
+			permutation.DefineCycle( 6, 50 );
+			permutation.DefineCycle( 16, 49 );
+			permutation.DefineCycle( 27, 38 );
+			permutation.DefineCycle( 26, 48 );
+			permutation.DefineCycle( 36, 47 );
+			permutation.DefineCycle( 17, 39 );
+			permutation.DefineCycle( 8, 30 );
 			generatorSet.insert( permutation );
 
 			// D1
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 5, 10 );
-			permutation.DefineCycle( 6, 16 );
-			permutation.DefineCycle( 7, 22 );
-			permutation.DefineCycle( 12, 17 );
-			permutation.DefineCycle( 13, 23 );
-			permutation.DefineCycle( 19, 24 );
+			permutation.DefineCycle( 13, 22 );
+			permutation.DefineCycle( 14, 32 );
+			permutation.DefineCycle( 15, 42 );
+			permutation.DefineCycle( 24, 33 );
+			permutation.DefineCycle( 16, 52 );
+			permutation.DefineCycle( 17, 58 );
+			permutation.DefineCycle( 26, 53 );
+			permutation.DefineCycle( 35, 44 );
+			permutation.DefineCycle( 27, 59 );
+			permutation.DefineCycle( 36, 54 );
+			permutation.DefineCycle( 37, 60 );
+			permutation.DefineCycle( 46, 55 );
+			permutation.DefineCycle( 47, 61 );
+			permutation.DefineCycle( 57, 62 );
+			permutation.DefineCycle( 25, 43 );
 			generatorSet.insert( permutation );
 
 			// D1'
 			permutation.DefineIdentity();
-			permutation.DefineCycle( 6, 13 );
-			permutation.DefineCycle( 5, 19 );
-			permutation.DefineCycle( 4, 25 );
-			permutation.DefineCycle( 11, 18 );
-			permutation.DefineCycle( 10, 24 );
-			permutation.DefineCycle( 16, 23 );
+			permutation.DefineCycle( 16, 17 );
+			permutation.DefineCycle( 15, 37 );
+			permutation.DefineCycle( 14, 47 );
+			permutation.DefineCycle( 25, 36 );
+			permutation.DefineCycle( 13, 57 );
+			permutation.DefineCycle( 24, 46 );
+			permutation.DefineCycle( 12, 63 );
+			permutation.DefineCycle( 23, 56 );
+			permutation.DefineCycle( 34, 45 );
+			permutation.DefineCycle( 33, 55 );
+			permutation.DefineCycle( 22, 62 );
+			permutation.DefineCycle( 32, 61 );
+			permutation.DefineCycle( 43, 54 );
+			permutation.DefineCycle( 42, 60 );
+			permutation.DefineCycle( 52, 59 );
 			generatorSet.insert( permutation );
 
-			baseArray.push_back(0);
-			baseArray.push_back(1);
-			baseArray.push_back(2);
-			baseArray.push_back(3);
-			baseArray.push_back(9);
-			baseArray.push_back(15);
-			baseArray.push_back(21);
+			for( uint i = 0; i < 64; i++ )
+				baseArray.push_back(i);
 
-			baseArray.push_back(25);
-			baseArray.push_back(24);
-			baseArray.push_back(23);
-			baseArray.push_back(22);
-			baseArray.push_back(16);
-			baseArray.push_back(10);
-			baseArray.push_back(4);
+			/*baseArray.push_back( 18 );
+			baseArray.push_back( 19 );
 
-			baseArray.push_back(20);
-			baseArray.push_back(14);
-			baseArray.push_back(8);
-			baseArray.push_back(7);
-			baseArray.push_back(6);
+			baseArray.push_back( 34 );
+			baseArray.push_back( 35 );
 
-			baseArray.push_back(5);
-			baseArray.push_back(11);
-			baseArray.push_back(17);
-			baseArray.push_back(18);
-			baseArray.push_back(19);
+			baseArray.push_back( 4 );
+			baseArray.push_back( 5 );
 
-			baseArray.push_back(12);
-			baseArray.push_back(13);
+			baseArray.push_back( 52 );
+			baseArray.push_back( 53 );
+
+			baseArray.push_back( 2 );
+			baseArray.push_back( 3 );
+
+			baseArray.push_back( 54 );
+			baseArray.push_back( 55 );
+
+			baseArray.push_back( 0 );
+			baseArray.push_back( 1 );
+
+			baseArray.push_back( 56 );
+			baseArray.push_back( 57 );
+
+			baseArray.push_back( 20 );
+			baseArray.push_back( 21 );
+
+			baseArray.push_back( 32 );
+			baseArray.push_back( 33 );
+
+			baseArray.push_back( 40 );
+			baseArray.push_back( 41 );
+
+			baseArray.push_back( 12 );
+			baseArray.push_back( 13 );
+
+			baseArray.push_back( 38 );
+			baseArray.push_back( 39 );
+
+			baseArray.push_back( 14 );
+			baseArray.push_back( 15 );
+
+			baseArray.push_back( 16 );
+			baseArray.push_back( 17 );
+
+			baseArray.push_back( 36 );
+			baseArray.push_back( 37 );*/
 
 			fileName = "SymGrpMadPuzzleB.txt";
 
@@ -856,8 +964,8 @@ int main( int argc, char** argv )
 		stabChain->Print( std::cout );
 
 		// Throw in the redundant generators at the root level.  This should help to reduce word size.
-		for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
-			stabChain->group->generatorSet.insert( *iter );
+		//for( PermutationSet::iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
+		//	stabChain->group->generatorSet.insert( *iter );
 
 		stabChain->group->NameGenerators();
 
