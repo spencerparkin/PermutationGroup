@@ -461,8 +461,8 @@ std::string Permutation::GetName( void ) const
 
 /*static*/ bool Permutation::LexigraphicCompare( const Permutation& permLeft, const Permutation& permRight )
 {
-	uint leftSize = permLeft.word ? permLeft.word->size() : 0;
-	uint rightSize = permRight.word ? permRight.word->size() : 0;
+	uint leftSize = permLeft.word ? ( uint )permLeft.word->size() : 0;
+	uint rightSize = permRight.word ? ( uint )permRight.word->size() : 0;
 
 	if( leftSize < rightSize )
 		return true;

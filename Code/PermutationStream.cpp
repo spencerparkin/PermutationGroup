@@ -357,7 +357,7 @@ void PermutationRandomStream::GenerateRandomCommutator( Permutation& commutator,
 {
 	if( depth == 0 )
 	{
-		uint i = RandomInteger( 0, nonCommutatorPool.size() - 1 );
+		uint i = RandomInteger( 0, ( uint )nonCommutatorPool.size() - 1 );
 		commutator.SetCopy( nonCommutatorPool[i] );
 	}
 	else

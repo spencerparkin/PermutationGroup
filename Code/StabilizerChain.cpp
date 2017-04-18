@@ -131,7 +131,7 @@ bool StabilizerChain::Generate( const PermutationSet& generatorSet, const UintAr
 	if( logStream )
 		*logStream << "Generating stabilizer chain!!!\n";
 
-	uint size = generatorSet.size();
+	uint size = ( uint )generatorSet.size();
 	uint count = 0;
 
 	for( PermutationSet::const_iterator iter = generatorSet.cbegin(); iter != generatorSet.cend(); iter++ )
@@ -902,7 +902,7 @@ bool StabilizerChain::OrbitNode::Grow( Group* group, const PermutationSet& gener
 	if( !fresh )
 		permutationSet = &singletonSet;
 
-	uint nonFreshSize = adjacentNodeArray.size();
+	uint nonFreshSize = ( uint )adjacentNodeArray.size();
 
 	for( PermutationSet::const_iterator iter = permutationSet->cbegin(); iter != permutationSet->cend(); iter++ )
 	{
