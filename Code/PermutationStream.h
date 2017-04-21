@@ -4,21 +4,6 @@
 
 #include "StabilizerChain.h"
 
-class PermutationStream;
-
-//------------------------------------------------------------------------------------------
-//                                  PermutationStreamCreator
-//------------------------------------------------------------------------------------------
-class PermutationStreamCreator
-{
-public:
-
-	PermutationStreamCreator( void );
-	virtual ~PermutationStreamCreator( void );
-
-	virtual PermutationStream* CreateForGroup( StabilizerChain::Group* group, const CompressInfo* compressInfo ) = 0;
-};
-
 //------------------------------------------------------------------------------------------
 //                                 PermutationStream
 //------------------------------------------------------------------------------------------
@@ -39,6 +24,27 @@ public:
 
 	void LoadPermutationArray( PermutationArray& permutationArray, int loadMax = -1 );
 	void UnloadPermutationArray( const PermutationArray& permuationArray );
+};
+
+typedef std::vector< PermutationStream* > PermutationStreamArray;
+
+//------------------------------------------------------------------------------------------
+//                                 PermutationMultiStream
+//------------------------------------------------------------------------------------------
+
+class PermutationMultiStream : public PermutationStream
+{
+public:
+
+	PermutationMultiStream( void );
+	virtual ~PermutationMultiStream( void );
+
+	virtual bool Reset( void ) override;
+	virtual bool OutputPermutation( Permutation& permutation ) override;
+	virtual bool InputPermutation( const Permutation& permutation ) override;
+
+	PermutationStreamArray permutationStreamArray;
+	uint offset;
 };
 
 //------------------------------------------------------------------------------------------
@@ -129,6 +135,8 @@ public:
 	const CompressInfo* compressInfo;
 	PermutationSet processedSet;
 	OrderedPermutationSet permutationQueue;
+	uint queueMax;
+	bool queueMaxReached;
 };
 
 //------------------------------------------------------------------------------------------

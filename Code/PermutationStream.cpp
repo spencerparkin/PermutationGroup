@@ -3,18 +3,6 @@
 #include "PermutationStream.h"
 
 //------------------------------------------------------------------------------------------
-//                                  PermutationStreamCreator
-//------------------------------------------------------------------------------------------
-
-PermutationStreamCreator::PermutationStreamCreator( void )
-{
-}
-
-/*virtual*/ PermutationStreamCreator::~PermutationStreamCreator( void )
-{
-}
-
-//------------------------------------------------------------------------------------------
 //                                 PermutationStream
 //------------------------------------------------------------------------------------------
 
@@ -56,6 +44,47 @@ void PermutationStream::UnloadPermutationArray( const PermutationArray& permutat
 {
 	for( uint i = 0; i < permutationArray.size(); i++ )
 		InputPermutation( permutationArray[i] );
+}
+
+//------------------------------------------------------------------------------------------
+//                                 PermutationMultiStream
+//------------------------------------------------------------------------------------------
+
+PermutationMultiStream::PermutationMultiStream( void )
+{
+	offset = 0;
+}
+
+/*virtual*/ PermutationMultiStream::~PermutationMultiStream( void )
+{
+	for( uint i = 0; i < permutationStreamArray.size(); i++ )
+		delete permutationStreamArray[i];
+}
+
+/*virtual*/ bool PermutationMultiStream::Reset( void )
+{
+	for( uint i = 0; i < permutationStreamArray.size(); i++ )
+		if( !permutationStreamArray[i]->Reset() )
+			return false;
+	return true;
+}
+
+/*virtual*/ bool PermutationMultiStream::OutputPermutation( Permutation& permutation )
+{
+	if( offset >= permutationStreamArray.size() )
+		return false;
+
+	PermutationStream* stream = permutationStreamArray[ offset ];
+	if( stream->OutputPermutation( permutation ) )
+		return true;
+
+	offset++;
+	return OutputPermutation( permutation );
+}
+
+/*virtual*/ bool PermutationMultiStream::InputPermutation( const Permutation& permutation )
+{
+	return false;
 }
 
 //------------------------------------------------------------------------------------------
@@ -247,6 +276,9 @@ PermutationWordStream::PermutationWordStream( const PermutationSet* generatorSet
 	this->generatorSet = generatorSet;
 	this->compressInfo = compressInfo;
 
+	queueMax = 0;
+	queueMaxReached = false;
+
 	Reset();
 }
 
@@ -275,22 +307,29 @@ PermutationWordStream::PermutationWordStream( const PermutationSet* generatorSet
 	permutation = *iter;
 	permutationQueue.erase( iter );
 
-	processedSet.insert( permutation );
-
-	for( PermutationSet::const_iterator genIter = generatorSet->cbegin(); genIter != generatorSet->cend(); genIter++ )
+	// If the queue max was reached, just drain what remains in the queue.
+	if( !queueMaxReached )
 	{
-		const Permutation& generator = *genIter;
+		processedSet.insert( permutation );
 
-		Permutation newPermutation;
-		newPermutation.Multiply( permutation, generator );
-
-		newPermutation.CompressWord( *compressInfo );
-
-		if( processedSet.find( newPermutation ) == processedSet.end() &&
-			permutationQueue.find( newPermutation ) == permutationQueue.end() )
+		for( PermutationSet::const_iterator genIter = generatorSet->cbegin(); genIter != generatorSet->cend(); genIter++ )
 		{
-			permutationQueue.insert( newPermutation );
+			const Permutation& generator = *genIter;
+
+			Permutation newPermutation;
+			newPermutation.Multiply( permutation, generator );
+
+			newPermutation.CompressWord( *compressInfo );
+
+			if( processedSet.find( newPermutation ) == processedSet.end() &&
+				permutationQueue.find( newPermutation ) == permutationQueue.end() )
+			{
+				permutationQueue.insert( newPermutation );
+			}
 		}
+
+		if( queueMax > 0 && permutationQueue.size() > queueMax )
+			queueMaxReached = true;
 	}
 
 	return true;

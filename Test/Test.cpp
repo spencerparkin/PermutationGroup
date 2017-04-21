@@ -59,19 +59,13 @@ int main( int argc, char** argv )
 		CompressInfo compressInfo;
 		stabChain->group->MakeCompressInfo( compressInfo );
 
-		class TestPermutationStreamCreator : public PermutationStreamCreator
-		{
-		public:
-			virtual PermutationStream* CreateForGroup( StabilizerChain::Group* group, const CompressInfo* compressInfo ) override
-			{
-				//return new PermutationFreeGroupStream( &group->generatorSet, compressInfo );
-				return new PermutationWordStream( &group->generatorSet, compressInfo );
-			}
-		};
+		PermutationWordStream* permutationWordStream = new PermutationWordStream( &stabChain->group->generatorSet, &compressInfo );
+		permutationWordStream->queueMax = 100000;
 
-		TestPermutationStreamCreator streamCreator;
+		PermutationMultiStream permutationMultiStream;
+		permutationMultiStream.permutationStreamArray.push_back( permutationWordStream );
 
-		if( stabChain->OptimizeNames( streamCreator, compressInfo, 20.0 ) )
+		if( stabChain->OptimizeNames( permutationMultiStream, compressInfo, 20.0 ) )
 		{
 			std::string jsonString;
 			stabChain->SaveToJsonString( jsonString );

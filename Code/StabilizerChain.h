@@ -54,6 +54,19 @@ public:
 		OrbitNodeArray adjacentNodeArray;
 	};
 
+	struct Stats
+	{
+		Stats( void );
+
+		uint totalUnnamedTransversalCount;
+		uint totalUnnamedGeneratorCount;
+		UintArray unnamedTransversalCountArray;
+		UintArray unnamedGeneratorCountArray;
+
+		void Reset( void );
+		void Print( std::ostream& ostream ) const;
+	};
+
 	class Group
 	{
 	public:
@@ -73,12 +86,10 @@ public:
 		void NameGenerators( void );
 		bool MakeCompressInfo( CompressInfo& compressInfo );
 		bool OptimizeNameWithPermutation( Permutation& permutation, const CompressInfo& compressInfo );
-		uint CountUnnamedRepresentatives( void ) const;
-		uint CountAllUnnamedRepresentatives( void ) const;
+		void AccumulateStats( Stats& stats ) const;
 		bool LoadRecursive( /*const*/ rapidjson::Value& chainGroupValue );
 		bool SaveRecursive( rapidjson::Value& chainGroupValue, rapidjson::Document::AllocatorType& allocator ) const;
 		unsigned long long Order( void ) const;
-		bool FindGeneratorNames( void );
 		bool IsSubGroupOf( const Group& group ) const;
 
 		NaturalNumberSet orbitSet;
@@ -91,7 +102,7 @@ public:
 		StabilizerChain* stabChain;
 	};
 
-	bool OptimizeNames( PermutationStreamCreator& permutationStreamCreator, const CompressInfo& compressInfo, double timeOutSec = 60.0 );
+	bool OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0 );
 
 	Group* group;
 	NaturalNumberSetArray baseArray;

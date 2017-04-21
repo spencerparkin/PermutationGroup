@@ -647,9 +647,9 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 // was equal the group order.  More ideas for filling in the transversal element words can
 // be found in a paper by Egner and Puschel.  For example, if you can find just one word in
 // a transversal set, then you can find words for all the others using the orbit-stabilizer
-// theorem, although these will grow in length the further they are from the root.  Still,
-// if I'm having trouble completing a transversal set, it's a good idea.
-bool StabilizerChain::OptimizeNames( PermutationStreamCreator& permutationStreamCreator, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
+// theorem, provided you know the generator factorizations, although these would grow in
+// length the further they are from the root.
+bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
 {
 	Group* subGroup = group;
 	while( subGroup )
@@ -672,69 +672,32 @@ bool StabilizerChain::OptimizeNames( PermutationStreamCreator& permutationStream
 		subGroup = subGroup->subGroup;
 	}
 
-	PermutationStream* permutationStream = permutationStreamCreator.CreateForGroup( group, &compressInfo );
-	if( !permutationStream )
-		return false;
+	clock_t lastOptimizationTime = clock();
+	Stats stats;
 
-	bool success = true;
-
-	subGroup = group;
-	while( subGroup )
+	Permutation permutation;
+	while( permutationStream.OutputPermutation( permutation ) )
 	{
-		clock_t lastOptimizationTime = clock();
-		uint allUnnamedCount = -1;
-
-		Permutation permutation;
-		while( permutationStream->OutputPermutation( permutation ) )
+		if( group->OptimizeNameWithPermutation( permutation, compressInfo ) )
 		{
-			if( subGroup->OptimizeNameWithPermutation( permutation, compressInfo ) )
-			{
-				lastOptimizationTime = clock();
+			lastOptimizationTime = clock();
 
-				allUnnamedCount = group->CountAllUnnamedRepresentatives();
-				if( logStream )
-					*logStream << "Unnamed count: " << allUnnamedCount << "\n";
-			}
+			stats.Reset();
+			group->AccumulateStats( stats );
 
-			clock_t currentTime = clock();
-			double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
-
-			// We could break when the "allUnnamedCount" is zero, but we stay in longer to hopefully optimize more.
-			//if( elapsedTimeSec > timeOutSec && subGroup->CountUnnamedRepresentatives() == 0 )
-			if( elapsedTimeSec > timeOutSec && allUnnamedCount == 0 )
-				break;
+			if( logStream )
+				stats.Print( *logStream );
 		}
 
-		if( allUnnamedCount == 0 )
+		clock_t currentTime = clock();
+		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
+
+		// We could break when the "allUnnamedCount" is zero, but we stay in longer to hopefully optimize more.
+		if( elapsedTimeSec > timeOutSec && stats.totalUnnamedTransversalCount == 0 )
 			break;
-
-		// In this case, we must narrow the search, and the only way I know to do this is
-		// to move the search down the chain.  But to do this, we must name the generators
-		// in the desired subgroup.  Note that we can't narrow the search if we did not
-		// complete the transversal set for this group.  So in that case, I guess we're out of luck.
-		if( subGroup->CountUnnamedRepresentatives() != 0 )
-		{
-			success = false;
-			break;
-		}
-		
-		subGroup = subGroup->subGroup;
-		if( subGroup )
-		{
-			if( !subGroup->FindGeneratorNames() )
-			{
-				success = false;
-				break;
-			}
-
-			delete permutationStream;
-			permutationStream = permutationStreamCreator.CreateForGroup( subGroup, &compressInfo );
-		}
 	}
 
-	delete permutationStream;
-
-	return success;
+	return ( stats.totalUnnamedTransversalCount == 0 ) ? true : false;
 }
 
 bool StabilizerChain::Group::OptimizeNameWithPermutation( Permutation& permutation, const CompressInfo& compressInfo )
@@ -785,81 +748,57 @@ bool StabilizerChain::Group::OptimizeNameWithPermutation( Permutation& permutati
 	return OptimizeNameWithPermutation( product, compressInfo );
 }
 
-uint StabilizerChain::Group::CountUnnamedRepresentatives( void ) const
+StabilizerChain::Stats::Stats( void )
 {
-	uint count = 0;
+	Reset();
+}
 
+void StabilizerChain::Stats::Reset( void )
+{
+	totalUnnamedGeneratorCount = 0;
+	totalUnnamedTransversalCount = 0;
+
+	unnamedGeneratorCountArray.clear();
+	unnamedTransversalCountArray.clear();
+}
+
+void StabilizerChain::Stats::Print( std::ostream& ostream ) const
+{
+	ostream << "Total unnamed transversal elements: " << totalUnnamedTransversalCount << "\n";
+	//ostream << "Total unnamed generator elements: " << totalUnnamedGeneratorCount << "\n";
+
+	for( uint i = 0; i < unnamedTransversalCountArray.size(); i++ )
+		ostream << unnamedTransversalCountArray[i] << " unnamed transversal elements at level " << i << "\n";
+
+	//for( uint i = 0; i < unnamedGeneratorCountArray.size(); i++ )
+	//	ostream << unnamedGeneratorCountArray[i] << " unnamed generator elements at level " << i << "\n";
+}
+
+void StabilizerChain::Group::AccumulateStats( Stats& stats ) const
+{
+	uint unnamedTransversalCount = 0;
 	for( PermutationSet::const_iterator iter = transversalSet.cbegin(); iter != transversalSet.cend(); iter++ )
 	{
 		const Permutation& permutation = *iter;
 		if( !permutation.word )
-			count++;
+			unnamedTransversalCount++;
+	}
+	
+	uint unnamedGeneratorCount = 0;
+	for( PermutationSet::const_iterator iter = generatorSet.cbegin(); iter != generatorSet.cend(); iter++ )
+	{
+		const Permutation& permutation = *iter;
+		if( !permutation.word )
+			unnamedGeneratorCount++;
 	}
 
-	return count;
-}
-
-uint StabilizerChain::Group::CountAllUnnamedRepresentatives( void ) const
-{
-	uint count = CountUnnamedRepresentatives();
+	stats.unnamedTransversalCountArray.push_back( unnamedTransversalCount );
+	stats.unnamedGeneratorCountArray.push_back( unnamedGeneratorCount );
+	stats.totalUnnamedTransversalCount += unnamedTransversalCount;
+	stats.totalUnnamedGeneratorCount += unnamedGeneratorCount;
 
 	if( subGroup )
-		count += subGroup->CountAllUnnamedRepresentatives();
-
-	return count;
-}
-
-// Here we just use Schreier's lemma to give names to the generators, so the
-// word lengths aren't necessarily going to be as short as we would hope.
-bool StabilizerChain::Group::FindGeneratorNames( void )
-{
-	if( !superGroup )
-		return false;
-
-	std::ostream* logStream = stabChain->logStream;
-
-	for( PermutationSet::const_iterator genIter = superGroup->generatorSet.cbegin(); genIter != superGroup->generatorSet.cend(); genIter++ )
-	{
-		const Permutation& generator = *genIter;
-		if( !generator.word )
-			return false;
-
-		for( PermutationSet::const_iterator transIter = superGroup->transversalSet.cbegin(); transIter != superGroup->transversalSet.cend(); transIter++ )
-		{
-			const Permutation& cosetRepresentative = *transIter;
-			if( !cosetRepresentative.word )
-				return false;
-
-			Permutation product;
-			product.word = new ElementList;
-			product.Multiply( cosetRepresentative, generator );
-
-			PermutationSet::iterator iter = FindCoset( product );
-			if( iter == transversalSet.end() )
-				return false;
-
-			Permutation invCosetRepresentative;
-			invCosetRepresentative.SetInverse( *iter );
-			if( !invCosetRepresentative.word )
-				return false;
-
-			Permutation schreierGenerator;
-			schreierGenerator.Multiply( product, invCosetRepresentative );
-
-			PermutationSet::iterator foundIter = generatorSet.find( schreierGenerator );
-			if( foundIter != generatorSet.end() )
-			{
-				generatorSet.erase( foundIter );
-				generatorSet.insert( schreierGenerator );
-			}
-		}
-	}
-
-	for( PermutationSet::const_iterator iter = generatorSet.begin(); iter != generatorSet.end(); iter++ )
-		if( !( *iter ).word )
-			return false;
-
-	return true;
+		subGroup->AccumulateStats( stats );
 }
 
 bool StabilizerChain::Group::IsSubGroupOf( const Group& group ) const
