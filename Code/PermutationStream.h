@@ -165,4 +165,25 @@ public:
 	PermutationFreeGroupStream nonCommutatorStream;
 };
 
+//------------------------------------------------------------------------------------------
+//                                    PermutationOrbitStream
+//------------------------------------------------------------------------------------------
+
+class PermutationOrbitStream : public PermutationStream
+{
+public:
+
+	PermutationOrbitStream( const PermutationSet* generatorSet, uint stabilizerPoint, const CompressInfo* compressInfo );
+	virtual ~PermutationOrbitStream( void );
+
+	virtual bool Reset( void ) override;
+	virtual bool OutputPermutation( Permutation& permutation ) override;
+
+	const CompressInfo* compressInfo;
+	const PermutationSet* generatorSet;
+	uint stabilizerPoint;
+	NaturalNumberSet orbitSet;
+	PermutationSet permutationQueue;
+};
+
 // PermutationStream.h

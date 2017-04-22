@@ -59,10 +59,15 @@ int main( int argc, char** argv )
 		CompressInfo compressInfo;
 		stabChain->group->MakeCompressInfo( compressInfo );
 
+		const NaturalNumberSet& stabilizerSet = stabChain->group->GetSubgroupStabilizerPointSet();
+
+		PermutationOrbitStream* permutationOrbitStream = new PermutationOrbitStream( &stabChain->group->generatorSet, *stabilizerSet.set.begin(), &compressInfo );
+
 		PermutationWordStream* permutationWordStream = new PermutationWordStream( &stabChain->group->generatorSet, &compressInfo );
 		permutationWordStream->queueMax = 100000;
 
 		PermutationMultiStream permutationMultiStream;
+		permutationMultiStream.permutationStreamArray.push_back( permutationOrbitStream );
 		permutationMultiStream.permutationStreamArray.push_back( permutationWordStream );
 
 		if( stabChain->OptimizeNames( permutationMultiStream, compressInfo, 20.0 ) )

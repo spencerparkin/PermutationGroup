@@ -433,4 +433,63 @@ void PermutationRandomStream::GenerateRandomCommutator( Permutation& commutator,
 	}
 }
 
+//------------------------------------------------------------------------------------------
+//                                    PermutationOrbitStream
+//------------------------------------------------------------------------------------------
+
+PermutationOrbitStream::PermutationOrbitStream( const PermutationSet* generatorSet, uint stabilizerPoint, const CompressInfo* compressInfo )
+{
+	this->generatorSet = generatorSet;
+	this->stabilizerPoint = stabilizerPoint;
+	this->compressInfo = compressInfo;
+
+	Reset();
+}
+
+/*virtual*/ PermutationOrbitStream::~PermutationOrbitStream( void )
+{
+}
+
+/*virtual*/ bool PermutationOrbitStream::Reset( void )
+{
+	orbitSet.RemoveAllMembers();
+	permutationQueue.clear();
+
+	Permutation identity;
+	identity.word = new ElementList;
+	permutationQueue.insert( identity );
+
+	return true;
+}
+
+/*virtual*/ bool PermutationOrbitStream::OutputPermutation( Permutation& permutation )
+{
+	if( permutationQueue.size() == 0 )
+		return false;
+
+	PermutationSet::iterator iter = permutationQueue.begin();
+	permutation = *iter;
+	permutationQueue.erase( iter );
+
+	uint point = permutation.Evaluate( stabilizerPoint );
+	orbitSet.AddMember( point );
+
+	for( PermutationSet::const_iterator genIter = generatorSet->cbegin(); genIter != generatorSet->cend(); genIter++ )
+	{
+		const Permutation& generator = *genIter;
+
+		Permutation newPermutation;
+		newPermutation.Multiply( permutation, generator );
+
+		point = newPermutation.Evaluate( stabilizerPoint );
+		if( !orbitSet.IsMember( point ) && permutationQueue.find( newPermutation ) == permutationQueue.end() )
+		{
+			newPermutation.CompressWord( *compressInfo );
+			permutationQueue.insert( newPermutation );
+		}
+	}
+
+	return true;
+}
+
 // PermutationStream.cpp
