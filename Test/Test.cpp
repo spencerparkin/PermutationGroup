@@ -14,8 +14,10 @@ enum Puzzle
 	Rubiks2x3x3,
 	Rubiks2x2x3,
 	MixupCube,
+	SymGrpMadPuzzle3,
 	SymGrpMadPuzzle4,
 	SymGrpMadPuzzle5,
+	SymGrpMadPuzzle6,
 	SymGroup,
 };
 
@@ -29,7 +31,7 @@ int main( int argc, char** argv )
 	Permutation permutation;
 	UintArray baseArray;
 	const char* fileName = nullptr;
-	Puzzle puzzle = SymGrpMadPuzzle5;
+	Puzzle puzzle = SymGrpMadPuzzle6;
 	PermutationSet generatorSet;
 
 	stabChain->logStream = &std::cout;
@@ -113,11 +115,100 @@ const char* MakeGenerators( Puzzle puzzle, PermutationSet& generatorSet, UintArr
 
 			break;
 		}
+		case SymGrpMadPuzzle3:
+		{
+			Permutation permutation;
+
+			// aR
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 4, 16 );
+			permutation.DefineCycle( 1, 5, 17 );
+			permutation.DefineCycle( 2, 6, 18 );
+			permutation.DefineCycle( 3, 7, 19 );
+			generatorSet.insert( permutation );
+
+			// aF0
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 17, 19 );
+			permutation.DefineCycle( 3, 5 );
+			permutation.DefineCycle( 2, 6 );
+			permutation.DefineCycle( 0, 4 );
+			permutation.DefineCycle( 1, 7 );
+			generatorSet.insert( permutation );
+
+			// aF1
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 1, 3 );
+			permutation.DefineCycle( 7, 17 );
+			permutation.DefineCycle( 6, 18 );
+			permutation.DefineCycle( 4, 16 );
+			permutation.DefineCycle( 5, 19 );
+			generatorSet.insert( permutation );
+
+			// aF2
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 5, 7 );
+			permutation.DefineCycle( 1, 19 );
+			permutation.DefineCycle( 2, 18 );
+			permutation.DefineCycle( 0, 16 );
+			permutation.DefineCycle( 3, 17 );
+			generatorSet.insert( permutation );
+
+			// bR
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 8, 12, 18 );
+			permutation.DefineCycle( 9, 13, 19 );
+			permutation.DefineCycle( 11, 15, 17 );
+			permutation.DefineCycle( 10, 14, 16 );
+			generatorSet.insert( permutation );
+
+			// bF0
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 13, 15 );
+			permutation.DefineCycle( 9, 17 );
+			permutation.DefineCycle( 10, 16 );
+			permutation.DefineCycle( 8, 18 );
+			permutation.DefineCycle( 11, 19 );
+			generatorSet.insert( permutation );
+
+			// bF1
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 17, 19 );
+			permutation.DefineCycle( 10, 14 );
+			permutation.DefineCycle( 11, 13 );
+			permutation.DefineCycle( 8, 12 );
+			permutation.DefineCycle( 9, 15 );
+			generatorSet.insert( permutation );
+
+			// bF2
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 9, 11 );
+			permutation.DefineCycle( 19, 15 );
+			permutation.DefineCycle( 14, 16 );
+			permutation.DefineCycle( 12, 18 );
+			permutation.DefineCycle( 13, 17 );
+			generatorSet.insert( permutation );
+
+			baseArray.push_back( 0 );
+			baseArray.push_back( 1 );
+			baseArray.push_back( 12 );
+			baseArray.push_back( 13 );
+			baseArray.push_back( 4 );
+			baseArray.push_back( 5 );
+			baseArray.push_back( 9 );
+			baseArray.push_back( 10 );
+			baseArray.push_back( 16 );
+			baseArray.push_back( 17 );
+
+			fileName = "SymGrpMadPuzzle3.txt";
+
+			break;
+		}
 		case SymGrpMadPuzzle4:
 		{
 			Permutation permutation;
 
-			// R0
+			// bR
 			permutation.DefineIdentity();
 			permutation.DefineCycle( 0, 16, 19, 3 );
 			permutation.DefineCycle( 1, 10, 18, 7 );
@@ -600,6 +691,113 @@ const char* MakeGenerators( Puzzle puzzle, PermutationSet& generatorSet, UintArr
 				baseArray.push_back(i);
 
 			fileName = "SymGrpMadPuzzle5.txt";
+
+			break;
+		}
+		case SymGrpMadPuzzle6:
+		{
+			Permutation permutation;
+
+			// aR
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 14 );
+			permutation.DefineCycle( 1, 15 );
+			permutation.DefineCycle( 2, 12 );
+			permutation.DefineCycle( 3, 13 );
+			generatorSet.insert( permutation );
+
+			// aFv
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 13 );
+			permutation.DefineCycle( 1, 12 );
+			permutation.DefineCycle( 3, 14 );
+			permutation.DefineCycle( 2, 15 );
+			generatorSet.insert( permutation );
+
+			// aFh
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 3 );
+			permutation.DefineCycle( 1, 2 );
+			permutation.DefineCycle( 12, 15 );
+			permutation.DefineCycle( 13, 14 );
+			generatorSet.insert( permutation );
+
+			// bR
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 6 );
+			permutation.DefineCycle( 1, 7 );
+			permutation.DefineCycle( 2, 4 );
+			permutation.DefineCycle( 3, 5 );
+			generatorSet.insert( permutation );
+
+			// bFv
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 1 );
+			permutation.DefineCycle( 2, 3 );
+			permutation.DefineCycle( 4, 5 );
+			permutation.DefineCycle( 6, 7 );
+			generatorSet.insert( permutation );
+
+			// bFh
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 7 );
+			permutation.DefineCycle( 3, 4 );
+			permutation.DefineCycle( 1, 6 );
+			permutation.DefineCycle( 2, 5 );
+			generatorSet.insert( permutation );
+
+			// cR
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 5, 11 );
+			permutation.DefineCycle( 6, 8 );
+			permutation.DefineCycle( 4, 10 );
+			permutation.DefineCycle( 7, 9 );
+			generatorSet.insert( permutation );
+
+			// cFv
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 4, 9 );
+			permutation.DefineCycle( 5, 8 );
+			permutation.DefineCycle( 6, 11 );
+			permutation.DefineCycle( 7, 10 );
+			generatorSet.insert( permutation );
+
+			// cFh
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 4, 7 );
+			permutation.DefineCycle( 5, 6 );
+			permutation.DefineCycle( 9, 10 );
+			permutation.DefineCycle( 8, 11 );
+			generatorSet.insert( permutation );
+
+			// dR
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 12, 10 );
+			permutation.DefineCycle( 13, 11 );
+			permutation.DefineCycle( 15, 9 );
+			permutation.DefineCycle( 8, 14 );
+			generatorSet.insert( permutation );
+
+			// dRv
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 12, 13 );
+			permutation.DefineCycle( 14, 15 );
+			permutation.DefineCycle( 8, 9 );
+			permutation.DefineCycle( 11, 10 );
+			generatorSet.insert( permutation );
+
+			// dRh
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 12, 11 );
+			permutation.DefineCycle( 8, 15 );
+			permutation.DefineCycle( 9, 14 );
+			permutation.DefineCycle( 10, 13 );
+			generatorSet.insert( permutation );
+
+			for( uint i = 0; i < 16; i++ )
+				baseArray.push_back(i);
+
+			fileName = "SymGrpMadPuzzle6.txt";
 
 			break;
 		}
