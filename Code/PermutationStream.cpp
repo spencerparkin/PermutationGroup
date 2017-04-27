@@ -492,4 +492,56 @@ PermutationOrbitStream::PermutationOrbitStream( const PermutationSet* generatorS
 	return true;
 }
 
+//------------------------------------------------------------------------------------------
+//                                  PermutationStabChainStream
+//------------------------------------------------------------------------------------------
+
+PermutationStabChainStream::PermutationStabChainStream( const StabilizerChain* stabChain, const CompressInfo* compressInfo )
+{
+	this->stabChain = stabChain;
+
+	wordStream = new PermutationWordStream( &stabChain->group->generatorSet, compressInfo );
+
+	place = 0;
+}
+
+/*virtual*/ PermutationStabChainStream::~PermutationStabChainStream( void )
+{
+	delete wordStream;
+}
+
+/*virtual*/ bool PermutationStabChainStream::OutputPermutation( Permutation& permutation )
+{
+	if( place == 0 )
+		wordStream->OutputPermutation( trialPermutation );
+
+	PermutationConstPtrArray permutationArray;
+	const StabilizerChain::Group* group = stabChain->group;
+	while( group )
+	{
+		for( PermutationSet::const_iterator iter = group->transversalSet.cbegin(); iter != group->transversalSet.cend(); iter++ )
+		{
+			const Permutation& cosetRepresentative = *iter;
+			if( cosetRepresentative.word && cosetRepresentative.word->size() > 0 )
+				permutationArray.push_back( &cosetRepresentative );
+		}
+	}
+
+	if( permutationArray.size() == 0 )
+		return false;
+
+	if( place < permutationArray.size() )
+	{
+		permutation.Multiply( *permutationArray[ place ], trialPermutation );
+		place++;
+	}
+	else
+	{
+		place = 0;
+		return OutputPermutation( permutation );
+	}
+
+	return true;
+}
+
 // PermutationStream.cpp

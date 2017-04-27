@@ -692,7 +692,6 @@ bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const
 		clock_t currentTime = clock();
 		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
 
-		// We could break when the "allUnnamedCount" is zero, but we stay in longer to hopefully optimize more.
 		if( elapsedTimeSec > timeOutSec && stats.totalUnnamedTransversalCount == 0 )
 			break;
 	}

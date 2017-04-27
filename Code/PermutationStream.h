@@ -186,4 +186,23 @@ public:
 	PermutationSet permutationQueue;
 };
 
+//------------------------------------------------------------------------------------------
+//                                  PermutationStabChainStream
+//------------------------------------------------------------------------------------------
+
+class PermutationStabChainStream : public PermutationStream
+{
+public:
+
+	PermutationStabChainStream( const StabilizerChain* stabChain, const CompressInfo* compressInfo );
+	virtual ~PermutationStabChainStream( void );
+
+	virtual bool OutputPermutation( Permutation& permutation ) override;
+
+	const StabilizerChain* stabChain;
+	PermutationWordStream* wordStream;
+	Permutation trialPermutation;
+	int place;
+};
+
 // PermutationStream.h
