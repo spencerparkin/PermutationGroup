@@ -110,6 +110,23 @@ bool Permutation::DefineCycle( uint a, uint b, uint c, uint d, uint e )
 	return true;
 }
 
+bool Permutation::DefineCycle( uint a, uint b, uint c, uint d, uint e, uint f )
+{
+	if( !Define( a, b ) )
+		return false;
+	if( !Define( b, c ) )
+		return false;
+	if( !Define( c, d ) )
+		return false;
+	if( !Define( d, e ) )
+		return false;
+	if( !Define( e, f ) )
+		return false;
+	if( !Define( f, a ) )
+		return false;
+	return true;
+}
+
 bool Permutation::DefineCycleArray( const uint* cycleArray, uint cycleArraySize )
 {
 	for( uint i = 0; i < cycleArraySize; i++ )

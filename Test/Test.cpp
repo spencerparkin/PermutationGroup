@@ -13,6 +13,7 @@ enum Puzzle
 	Rubiks3x3x3,
 	Rubiks2x3x3,
 	Rubiks2x2x3,
+	Rubiks3x3x3_LL,
 	MixupCube,
 	SymGrpMadPuzzle1,
 	SymGrpMadPuzzle2,
@@ -34,7 +35,7 @@ int main( int argc, char** argv )
 	Permutation permutation;
 	UintArray baseArray;
 	const char* fileName = nullptr;
-	Puzzle puzzle = SymGrpMadPuzzle7;
+	Puzzle puzzle = Rubiks3x3x3_LL;
 	PermutationSet generatorSet;
 
 	stabChain->logStream = &std::cout;
@@ -48,6 +49,8 @@ int main( int argc, char** argv )
 	t = clock() - t;
 	double elapsed_time = double(t) / double( CLOCKS_PER_SEC );
 	std::cout << "Time taken: " << elapsed_time << " sec\n";
+
+	unsigned long long order = stabChain->GetSubGroupAtDepth(0)->Order();
 
 	if( success )
 	{
@@ -1923,6 +1926,85 @@ const char* MakeGenerators( Puzzle puzzle, PermutationSet& generatorSet, UintArr
 			baseArray.push_back( 16 );
 
 			fileName = "Rubiks2x2x3.txt";
+
+			break;
+		}
+		case Rubiks3x3x3_LL:
+		{
+			Permutation permutation;
+
+			// Quarter turn of the top.
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 0, 7, 19, 12 );
+			permutation.DefineCycle( 1, 11, 18, 8 );
+			permutation.DefineCycle( 2, 16, 17, 3 );
+			permutation.DefineCycle( 4, 6, 15, 13 );
+			permutation.DefineCycle( 5, 10, 14, 9 );
+			generatorSet.insert( permutation );
+
+#if 0
+			// Flip adjacent edges.
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 1, 5 );
+			permutation.DefineCycle( 10, 11 );
+			generatorSet.insert( permutation );
+
+			// Twist adjacent corners.
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 2, 6, 7 );
+			permutation.DefineCycle( 15, 16, 19 );
+			generatorSet.insert( permutation );
+
+			// Try-cycle edges.
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 11, 1, 8 );
+			permutation.DefineCycle( 10, 5, 9 );
+			generatorSet.insert( permutation );
+
+			// Tri-cycle corners.
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 7, 0, 12 );
+			permutation.DefineCycle( 2, 3, 17 );
+			permutation.DefineCycle( 6, 4, 13 );
+			generatorSet.insert( permutation );
+#else
+			// R, U, Ri, U, R, U2, Ri
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 10, 5, 9 );
+			permutation.DefineCycle( 11, 1, 8 );
+			permutation.DefineCycle( 4, 16, 0, 15, 3, 19 );
+			permutation.DefineCycle( 13, 6, 17, 2, 12, 7 );
+			generatorSet.insert( permutation );
+
+			// U, R, Ui, Li, U, Ri, Ui, L
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 7, 4, 17 );
+			permutation.DefineCycle( 6, 3, 12 );
+			permutation.DefineCycle( 2, 0, 13 );
+			generatorSet.insert( permutation );
+
+			// F, R, U, Ri, Ui, Fi
+			permutation.DefineIdentity();
+			permutation.DefineCycle( 14, 11, 1 );
+			permutation.DefineCycle( 18, 10, 5 );
+			permutation.DefineCycle( 13, 16, 17, 19, 12, 15 );
+			permutation.DefineCycle( 4, 7, 0, 2, 3, 6 );
+			generatorSet.insert( permutation );
+#endif
+
+			// Position and orient corners.
+			baseArray.push_back(4);
+			baseArray.push_back(15);
+			baseArray.push_back(6);
+			baseArray.push_back(13);
+
+			// Position and orient edges.
+			baseArray.push_back(5);
+			baseArray.push_back(14);
+			baseArray.push_back(9);
+			baseArray.push_back(10);
+
+			fileName = "Rubiks3x3x3_LL.txt";
 
 			break;
 		}

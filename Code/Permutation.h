@@ -70,6 +70,7 @@ public:
 	bool DefineCycle( uint a, uint b, uint c );
 	bool DefineCycle( uint a, uint b, uint c, uint d );
 	bool DefineCycle( uint a, uint b, uint c, uint d, uint e );
+	bool DefineCycle( uint a, uint b, uint c, uint d, uint e, uint f );
 	bool DefineCycleArray( const uint* cycleArray, uint cycleArraySize );
 	void DefineIdentity( void );
 	bool IsValid( void ) const;
