@@ -16,6 +16,22 @@ StabilizerChain::StabilizerChain( void )
 	delete group;
 }
 
+StabilizerChain* StabilizerChain::Clone( void ) const
+{
+	std::string jsonString;
+	if( !SaveToJsonString( jsonString ) )
+		return nullptr;
+
+	StabilizerChain* stabChain = new StabilizerChain();
+	if( !stabChain->LoadFromJsonString( jsonString ) )
+	{
+		delete stabChain;
+		return nullptr;
+	}
+
+	return stabChain;
+}
+
 uint StabilizerChain::Depth( void ) const
 {
 	uint i = 0;

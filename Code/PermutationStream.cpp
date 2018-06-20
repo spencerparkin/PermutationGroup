@@ -530,7 +530,7 @@ PermutationStabChainStream::PermutationStabChainStream( const StabilizerChain* s
 	if( permutationArray.size() == 0 )
 		return false;
 
-	if( place < permutationArray.size() )
+	if( place < ( signed )permutationArray.size() )
 	{
 		permutation.Multiply( *permutationArray[ place ], trialPermutation );
 		place++;

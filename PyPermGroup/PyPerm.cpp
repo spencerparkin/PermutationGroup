@@ -134,21 +134,15 @@ PyTypeObject PyPermTypeObject =
 
 Permutation* Permutation_from_PyObject(PyObject* object)
 {
-	Permutation* permutation = nullptr;
-
 	if(PyObject_TypeCheck(object, &PyPermTypeObject))
-	{
-		permutation = new Permutation();
-		((PyPermObject*)object)->permutation->GetCopy(*permutation);
-	}
-
-	return permutation;
+		return ((PyPermObject*)object)->permutation;
+	return nullptr;
 }
 
 PyObject* Permutation_to_PyObject(Permutation* permutation)
 {
 	PyPermObject* object = (PyPermObject*)PyPermObject_overload_new(&PyPermTypeObject, nullptr, nullptr);
-	object->permutation->SetCopy(*permutation);
+	object->permutation = permutation;
 	return (PyObject*)object;
 }
 
@@ -167,6 +161,12 @@ static bool _PyPermObject_populate(PyPermObject* self, PyObject* perm_array_obj)
 	}
 
 	unsigned int count = (unsigned int)PyList_Size(perm_array_obj);
+	if(count > MAX_MAP_SIZE)
+	{
+		PyErr_Format(PyExc_ValueError, "Hard limit (%d) on permutation size reached.", MAX_MAP_SIZE);
+		return false;
+	}
+
 	for(unsigned int input = 0; input < count; input++)
 	{
 		PyObject* obj = PyList_GetItem(perm_array_obj, input);
@@ -189,10 +189,13 @@ static bool _PyPermObject_populate(PyPermObject* self, PyObject* perm_array_obj)
 
 static int PyPermObject_init(PyPermObject* self, PyObject* args, PyObject* kwds)
 {
-	static const char* kwlist[] = {"perm_obj", "perm_array", nullptr};
+	delete self->permutation;
+	self->permutation = new Permutation();
 
 	PyObject* perm_array_obj = nullptr;
 	PyObject* perm_obj = nullptr;
+
+	static const char* kwlist[] = {"perm_obj", "perm_array", nullptr};
 
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|OO", (char**)kwlist, &perm_array_obj, &perm_obj))
 	{
@@ -422,6 +425,6 @@ static PyObject* PyPermObject_overload_call(PyObject* callable_object, PyObject*
 static PyObject* PyPermObject_overload_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
 	PyPermObject* object = (PyPermObject*)type->tp_alloc(type, 0);
-	object->permutation = new Permutation();
+	object->permutation = nullptr;
 	return (PyObject*)object;
 }

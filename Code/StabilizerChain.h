@@ -35,6 +35,7 @@ public:
 	uint Depth( void ) const;
 	Group* GetSubGroupAtDepth( uint depth );
 	const Group* GetSubGroupAtDepth( uint depth ) const;
+	StabilizerChain* Clone( void ) const;
 
 	class OrbitNode;
 	class Group;
