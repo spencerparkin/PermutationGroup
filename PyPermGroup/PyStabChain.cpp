@@ -19,6 +19,7 @@ PyObject* PyStabChainObject_from_json(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_clone(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_depth(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* args);
+PyObject* PyStabChainObject_solve(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_order(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_walk(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_overload_str(PyObject* object);
@@ -31,6 +32,7 @@ PyMethodDef PyStabChainObject_methods[] =
 	{"clone", (PyCFunction)PyStabChainObject_clone, METH_VARARGS, ""},
 	{"depth", (PyCFunction)PyStabChainObject_depth, METH_VARARGS, ""},
 	{"generate", (PyCFunction)PyStabChainObject_generate, METH_VARARGS, ""},
+	{"solve", (PyCFunction)PyStabChainObject_solve, METH_VARARGS, ""},
 	{"order", (PyCFunction)PyStabChainObject_order, METH_VARARGS, ""},
 	{"walk", (PyCFunction)PyStabChainObject_walk, METH_VARARGS, ""},
 	{nullptr, nullptr, 0, nullptr}
@@ -221,6 +223,73 @@ static PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* a
 	if(!self->stabChain->Generate(generatorSet, baseArray))
 	{
 		PyErr_SetString(PyExc_ValueError, "Failed to generated stabilizer chain.");
+		return nullptr;
+	}
+
+	Py_RETURN_NONE;
+}
+
+static bool _PyStabChainObject_solve_callback( const StabilizerChain::Stats& stats, void* callback_data )
+{
+	PyObject* callback_obj = (PyObject*)callback_data;
+
+	PyObject* count_obj = PyLong_FromSize_t(stats.totalUnnamedTransversalCount);
+	PyObject* args = PyTuple_New(1);
+	PyTuple_SetItem(args, 0, count_obj);
+
+	PyObject* result = PyObject_Call(callback_obj, args, nullptr);
+	int bail = PyObject_IsTrue(result);
+	Py_DECREF(result);
+	return bail ? true : false;
+}
+
+static PyObject* PyStabChainObject_solve(PyStabChainObject* self, PyObject* args)
+{
+	PyObject* callback_obj = nullptr;
+
+	if(!PyArg_ParseTuple(args, "O", &callback_obj))
+	{
+		PyErr_SetString(PyExc_ValueError, "Failed to parse arguments.");
+		return nullptr;
+	}
+
+	if(!PyCallable_Check(callback_obj))
+	{
+		PyErr_SetString(PyExc_TypeError, "Expected callable to be given.");
+		return nullptr;
+	}
+
+	if(!self->stabChain->group)
+	{
+		PyErr_SetString(PyExc_TypeError, "Stab-chain must be generated before it can be solved.");
+		return nullptr;
+	}
+
+	self->stabChain->group->NameGenerators();
+
+	CompressInfo compressInfo;
+	self->stabChain->group->MakeCompressInfo(compressInfo);
+
+	// TODO: The means of finding coset factorizations here could stand to be given some configuration/tuning.
+
+	const NaturalNumberSet& stabilizerSet = self->stabChain->group->GetSubgroupStabilizerPointSet();
+
+	PermutationOrbitStream* permutationOrbitStream = new PermutationOrbitStream(&self->stabChain->group->generatorSet, *stabilizerSet.set.begin(), &compressInfo);
+
+	PermutationWordStream* permutationWordStream = new PermutationWordStream(&self->stabChain->group->generatorSet, &compressInfo);
+	permutationWordStream->queueMax = 100000;
+
+	PermutationStabChainStream* permutationStabChainStream = new PermutationStabChainStream(self->stabChain, &compressInfo);
+
+	PermutationMultiStream permutationMultiStream;
+	permutationMultiStream.permutationStreamArray.push_back(permutationOrbitStream);
+	permutationMultiStream.permutationStreamArray.push_back(permutationWordStream);
+	permutationMultiStream.permutationStreamArray.push_back(permutationStabChainStream);
+
+	// This is where we'll spend, possibly, a great deal of time.
+	if(!self->stabChain->OptimizeNames(permutationMultiStream, compressInfo, 20.0, &_PyStabChainObject_solve_callback, callback_obj))
+	{
+		PyErr_SetString(PyExc_ValueError, "Failed to solve stab-chain.");
 		return nullptr;
 	}
 

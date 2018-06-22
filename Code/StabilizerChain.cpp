@@ -665,7 +665,7 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 // a transversal set, then you can find words for all the others using the orbit-stabilizer
 // theorem, provided you know the generator factorizations, although these would grow in
 // length the further they are from the root.
-bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/ )
+bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/, OptimizeNamesCallback callback /*= nullptr*/, void* callback_data /*= nullptr*/ )
 {
 	Group* subGroup = group;
 	while( subGroup )
@@ -704,6 +704,9 @@ bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const
 			if( logStream )
 				stats.Print( *logStream );
 		}
+
+		if( callback && callback( stats, callback_data ) )
+			break;
 
 		clock_t currentTime = clock();
 		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );

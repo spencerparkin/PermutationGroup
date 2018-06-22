@@ -103,7 +103,8 @@ public:
 		StabilizerChain* stabChain;
 	};
 
-	bool OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0 );
+	typedef bool ( *OptimizeNamesCallback )( const Stats&, void* );
+	bool OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0, OptimizeNamesCallback callback = nullptr, void* callback_data = nullptr );
 
 	Group* group;
 	NaturalNumberSetArray baseArray;

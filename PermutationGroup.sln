@@ -11,6 +11,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj",
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PyPermGroup", "PyPermGroup\PyPermGroup.vcxproj", "{6D7E89FE-8134-470D-9B53-9776FE5B02F5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DCB1164F-64FF-443E-AB56-2517145B33DC} = {DCB1164F-64FF-443E-AB56-2517145B33DC}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
