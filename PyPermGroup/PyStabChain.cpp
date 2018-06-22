@@ -26,16 +26,20 @@ PyObject* PyStabChainObject_overload_new(PyTypeObject* type, PyObject* args, PyO
 
 PyMethodDef PyStabChainObject_methods[] =
 {
-	{"to_dict", (PyCFunction)PyStabChainObject_to_json, METH_VARARGS, ""},
-	{"from_dict", (PyCFunction)PyStabChainObject_from_json, METH_VARARGS, ""},
+	{"to_json", (PyCFunction)PyStabChainObject_to_json, METH_VARARGS, ""},
+	{"from_json", (PyCFunction)PyStabChainObject_from_json, METH_VARARGS, ""},
 	{"clone", (PyCFunction)PyStabChainObject_clone, METH_VARARGS, ""},
+	{"depth", (PyCFunction)PyStabChainObject_depth, METH_VARARGS, ""},
+	{"generate", (PyCFunction)PyStabChainObject_generate, METH_VARARGS, ""},
+	{"order", (PyCFunction)PyStabChainObject_order, METH_VARARGS, ""},
+	{"walk", (PyCFunction)PyStabChainObject_walk, METH_VARARGS, ""},
 	{nullptr, nullptr, 0, nullptr}
 };
 
 PyTypeObject PyStabChainTypeObject =
 {
 	PyVarObject_HEAD_INIT(nullptr, 0)
-	"Permutation",										// tp_name
+	"Stabilizer Chain",									// tp_name
 	sizeof(PyStabChainObject),							// tp_basicsize
 	0,													// tp_itemsize
 	(destructor)PyStabChainObject_dealloc,				// tp_dealloc
@@ -54,7 +58,7 @@ PyTypeObject PyStabChainTypeObject =
 	0,													// tp_setattro
 	0,													// tp_as_buffer
 	Py_TPFLAGS_DEFAULT,									// tp_flags
-	"Permutations objects",								// tp_doc
+	"Stabilizer Chain objects",							// tp_doc
 	nullptr,											// tp_traverse
 	nullptr,											// tp_clear
 	nullptr,											// tp_richcompare
