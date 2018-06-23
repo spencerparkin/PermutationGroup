@@ -701,12 +701,12 @@ bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const
 			stats.Reset();
 			group->AccumulateStats( stats );
 
+			if( callback && callback( stats, callback_data ) )
+				break;
+
 			if( logStream )
 				stats.Print( *logStream );
 		}
-
-		if( callback && callback( stats, callback_data ) )
-			break;
 
 		clock_t currentTime = clock();
 		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
