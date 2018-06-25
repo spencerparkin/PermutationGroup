@@ -797,7 +797,7 @@ bool StabilizerChain::TryToCompletePartiallyWordedChain( PermutationStream& perm
 					Permutation wordedCosetRepresentative;
 					invCosetRepresentative.GetInverse( wordedCosetRepresentative );
 					bool optimized = group->OptimizeNameWithPermutation( wordedCosetRepresentative, compressInfo );
-					if( !optimized || !cosetRepresentative.word )
+					if( !optimized )
 					{
 						// Something has gone wrong with our math!
 						return false;
