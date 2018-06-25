@@ -740,7 +740,7 @@ bool StabilizerChain::Group::OptimizeNameWithPermutation( Permutation& permutati
 
 	const Permutation& cosetRepresentative = *iter;
 
-	if( ( cosetRepresentative.word && permutation.word->size() < cosetRepresentative.word->size() ) || !cosetRepresentative.word )
+	if( !cosetRepresentative.word || permutation.word->size() < cosetRepresentative.word->size() )
 	{
 		if( logStream )
 		{
