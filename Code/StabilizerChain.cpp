@@ -665,7 +665,7 @@ bool StabilizerChain::Group::SaveRecursive( rapidjson::Value& chainGroupValue, r
 // a transversal set, then you can find words for all the others using the orbit-stabilizer
 // theorem, provided you know the generator factorizations, although these would grow in
 // length the further they are from the root.
-bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec /*= 60.0*/, OptimizeNamesCallback callback /*= nullptr*/, void* callback_data /*= nullptr*/ )
+bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, OptimizeNamesCallback callback, void* callback_data /*= nullptr*/ )
 {
 	Group* subGroup = group;
 	while( subGroup )
@@ -688,34 +688,140 @@ bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const
 		subGroup = subGroup->subGroup;
 	}
 
-	clock_t lastOptimizationTime = clock();
+	clock_t startTime = clock();
+
 	Stats stats;
+	group->AccumulateStats( stats );
+	bool statsMayHaveChanged = true;
 
 	Permutation permutation;
 	while( permutationStream.OutputPermutation( permutation ) )
 	{
 		if( group->OptimizeNameWithPermutation( permutation, compressInfo ) )
 		{
-			lastOptimizationTime = clock();
-
 			stats.Reset();
 			group->AccumulateStats( stats );
-
-			if( callback && callback( stats, callback_data ) )
-				break;
+			statsMayHaveChanged = true;
 
 			if( logStream )
 				stats.Print( *logStream );
 		}
-
+		else
+			statsMayHaveChanged = false;
+		
 		clock_t currentTime = clock();
-		double elapsedTimeSec = double( currentTime - lastOptimizationTime ) / double( CLOCKS_PER_SEC );
+		double elapsedTimeSec = double( currentTime - startTime ) / double( CLOCKS_PER_SEC );
 
-		if( elapsedTimeSec > timeOutSec && stats.totalUnnamedTransversalCount == 0 )
+		if( callback( &stats, statsMayHaveChanged, elapsedTimeSec, callback_data ) )
+			break;
+
+		// Yes, more optimizations may be able to be made.  Rely completely on callback to bail out?
+		if( stats.totalUnnamedTransversalCount == 0 )
 			break;
 	}
 
 	return ( stats.totalUnnamedTransversalCount == 0 ) ? true : false;
+}
+
+bool StabilizerChain::IsCompletelyWorded( void ) const
+{
+	Group* subGroup = nullptr;
+	PermutationSet::iterator iter;
+	return !const_cast< StabilizerChain* >( this )->FindUnwordedCosetRepresentative( subGroup, iter );
+}
+
+bool StabilizerChain::FindUnwordedCosetRepresentative( Group*& subGroup, PermutationSet::iterator& iter )
+{
+	subGroup = this->group;
+
+	while( subGroup )
+	{
+		for( iter = subGroup->transversalSet.begin(); iter != subGroup->transversalSet.end(); iter++ )
+		{
+			const Permutation& cosetRepresentative = *iter;
+			if( !cosetRepresentative.word )
+				return true;
+		}
+
+		subGroup = subGroup->subGroup;
+	}
+
+	return false;
+}
+
+// This idea is based on trembling and will only work if the chain is complete enough.
+// For example, if any transversal set is completely unworded, then the chain can't be completed this way.
+// Put another way, there has to be a way to factor some elements of the group, if not all of them.
+bool StabilizerChain::TryToCompletePartiallyWordedChain( PermutationStream& permutationStream, const CompressInfo& compressInfo, OptimizeNamesCallback callback, void* callback_data /*= nullptr*/ )
+{
+	Stats stats;
+	group->AccumulateStats( stats );
+
+	clock_t startTime = clock();
+
+	while( true )
+	{
+		// Maybe we should be trembling all unworded transversal simultaneously?
+		// Maybe we should be trying to get the most empty transversal set worded first?
+		Group* subGroup = nullptr;
+		PermutationSet::iterator iter;
+		if( !FindUnwordedCosetRepresentative( subGroup, iter ) )
+			return true;
+
+		const Permutation& cosetRepresentative = *iter;
+
+		permutationStream.Reset();
+
+		Permutation trembler;
+		while( permutationStream.OutputPermutation( trembler ) )
+		{
+			bool statsMayHaveChanged = false;
+
+			Permutation product;
+			product.Multiply( cosetRepresentative, trembler );
+
+			Permutation invProduct;
+			invProduct.word = new ElementList;
+			if( group->FactorInverse( product, invProduct ) && invProduct.word )
+			{
+				Permutation invCosetRepresentative;
+				invCosetRepresentative.word = new ElementList;
+
+				invCosetRepresentative.Multiply( trembler, invProduct );
+
+				// We could just do the following, but as a sanity check, we're going to insert the hard way.
+				if( false )
+					invCosetRepresentative.GetInverse( const_cast< Permutation& >( cosetRepresentative ) );
+				else
+				{
+					Permutation wordedCosetRepresentative;
+					invCosetRepresentative.GetInverse( wordedCosetRepresentative );
+					bool optimized = group->OptimizeNameWithPermutation( wordedCosetRepresentative, compressInfo );
+					if( !optimized || !cosetRepresentative.word )
+					{
+						// Something has gone wrong with our math!
+						return false;
+					}
+				}
+
+				stats.Reset();
+				group->AccumulateStats( stats );
+
+				statsMayHaveChanged = true;
+			}
+
+			clock_t currentTime = clock();
+			double elapsedTimeSec = double( currentTime - startTime ) / double( CLOCKS_PER_SEC );
+
+			if( callback( &stats, statsMayHaveChanged, elapsedTimeSec, callback_data ) )
+				return false;
+
+			if( statsMayHaveChanged )
+				break;
+		}
+	}
+
+	return false;
 }
 
 bool StabilizerChain::Group::OptimizeNameWithPermutation( Permutation& permutation, const CompressInfo& compressInfo )

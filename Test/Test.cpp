@@ -81,7 +81,8 @@ int main( int argc, char** argv )
 		permutationMultiStream.permutationStreamArray.push_back( permutationWordStream );
 		permutationMultiStream.permutationStreamArray.push_back( permutationStabChainStream );
 
-		if( stabChain->OptimizeNames( permutationMultiStream, compressInfo, 20.0 ) )
+		// TODO: Fix this.  A callback must be supplied.
+		if( stabChain->OptimizeNames( permutationMultiStream, compressInfo, nullptr ) )
 		{
 			std::string jsonString;
 			stabChain->SaveToJsonString( jsonString );

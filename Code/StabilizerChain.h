@@ -103,8 +103,11 @@ public:
 		StabilizerChain* stabChain;
 	};
 
-	typedef bool ( *OptimizeNamesCallback )( const Stats&, void* );
-	bool OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, double timeOutSec = 60.0, OptimizeNamesCallback callback = nullptr, void* callback_data = nullptr );
+	typedef bool ( *OptimizeNamesCallback )( const Stats*, bool, double, void* );
+	bool OptimizeNames( PermutationStream& permutationStream, const CompressInfo& compressInfo, OptimizeNamesCallback callback, void* callback_data = nullptr );
+	bool IsCompletelyWorded( void ) const;
+	bool FindUnwordedCosetRepresentative( Group*& subGroup, PermutationSet::iterator& iter );
+	bool TryToCompletePartiallyWordedChain( PermutationStream& permutationStream, const CompressInfo& compressInfo, OptimizeNamesCallback callback, void* callback_data = nullptr );
 
 	Group* group;
 	NaturalNumberSetArray baseArray;

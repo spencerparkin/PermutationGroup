@@ -229,13 +229,25 @@ static PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* a
 	Py_RETURN_NONE;
 }
 
-static bool _PyStabChainObject_solve_callback( const StabilizerChain::Stats& stats, void* callback_data )
+static bool _PyStabChainObject_solve_callback( const StabilizerChain::Stats* stats, bool statsMayHaveChanged, double elapsedTimeSec, void* callback_data )
 {
 	PyObject* callback_obj = (PyObject*)callback_data;
 
-	PyObject* count_obj = PyLong_FromSize_t(stats.totalUnnamedTransversalCount);
-	PyObject* args = PyTuple_New(1);
-	PyTuple_SetItem(args, 0, count_obj);
+	PyObject* args = PyTuple_New(3);
+
+	if(stats)
+	{
+		PyObject* count_obj = PyLong_FromSize_t(stats->totalUnnamedTransversalCount);
+		PyTuple_SetItem(args, 0, count_obj);
+	}
+	else
+	{
+		Py_INCREF(Py_None);
+		PyTuple_SetItem(args, 0, Py_None);
+	}
+
+	PyTuple_SetItem(args, 1, PyBool_FromLong(statsMayHaveChanged ? 1 : 0));
+	PyTuple_SetItem(args, 2, PyFloat_FromDouble(elapsedTimeSec));
 
 	PyObject* result = PyObject_Call(callback_obj, args, nullptr);
 	int bail = PyObject_IsTrue(result);
@@ -287,10 +299,13 @@ static PyObject* PyStabChainObject_solve(PyStabChainObject* self, PyObject* args
 	permutationMultiStream.permutationStreamArray.push_back(permutationStabChainStream);
 
 	// This is where we'll spend, possibly, a great deal of time.
-	if(!self->stabChain->OptimizeNames(permutationMultiStream, compressInfo, 20.0, &_PyStabChainObject_solve_callback, callback_obj))
+	if(!self->stabChain->OptimizeNames(permutationMultiStream, compressInfo, &_PyStabChainObject_solve_callback, callback_obj))
 	{
-		PyErr_SetString(PyExc_ValueError, "Failed to solve stab-chain.");
-		return nullptr;
+		if(!self->stabChain->TryToCompletePartiallyWordedChain(permutationMultiStream, compressInfo, &_PyStabChainObject_solve_callback, callback_obj))
+		{
+			PyErr_SetString(PyExc_ValueError, "Failed to solve stab-chain.");
+			return nullptr;
+		}
 	}
 
 	Py_RETURN_NONE;
