@@ -525,6 +525,8 @@ PermutationStabChainStream::PermutationStabChainStream( const StabilizerChain* s
 			if( cosetRepresentative.word && cosetRepresentative.word->size() > 0 )
 				permutationArray.push_back( &cosetRepresentative );
 		}
+
+		group = group->subGroup;
 	}
 
 	if( permutationArray.size() == 0 )
