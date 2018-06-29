@@ -759,7 +759,8 @@ bool StabilizerChain::TryToCompletePartiallyWordedChain( PermutationStream& perm
 
 	clock_t startTime = clock();
 
-	while( true )
+	bool keepGoing = true;
+	while( keepGoing )
 	{
 		// Maybe we should be trembling all unworded transversal simultaneously?
 		// Maybe we should be trying to get the most empty transversal set worded first?
@@ -814,14 +815,17 @@ bool StabilizerChain::TryToCompletePartiallyWordedChain( PermutationStream& perm
 			double elapsedTimeSec = double( currentTime - startTime ) / double( CLOCKS_PER_SEC );
 
 			if( callback( &stats, statsMayHaveChanged, elapsedTimeSec, callback_data ) )
-				return false;
+			{
+				keepGoing = false;
+				break;
+			}
 
 			if( statsMayHaveChanged )
 				break;
 		}
 	}
 
-	return false;
+	return ( stats.totalUnnamedTransversalCount == 0 ) ? true : false;
 }
 
 bool StabilizerChain::Group::OptimizeNameWithPermutation( Permutation& permutation, const CompressInfo& compressInfo )
