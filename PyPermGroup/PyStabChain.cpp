@@ -22,6 +22,8 @@ PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_solve(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_order(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_walk(PyStabChainObject* self, PyObject* args);
+PyObject* PyStabChainObject_worded(PyStabChainObject* self, PyObject* args);
+PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_overload_str(PyObject* object);
 PyObject* PyStabChainObject_overload_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 
@@ -35,6 +37,8 @@ PyMethodDef PyStabChainObject_methods[] =
 	{"solve", (PyCFunction)PyStabChainObject_solve, METH_VARARGS, ""},
 	{"order", (PyCFunction)PyStabChainObject_order, METH_VARARGS, ""},
 	{"walk", (PyCFunction)PyStabChainObject_walk, METH_VARARGS, ""},
+	{"worded", (PyCFunction)PyStabChainObject_worded, METH_VARARGS, ""},
+	{"factor", (PyCFunction)PyStabChainObject_factor, METH_VARARGS, ""},
 	{nullptr, nullptr, 0, nullptr}
 };
 
@@ -362,6 +366,53 @@ static PyObject* PyStabChainObject_walk(PyStabChainObject* self, PyObject* args)
 	}
 
 	Py_RETURN_NONE;
+}
+
+static PyObject* PyStabChainObject_worded(PyStabChainObject* self, PyObject* args)
+{
+	if(self->stabChain->IsCompletelyWorded())
+	{
+		Py_RETURN_TRUE;
+	}
+
+	Py_RETURN_FALSE;
+}
+
+static PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* args)
+{
+	PyObject* perm_obj = nullptr;
+
+	if(!PyArg_ParseTuple(args, "O", perm_obj))
+	{
+		PyErr_SetString(PyExc_ValueError, "Failed to parse arguments.");
+		return nullptr;
+	}
+
+	if(!PyObject_TypeCheck(perm_obj, &PyPermTypeObject))
+	{
+		PyErr_SetString(PyExc_TypeError, "Expected permutation object.");
+		return nullptr;
+	}
+
+	if(!self->stabChain->group)
+	{
+		PyErr_SetString(PyExc_ValueError, "No group has been generated for the stab-chain.");
+		return nullptr;
+	}
+
+	Permutation* invPermutation = new Permutation();
+	invPermutation->word = new ElementList;
+
+	if(!self->stabChain->group->FactorInverse(*Permutation_from_PyObject(perm_obj), *invPermutation))
+	{
+		delete invPermutation;
+		PyErr_SetString(PyExc_ValueError, "Failed to utilize stab-chain in factoring given permutation.");
+		return nullptr;
+	}
+
+	PyObject* inv_perm_obj = Permutation_to_PyObject(invPermutation);
+	Py_INCREF(inv_perm_obj);
+	return inv_perm_obj;
 }
 
 static PyObject* PyStabChainObject_overload_str(PyObject* object)
