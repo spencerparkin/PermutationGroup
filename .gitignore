@@ -34,6 +34,8 @@
 *.VC.VC.opendb
 Debug/
 enc_temp_folder/
+x64/
+Release/
 
 # LaTeX crap...
 *.aux
