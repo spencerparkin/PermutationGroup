@@ -3,6 +3,7 @@
 #include "Permutation.h"
 #include "NaturalNumberSet.h"
 #include <sstream>
+#include <rapidjson/writer.h>
 
 //------------------------------------------------------------------------------------------
 //                                        Permutation
@@ -583,6 +584,36 @@ bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 	for( uint i = 0; i < mapArray.Size(); i++ )
 		map[i] = mapArray[i].GetInt();
 
+	return true;
+}
+
+bool Permutation::LoadFromJsonString( const std::string& jsonString )
+{
+	rapidjson::Document doc;
+	doc.Parse( jsonString.c_str() );
+	if( !doc.IsObject() )
+		return false;
+
+	if( !this->SetFromJsonValue( doc ) )
+		return false;
+
+	return true;
+}
+
+bool Permutation::SaveToJsonString( std::string& jsonString ) const
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	if( !GetToJsonValue( doc, doc.GetAllocator() ) )
+		return false;
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer< rapidjson::StringBuffer > writer( buffer );
+	if( !doc.Accept( writer ) )
+		return false;
+
+	jsonString = buffer.GetString();
 	return true;
 }
 

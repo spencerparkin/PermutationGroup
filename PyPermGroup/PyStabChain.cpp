@@ -19,6 +19,7 @@ PyObject* PyStabChainObject_from_json(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_clone(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_depth(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* args);
+PyObject* PyStabChainObject_generators(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_solve(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_order(PyStabChainObject* self, PyObject* args);
 PyObject* PyStabChainObject_walk(PyStabChainObject* self, PyObject* args);
@@ -34,6 +35,7 @@ PyMethodDef PyStabChainObject_methods[] =
 	{"clone", (PyCFunction)PyStabChainObject_clone, METH_VARARGS, ""},
 	{"depth", (PyCFunction)PyStabChainObject_depth, METH_VARARGS, ""},
 	{"generate", (PyCFunction)PyStabChainObject_generate, METH_VARARGS, ""},
+	{"generators", (PyCFunction)PyStabChainObject_generators, METH_VARARGS, ""},
 	{"solve", (PyCFunction)PyStabChainObject_solve, METH_VARARGS, ""},
 	{"order", (PyCFunction)PyStabChainObject_order, METH_VARARGS, ""},
 	{"walk", (PyCFunction)PyStabChainObject_walk, METH_VARARGS, ""},
@@ -197,7 +199,7 @@ static PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* a
 	}
 
 	PermutationSet generatorSet;
-	uint count = PyList_Size(generator_list_obj);
+	uint count = (uint)PyList_Size(generator_list_obj);
 	for(uint i = 0; i < count; i++)
 	{
 		PyObject* perm_obj = PyList_GetItem(generator_list_obj, i);
@@ -211,7 +213,7 @@ static PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* a
 	}
 
 	UintArray baseArray;
-	count = PyList_Size(base_array_obj);
+	count = (uint)PyList_Size(base_array_obj);
 	for(uint i = 0; i < count; i++)
 	{
 		PyObject* point_obj = PyList_GetItem(base_array_obj, i);
@@ -231,6 +233,44 @@ static PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* a
 	}
 
 	Py_RETURN_NONE;
+}
+
+static PyObject* PyStabChainObject_generators(PyStabChainObject* self, PyObject* args)
+{
+	int depth = 0;
+
+	if(!PyArg_ParseTuple(args, "|i", &depth))
+	{
+		PyErr_SetString(PyExc_ValueError, "Failed to parse arguments.  Expected integer argument.");
+		return nullptr;
+	}
+
+	StabilizerChain::Group* subGroup = self->stabChain->GetSubGroupAtDepth(depth);
+	if(!subGroup)
+	{
+		PyErr_Format(PyExc_ValueError, "Failed to get sub-group at depth %d.", depth);
+		return nullptr;
+	}
+
+	if(subGroup->generatorSet.size() == 0)
+	{
+		PyErr_Format(PyExc_ValueError, "No generators found at depth %d.", depth);
+		return nullptr;
+	}
+
+	PyObject* generator_list = PyList_New(subGroup->generatorSet.size());
+
+	int i = 0;
+	for(PermutationSet::iterator iter = subGroup->generatorSet.begin(); iter != subGroup->generatorSet.end(); iter++)
+	{
+		Permutation* permutation = new Permutation();
+		permutation->SetCopy(*iter);
+		PyObject* perm_obj = Permutation_to_PyObject(permutation);
+		Py_INCREF(perm_obj);
+		PyList_SetItem(perm_obj, i++, perm_obj);
+	}
+
+	return generator_list;
 }
 
 static bool _PyStabChainObject_solve_callback( const StabilizerChain::Stats* stats, bool statsMayHaveChanged, double elapsedTimeSec, void* callback_data )

@@ -19,6 +19,8 @@ PyObject* PyPermObject_is_valid(PyPermObject* self, PyObject* args);
 PyObject* PyPermObject_is_identity(PyPermObject* self, PyObject* args);
 PyObject* PyPermObject_to_array(PyPermObject* self, PyObject* args);
 PyObject* PyPermObject_from_array(PyPermObject* self, PyObject* args);
+PyObject* PyPermObject_to_json(PyPermObject* self, PyObject* args);
+PyObject* PyPermObject_from_json(PyPermObject* self, PyObject* args);
 PyObject* PyPermObject_clone(PyPermObject* self, PyObject* args);
 PyObject* PyPermObject_overload_multiply(PyObject* leftObject, PyObject* rightObject);
 PyObject* PyPermObject_overload_invert(PyObject* object);
@@ -36,6 +38,8 @@ PyMethodDef PyPermObject_methods[] =
 	{"is_identity", (PyCFunction)PyPermObject_is_identity, METH_VARARGS, ""},
 	{"to_array", (PyCFunction)PyPermObject_to_array, METH_VARARGS, ""},
 	{"from_array", (PyCFunction)PyPermObject_from_array, METH_VARARGS, ""},
+	{"to_json", (PyCFunction)PyPermObject_to_json, METH_VARARGS, ""},
+	{"from_json", (PyCFunction)PyPermObject_from_json, METH_VARARGS, ""},
 	{"clone", (PyCFunction)PyPermObject_clone, METH_VARARGS, ""},
 	{nullptr, nullptr, 0, nullptr}
 };
@@ -331,6 +335,39 @@ static PyObject* PyPermObject_from_array(PyPermObject* self, PyObject* args)
 
 	Py_INCREF(self);
 	return (PyObject*)self;
+}
+
+static PyObject* PyPermObject_to_json(PyPermObject* self, PyObject* args)
+{
+	std::string jsonString;
+	if(!self->permutation->SaveToJsonString(jsonString))
+	{
+		PyErr_SetString(PyExc_ValueError, "Failed to generate json text from permutation.");
+		return nullptr;
+	}
+
+	PyObject* json_obj = PyBytes_FromString(jsonString.c_str());
+	return json_obj;
+}
+
+static PyObject* PyPermObject_from_json(PyPermObject* self, PyObject* args)
+{
+	const char* json_c_str = nullptr;
+
+	if(!PyArg_ParseTuple(args, "s", &json_c_str))
+	{
+		PyErr_SetString(PyExc_ValueError, "Expected string argument.");
+		return nullptr;
+	}
+
+	std::string jsonString(json_c_str);
+	if(!self->permutation->LoadFromJsonString(jsonString))
+	{
+		PyErr_SetString(PyExc_ValueError, "Failed to generate permutation from json text.");
+		return nullptr;
+	}
+
+	Py_RETURN_NONE;
 }
 
 static PyObject* PyPermObject_clone(PyPermObject* self, PyObject* args)

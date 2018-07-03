@@ -104,6 +104,8 @@ public:
 	std::string MakeKeyForLexigraphicCompare( void ) const;
 	static bool LoadPermutationSet( PermutationSet& permutationSet, /*const*/ rapidjson::Value& arrayValue );
 	static bool SavePermutationSet( const PermutationSet& permutationSet, rapidjson::Value& arrayValue, rapidjson::Document::AllocatorType& allocator );
+	bool LoadFromJsonString( const std::string& jsonString );
+	bool SaveToJsonString( std::string& jsonString ) const;
 
 	ElementList* word;
 	uint map[ MAX_MAP_SIZE ];
