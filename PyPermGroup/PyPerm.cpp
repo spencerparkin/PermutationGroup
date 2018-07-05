@@ -25,6 +25,7 @@ PyObject* PyPermObject_clone(PyPermObject* self, PyObject* args);
 PyObject* PyPermObject_overload_multiply(PyObject* leftObject, PyObject* rightObject);
 PyObject* PyPermObject_overload_invert(PyObject* object);
 PyObject* PyPermObject_overload_str(PyObject* object);
+PyObject* PyPermObject_overload_repr(PyObject* object);
 PyObject* PyPermObject_overload_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 PyObject* PyPermObject_overload_call(PyObject* callable_object, PyObject* args, PyObject* kw);
 bool _PyPermObject_populate(PyPermObject* self, PyObject* perm_array_obj);
@@ -95,7 +96,7 @@ PyTypeObject PyPermTypeObject =
 	0,													// tp_getattr
 	0,													// tp_setattr
 	0,													// tp_reserved
-	0,													// tp_repr
+	PyPermObject_overload_repr,							// tp_repr
 	&PyPermObject_numberMethods,						// tp_as_number
 	0,													// tp_as_sequence
 	0,													// tp_as_mapping
@@ -253,7 +254,7 @@ static PyObject* PyPermObject_define_cycle(PyPermObject* self, PyObject* args)
 {
 	PyObject* cycle_list_obj = nullptr;
 
-	if(!PyArg_ParseTuple(args, "O", cycle_list_obj))
+	if(!PyArg_ParseTuple(args, "O", &cycle_list_obj))
 	{
 		PyErr_SetString(PyExc_TypeError, "Failed to parse arguments.");
 		return nullptr;
@@ -324,7 +325,7 @@ static PyObject* PyPermObject_from_array(PyPermObject* self, PyObject* args)
 {
 	PyObject* perm_list_obj = nullptr;
 
-	if(!PyArg_ParseTuple(args, "O", perm_list_obj))
+	if(!PyArg_ParseTuple(args, "O", &perm_list_obj))
 	{
 		PyErr_SetString(PyExc_TypeError, "Failed to parse arguments.");
 		return nullptr;
@@ -346,7 +347,7 @@ static PyObject* PyPermObject_to_json(PyPermObject* self, PyObject* args)
 		return nullptr;
 	}
 
-	PyObject* json_obj = PyBytes_FromString(jsonString.c_str());
+	PyObject* json_obj = PyUnicode_FromString(jsonString.c_str());
 	return json_obj;
 }
 
@@ -433,8 +434,13 @@ static PyObject* PyPermObject_overload_str(PyObject* object)
 	std::stringstream stream;
 	((PyPermObject*)object)->permutation->Print(stream);
 
-	PyObject* result = PyBytes_FromString(stream.str().c_str());
+	PyObject* result = PyUnicode_FromString(stream.str().c_str());
 	return result;
+}
+
+static PyObject* PyPermObject_overload_repr(PyObject* object)
+{
+	return PyPermObject_overload_str(object);
 }
 
 static PyObject* PyPermObject_overload_call(PyObject* callable_object, PyObject* args, PyObject* kw)

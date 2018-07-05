@@ -133,7 +133,7 @@ static PyObject* PyStabChainObject_to_json(PyStabChainObject* self, PyObject* ar
 		return nullptr;
 	}
 
-	PyObject* result = PyBytes_FromString(jsonString.c_str());
+	PyObject* result = PyUnicode_FromString(jsonString.c_str());
 	return result;
 }
 
@@ -267,7 +267,7 @@ static PyObject* PyStabChainObject_generators(PyStabChainObject* self, PyObject*
 		permutation->SetCopy(*iter);
 		PyObject* perm_obj = Permutation_to_PyObject(permutation);
 		Py_INCREF(perm_obj);
-		PyList_SetItem(perm_obj, i++, perm_obj);
+		PyList_SetItem(generator_list, i++, perm_obj);
 	}
 
 	return generator_list;
@@ -372,7 +372,7 @@ static PyObject* PyStabChainObject_walk(PyStabChainObject* self, PyObject* args)
 {
 	PyObject* callback_obj = nullptr;
 
-	if(!PyArg_ParseTuple(args, "O", callback_obj))
+	if(!PyArg_ParseTuple(args, "O", &callback_obj))
 	{
 		PyErr_SetString(PyExc_TypeError, "Failed to parse arguments.");
 		return nullptr;
@@ -422,7 +422,7 @@ static PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* arg
 {
 	PyObject* perm_obj = nullptr;
 
-	if(!PyArg_ParseTuple(args, "O", perm_obj))
+	if(!PyArg_ParseTuple(args, "O", &perm_obj))
 	{
 		PyErr_SetString(PyExc_ValueError, "Failed to parse arguments.");
 		return nullptr;
@@ -467,7 +467,7 @@ static PyObject* PyStabChainObject_overload_str(PyObject* object)
 	std::stringstream stream;
 	((PyStabChainObject*)object)->stabChain->Print(stream);
 
-	PyObject* result = PyBytes_FromString(stream.str().c_str());
+	PyObject* result = PyUnicode_FromString(stream.str().c_str());
 	return result;
 }
 
