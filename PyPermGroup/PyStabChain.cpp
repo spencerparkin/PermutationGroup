@@ -421,8 +421,9 @@ static PyObject* PyStabChainObject_worded(PyStabChainObject* self, PyObject* arg
 static PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* args)
 {
 	PyObject* perm_obj = nullptr;
+	int tremble = 0;
 
-	if(!PyArg_ParseTuple(args, "O", &perm_obj))
+	if(!PyArg_ParseTuple(args, "O|p", &perm_obj, &tremble))
 	{
 		PyErr_SetString(PyExc_ValueError, "Failed to parse arguments.");
 		return nullptr;
@@ -443,7 +444,33 @@ static PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* arg
 	Permutation* invPermutation = new Permutation();
 	invPermutation->word = new ElementList;
 
-	if(!self->stabChain->group->FactorInverse(*Permutation_from_PyObject(perm_obj), *invPermutation))
+	bool succeeded = false;
+	do
+	{
+		if(!tremble)
+		{
+			if(!self->stabChain->group->FactorInverse(*Permutation_from_PyObject(perm_obj), *invPermutation))
+				break;
+		}
+		else
+		{
+			CompressInfo compressInfo;
+			if(!self->stabChain->group->MakeCompressInfo(compressInfo))
+				break;
+
+			PermutationSet trembleSet;
+			for(PermutationSet::iterator iter = self->stabChain->group->generatorSet.begin(); iter != self->stabChain->group->generatorSet.end(); iter++)
+				trembleSet.insert(*iter);
+
+			if(!self->stabChain->group->FactorInverseWithTrembling(*Permutation_from_PyObject(perm_obj), *invPermutation, trembleSet, compressInfo))
+				break;
+		}
+
+		succeeded = true;
+	}
+	while(false);
+
+	if(!succeeded)
 	{
 		delete invPermutation;
 		PyErr_SetString(PyExc_ValueError, "Failed to utilize stab-chain in factoring given permutation.");
