@@ -447,6 +447,10 @@ static PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* arg
 	bool succeeded = false;
 	do
 	{
+		CompressInfo compressInfo;
+		if(!self->stabChain->group->MakeCompressInfo(compressInfo))
+			break;
+
 		if(!tremble)
 		{
 			if(!self->stabChain->group->FactorInverse(*Permutation_from_PyObject(perm_obj), *invPermutation))
@@ -454,10 +458,6 @@ static PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* arg
 		}
 		else
 		{
-			CompressInfo compressInfo;
-			if(!self->stabChain->group->MakeCompressInfo(compressInfo))
-				break;
-
 			PermutationSet trembleSet;
 			for(PermutationSet::iterator iter = self->stabChain->group->generatorSet.begin(); iter != self->stabChain->group->generatorSet.end(); iter++)
 				trembleSet.insert(*iter);
@@ -465,6 +465,9 @@ static PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* arg
 			if(!self->stabChain->group->FactorInverseWithTrembling(*Permutation_from_PyObject(perm_obj), *invPermutation, trembleSet, compressInfo))
 				break;
 		}
+
+		if(!invPermutation->CompressWord(compressInfo))
+			break;
 
 		succeeded = true;
 	}
