@@ -10,25 +10,25 @@ struct PyPermObject
 	Permutation* permutation;
 };
 
-void PyPermObject_dealloc(PyPermObject* self);
-int PyPermObject_init(PyPermObject* self, PyObject* args, PyObject* kwds);
-PyObject* PyPermObject_define(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_define_cycle(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_define_identity(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_is_valid(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_is_identity(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_to_array(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_from_array(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_to_json(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_from_json(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_clone(PyPermObject* self, PyObject* args);
-PyObject* PyPermObject_overload_multiply(PyObject* leftObject, PyObject* rightObject);
-PyObject* PyPermObject_overload_invert(PyObject* object);
-PyObject* PyPermObject_overload_str(PyObject* object);
-PyObject* PyPermObject_overload_repr(PyObject* object);
-PyObject* PyPermObject_overload_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
-PyObject* PyPermObject_overload_call(PyObject* callable_object, PyObject* args, PyObject* kw);
-bool _PyPermObject_populate(PyPermObject* self, PyObject* perm_array_obj);
+static void PyPermObject_dealloc(PyPermObject* self);
+static int PyPermObject_init(PyPermObject* self, PyObject* args, PyObject* kwds);
+static PyObject* PyPermObject_define(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_define_cycle(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_define_identity(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_is_valid(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_is_identity(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_to_array(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_from_array(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_to_json(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_from_json(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_clone(PyPermObject* self, PyObject* args);
+static PyObject* PyPermObject_overload_multiply(PyObject* leftObject, PyObject* rightObject);
+static PyObject* PyPermObject_overload_invert(PyObject* object);
+static PyObject* PyPermObject_overload_str(PyObject* object);
+static PyObject* PyPermObject_overload_repr(PyObject* object);
+static PyObject* PyPermObject_overload_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
+static PyObject* PyPermObject_overload_call(PyObject* callable_object, PyObject* args, PyObject* kw);
+static bool _PyPermObject_populate(PyPermObject* self, PyObject* perm_array_obj);
 
 PyMethodDef PyPermObject_methods[] =
 {

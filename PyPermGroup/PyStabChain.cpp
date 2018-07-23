@@ -12,21 +12,21 @@ struct PyStabChainObject
 	StabilizerChain* stabChain;
 };
 
-void PyStabChainObject_dealloc(PyStabChainObject* self);
-int PyStabChainObject_init(PyStabChainObject* self, PyObject* args, PyObject* kwds);
-PyObject* PyStabChainObject_to_json(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_from_json(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_clone(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_depth(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_generators(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_solve(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_order(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_walk(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_worded(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* args);
-PyObject* PyStabChainObject_overload_str(PyObject* object);
-PyObject* PyStabChainObject_overload_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
+static void PyStabChainObject_dealloc(PyStabChainObject* self);
+static int PyStabChainObject_init(PyStabChainObject* self, PyObject* args, PyObject* kwds);
+static PyObject* PyStabChainObject_to_json(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_from_json(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_clone(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_depth(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_generate(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_generators(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_solve(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_order(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_walk(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_worded(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* args);
+static PyObject* PyStabChainObject_overload_str(PyObject* object);
+static PyObject* PyStabChainObject_overload_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
 
 PyMethodDef PyStabChainObject_methods[] =
 {
