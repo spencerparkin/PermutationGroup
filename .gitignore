@@ -47,3 +47,6 @@ Release/
 
 # Vi crap...
 *.swp
+
+# VS crap...
+*.user
