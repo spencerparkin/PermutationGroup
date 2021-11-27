@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
-#include <rapidjson/document.h>
+#include "rapidjson/document.h"
 #include "NaturalNumberSet.h"
 
 class Permutation;
@@ -48,7 +48,7 @@ public:
 //                                        Permutation
 //------------------------------------------------------------------------------------------
 
-#define MAX_MAP_SIZE			200
+#define MAX_MAP_SIZE			15
 
 // A permutation is a bijective map defined on a subset of the natural numbers.
 // Here, multiplication is function composition.  For convenience, we let every

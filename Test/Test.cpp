@@ -23,9 +23,17 @@ enum Puzzle
 	SymGrpMadPuzzle6,
 	SymGrpMadPuzzle7,
 	SymGroup,
+	Alt15
 };
 
 const char* MakeGenerators( Puzzle puzzle, PermutationSet& generatorSet, UintArray& baseArray );
+
+bool StatsCallback(const StabilizerChain::Stats* stats, bool statsMayHaveChanged, double elapsedTimeSec, void* callback_data)
+{
+	if (statsMayHaveChanged)
+		stats->Print(std::cout);
+	return false;
+}
 
 int main( int argc, char** argv )
 {
@@ -35,7 +43,7 @@ int main( int argc, char** argv )
 	Permutation permutation;
 	UintArray baseArray;
 	const char* fileName = nullptr;
-	Puzzle puzzle = Rubiks3x3x3_LL;
+	Puzzle puzzle = Alt15;
 	PermutationSet generatorSet;
 
 	stabChain->logStream = &std::cout;
@@ -81,8 +89,7 @@ int main( int argc, char** argv )
 		permutationMultiStream.permutationStreamArray.push_back( permutationWordStream );
 		permutationMultiStream.permutationStreamArray.push_back( permutationStabChainStream );
 
-		// TODO: Fix this.  A callback must be supplied.
-		if( stabChain->OptimizeNames( permutationMultiStream, compressInfo, nullptr ) )
+		if( stabChain->OptimizeNames( permutationMultiStream, compressInfo, StatsCallback) )
 		{
 			std::string jsonString;
 			stabChain->SaveToJsonString( jsonString );
@@ -94,7 +101,7 @@ int main( int argc, char** argv )
 		}
 	}
 
-	getchar();
+	std::cout << "Finished!" << std::endl;
 
 	delete stabChain;
 
@@ -123,6 +130,24 @@ const char* MakeGenerators( Puzzle puzzle, PermutationSet& generatorSet, UintArr
 			for( uint i = 0; i < count; i++ )
 				baseArray.push_back(i);
 
+			break;
+		}
+		case Alt15:
+		{
+			Permutation permutation;
+
+			for (uint i = 2; i < 15; i++)
+			{
+				permutation.DefineIdentity();
+				const uint cycleArray[3] = { 0, 1, i };
+				permutation.DefineCycleArray(cycleArray, 3);
+				generatorSet.insert(permutation);
+			}
+
+			for (uint i = 0; i < 15; i++)
+				baseArray.push_back(i);
+
+			fileName = "Alt15.json";
 			break;
 		}
 		case SymGrpMadPuzzle1:

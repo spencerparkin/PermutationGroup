@@ -3,7 +3,7 @@
 #include "StabilizerChain.h"
 #include "PermutationStream.h"
 #include <time.h>
-#include <rapidjson/writer.h>
+#include "rapidjson/prettywriter.h"
 
 StabilizerChain::StabilizerChain( void )
 {
@@ -122,7 +122,7 @@ bool StabilizerChain::SaveToJsonString( std::string& jsonString ) const
 	doc.AddMember( "baseArray", baseArrayValue, doc.GetAllocator() );
 
 	rapidjson::StringBuffer buffer;
-	rapidjson::Writer< rapidjson::StringBuffer > writer( buffer );
+	rapidjson::PrettyWriter< rapidjson::StringBuffer > writer( buffer );
 	if( !doc.Accept( writer ) )
 		return false;
 

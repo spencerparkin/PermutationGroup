@@ -5,7 +5,7 @@
 #include <set>
 #include <iostream>
 #include <vector>
-#include <rapidjson/document.h>
+#include "rapidjson/document.h"
 
 typedef unsigned int uint;
 

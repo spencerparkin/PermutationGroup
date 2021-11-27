@@ -7,7 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
-#include <rapidjson/document.h>
+#include "rapidjson/document.h"
 
 typedef std::vector< uint > UintArray;
 

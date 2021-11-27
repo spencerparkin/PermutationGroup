@@ -3,7 +3,7 @@
 #include "Permutation.h"
 #include "NaturalNumberSet.h"
 #include <sstream>
-#include <rapidjson/writer.h>
+#include "rapidjson/writer.h"
 
 //------------------------------------------------------------------------------------------
 //                                        Permutation
