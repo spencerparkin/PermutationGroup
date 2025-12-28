@@ -50,3 +50,6 @@ Release/
 
 # VS crap...
 *.user
+
+# CMake crap...
+build/
