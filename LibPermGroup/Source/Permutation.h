@@ -48,7 +48,7 @@ public:
 //                                        Permutation
 //------------------------------------------------------------------------------------------
 
-#define MAX_MAP_SIZE			15
+#define MAX_MAP_SIZE			64
 
 // A permutation is a bijective map defined on a subset of the natural numbers.
 // Here, multiplication is function composition.  For convenience, we let every
