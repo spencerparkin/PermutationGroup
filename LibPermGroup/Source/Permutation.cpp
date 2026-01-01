@@ -558,11 +558,11 @@ bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 	{
 		word = new ElementList;
 
-		rapidjson::Value wordArray = value[ "word" ].GetArray();
+		rapidjson::Value& wordArray = value[ "word" ].GetArray();
 
 		for( uint i = 0; i < wordArray.Size(); i++ )
 		{
-			rapidjson::Value elementValue = wordArray[i].GetObject();
+			rapidjson::Value& elementValue = wordArray[i].GetObject();
 
 			Element element;
 			element.name = elementValue[ "name" ].GetString();
@@ -577,7 +577,7 @@ bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 
 	DefineIdentity();
 
-	rapidjson::Value mapArray = value[ "map" ].GetArray();
+	rapidjson::Value& mapArray = value[ "map" ].GetArray();
 	if( mapArray.Size() > MAX_MAP_SIZE )
 		return false;
 
@@ -623,7 +623,7 @@ bool Permutation::SaveToJsonString( std::string& jsonString ) const
 
 	for( uint i = 0; i < arrayValue.Size(); i++ )
 	{
-		rapidjson::Value permutationValue = arrayValue[i].GetObject();
+		rapidjson::Value& permutationValue = arrayValue[i].GetObject();
 
 		Permutation permutation;
 		if( !permutation.SetFromJsonValue( permutationValue ) )

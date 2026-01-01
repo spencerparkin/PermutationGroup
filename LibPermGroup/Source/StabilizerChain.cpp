@@ -78,7 +78,7 @@ bool StabilizerChain::LoadFromJsonString( const std::string& jsonString )
 	if( !doc.HasMember( "group" ) )
 		return false;
 
-	rapidjson::Value chainGroupValue = doc[ "group" ].GetObject();
+	rapidjson::Value& chainGroupValue = doc[ "group" ].GetObject();
 	if( !group->LoadRecursive( chainGroupValue ) )
 		return false;
 
@@ -86,7 +86,7 @@ bool StabilizerChain::LoadFromJsonString( const std::string& jsonString )
 		return false;
 
 	baseArray.clear();
-	rapidjson::Value baseArrayValue = doc[ "baseArray" ].GetArray();
+	rapidjson::Value& baseArrayValue = doc[ "baseArray" ].GetArray();
 	for( uint i = 0; i < baseArrayValue.Size(); i++ )
 	{
 		NaturalNumberSet stabilizerPointSet;
@@ -604,14 +604,14 @@ bool StabilizerChain::Group::LoadRecursive( /*const*/ rapidjson::Value& chainGro
 
 	if( chainGroupValue.HasMember( "generators" ) )
 	{
-		rapidjson::Value generatorsValue = chainGroupValue[ "generators" ].GetArray();
+		rapidjson::Value& generatorsValue = chainGroupValue[ "generators" ].GetArray();
 		if( !Permutation::LoadPermutationSet( generatorSet, generatorsValue ) )
 			return false;
 	}
 
 	if( chainGroupValue.HasMember( "transversals" ) )
 	{
-		rapidjson::Value transversalsValue = chainGroupValue[ "transversals" ].GetArray();
+		rapidjson::Value& transversalsValue = chainGroupValue[ "transversals" ].GetArray();
 		if( !Permutation::LoadPermutationSet( transversalSet, transversalsValue ) )
 			return false;
 	}
@@ -620,7 +620,7 @@ bool StabilizerChain::Group::LoadRecursive( /*const*/ rapidjson::Value& chainGro
 	{
 		subGroup = new Group( stabChain, this, 0 );
 
-		rapidjson::Value subGroupValue = chainGroupValue[ "subGroup" ].GetObject();
+		rapidjson::Value& subGroupValue = chainGroupValue[ "subGroup" ].GetObject();
 		if( !subGroup->LoadRecursive( subGroupValue ) )
 			return false;
 	}

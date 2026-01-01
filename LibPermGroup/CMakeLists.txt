@@ -15,9 +15,11 @@ set(LIB_PERM_GROUP_SOURCES
 
 add_library(PermGroup STATIC ${LIB_PERM_GROUP_SOURCES})
 
-target_compile_options(PermGroup PRIVATE
-    -fPIC
-)
+if(UNIX)
+	target_compile_options(PermGroup PRIVATE
+		-fPIC
+	)
+endif()
 
 target_include_directories(PermGroup PUBLIC
 	Source
