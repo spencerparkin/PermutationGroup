@@ -442,7 +442,7 @@ static PyObject* PyStabChainObject_factor(PyStabChainObject* self, PyObject* arg
 	}
 
 	Permutation* invPermutation = new Permutation();
-	invPermutation->word = new ElementList;
+	invPermutation->word = std::make_unique<ElementList>();
 
 	bool succeeded = false;
 	do

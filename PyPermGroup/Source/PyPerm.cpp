@@ -179,11 +179,7 @@ static bool _PyPermObject_populate(PyPermObject* self, PyObject* perm_array_obj)
 		}
 
 		unsigned int output = (unsigned int)PyLong_AsSize_t(obj);
-		if(!self->permutation->Define(input, output))
-		{
-			PyErr_Format(PyExc_ValueError, "Can't map from %d to %d.", input, output);
-			return false;
-		}
+		self->permutation->Define(input, output);
 	}
 
 	return true;
@@ -237,11 +233,7 @@ static PyObject* PyPermObject_define(PyPermObject* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "II", &input, &output))
 		return nullptr;
 
-	if(!self->permutation->Define(input, output))
-	{
-		PyErr_Format(PyExc_ValueError, "Can't map from %d to %d.", input, output);
-		return nullptr;
-	}
+	self->permutation->Define(input, output);
 
 	Py_INCREF(self);
 	return (PyObject*)self;
@@ -271,12 +263,7 @@ static PyObject* PyPermObject_define_cycle(PyPermObject* self, PyObject* args)
 		unsigned int j = (i + 1) % count;
 		obj = PyList_GetItem(cycle_list_obj, j);
 		unsigned int output = (unsigned int)PyLong_AsSize_t(obj);
-
-		if(!self->permutation->Define(input, output))
-		{
-			PyErr_Format(PyExc_ValueError, "Can't map from %d to %d.", input, output);
-			return nullptr;
-		}
+		self->permutation->Define(input, output);
 	}
 
 	Py_INCREF(self);
@@ -306,9 +293,9 @@ static PyObject* PyPermObject_is_identity(PyPermObject* self, PyObject* args)
 
 static PyObject* PyPermObject_to_array(PyPermObject* self, PyObject* args)
 {
-	PyObject* perm_array = PyList_New(MAX_MAP_SIZE);
+	PyObject* perm_array = PyList_New((unsigned int)self->permutation->map.size());
 
-	for(unsigned int input = 0; input < MAX_MAP_SIZE; input++)
+	for(unsigned int input = 0; input < (unsigned int)self->permutation->map.size(); input++)
 	{
 		unsigned int output = self->permutation->map[input];
 		PyObject* obj = PyLong_FromSize_t(output);
