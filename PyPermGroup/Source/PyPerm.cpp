@@ -166,11 +166,8 @@ static bool _PyPermObject_populate(PyPermObject* self, PyObject* perm_array_obj)
 	}
 
 	unsigned int count = (unsigned int)PyList_Size(perm_array_obj);
-	if(count > MAX_MAP_SIZE)
-	{
-		PyErr_Format(PyExc_ValueError, "Hard limit (%d) on permutation size reached.", MAX_MAP_SIZE);
-		return false;
-	}
+	
+	self->permutation->DefineIdentity();
 
 	for(unsigned int input = 0; input < count; input++)
 	{
