@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
+#include <memory>
 #include "rapidjson/document.h"
 #include "NaturalNumberSet.h"
 
@@ -48,8 +49,6 @@ public:
 //                                        Permutation
 //------------------------------------------------------------------------------------------
 
-#define MAX_MAP_SIZE			64
-
 // A permutation is a bijective map defined on a subset of the natural numbers.
 // Here, multiplication is function composition.  For convenience, we let every
 // permutation be defined on the entire set of natural number, though only a
@@ -65,13 +64,13 @@ public:
 
 	uint Evaluate( uint input ) const;
 	bool Stabilizes( const NaturalNumberSet& set ) const;
-	bool Define( uint input, uint output );
-	bool DefineCycle( uint a, uint b );
-	bool DefineCycle( uint a, uint b, uint c );
-	bool DefineCycle( uint a, uint b, uint c, uint d );
-	bool DefineCycle( uint a, uint b, uint c, uint d, uint e );
-	bool DefineCycle( uint a, uint b, uint c, uint d, uint e, uint f );
-	bool DefineCycleArray( const uint* cycleArray, uint cycleArraySize );
+	void Define( uint input, uint output );
+	void DefineCycle( uint a, uint b );
+	void DefineCycle( uint a, uint b, uint c );
+	void DefineCycle( uint a, uint b, uint c, uint d );
+	void DefineCycle( uint a, uint b, uint c, uint d, uint e );
+	void DefineCycle( uint a, uint b, uint c, uint d, uint e, uint f );
+	void DefineCycleArray( const uint* cycleArray, uint cycleArraySize );
 	void DefineIdentity( void );
 	bool IsValid( void ) const;
 	bool IsEven( void ) const;
@@ -107,8 +106,8 @@ public:
 	bool LoadFromJsonString( const std::string& jsonString );
 	bool SaveToJsonString( std::string& jsonString ) const;
 
-	ElementList* word;
-	uint map[ MAX_MAP_SIZE ];
+	std::unique_ptr<ElementList> word;
+	std::vector< uint > map;
 };
 
 namespace std

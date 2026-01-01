@@ -11,27 +11,22 @@
 
 Permutation::Permutation( void )
 {
-	word = nullptr;
-
 	DefineIdentity();
 }
 
 Permutation::Permutation( const Permutation& permutation )
 {
-	word = nullptr;
-
 	SetCopy( permutation );
 }
 
 /*virtual*/ Permutation::~Permutation( void )
 {
-	delete word;
 }
 
 uint Permutation::Evaluate( uint input ) const
 {
 	uint output = input;
-	if( input < MAX_MAP_SIZE )
+	if( input < (uint)map.size() )
 		output = map[ input ];
 	return output;
 }
@@ -51,96 +46,70 @@ bool Permutation::Stabilizes( const NaturalNumberSet& set ) const
 
 void Permutation::DefineIdentity( void )
 {
-	for( int i = 0; i < MAX_MAP_SIZE; i++ )
-		map[i] = i;
+	map.clear();
 }
 
-bool Permutation::Define( uint input, uint output )
+void Permutation::Define( uint input, uint output )
 {
-	if( input >= MAX_MAP_SIZE || output >= MAX_MAP_SIZE )
-		return false;
+	uint largest = std::max(input, output);
+	if ((uint)map.size() < largest + 1)
+		for (uint i = (uint)map.size(); i < largest + 1; i++)
+			map.push_back(i);
+
 	map[ input ] = output;
-	return true;
 }
 
-bool Permutation::DefineCycle( uint a, uint b )
+void Permutation::DefineCycle( uint a, uint b )
 {
-	if( !Define( a, b ) )
-		return false;
-	if( !Define( b, a ) )
-		return false;
-	return true;
+	Define(a, b);
+	Define(b, a);
 }
 
-bool Permutation::DefineCycle( uint a, uint b, uint c )
+void Permutation::DefineCycle( uint a, uint b, uint c )
 {
-	if( !Define( a, b ) )
-		return false;
-	if( !Define( b, c ) )
-		return false;
-	if( !Define( c, a ) )
-		return false;
-	return true;
+	Define(a, b);
+	Define(b, c);
+	Define(c, a);
 }
 
-bool Permutation::DefineCycle( uint a, uint b, uint c, uint d )
+void Permutation::DefineCycle( uint a, uint b, uint c, uint d )
 {
-	if( !Define( a, b ) )
-		return false;
-	if( !Define( b, c ) )
-		return false;
-	if( !Define( c, d ) )
-		return false;
-	if( !Define( d, a ) )
-		return false;
-	return true;
+	Define(a, b);
+	Define(b, c);
+	Define(c, d);
+	Define(d, a);
 }
 
-bool Permutation::DefineCycle( uint a, uint b, uint c, uint d, uint e )
+void Permutation::DefineCycle( uint a, uint b, uint c, uint d, uint e )
 {
-	if( !Define( a, b ) )
-		return false;
-	if( !Define( b, c ) )
-		return false;
-	if( !Define( c, d ) )
-		return false;
-	if( !Define( d, e ) )
-		return false;
-	if( !Define( e, a ) )
-		return false;
-	return true;
+	Define(a, b);
+	Define(b, c);
+	Define(c, d);
+	Define(d, e);
+	Define(e, a);
 }
 
-bool Permutation::DefineCycle( uint a, uint b, uint c, uint d, uint e, uint f )
+void Permutation::DefineCycle( uint a, uint b, uint c, uint d, uint e, uint f )
 {
-	if( !Define( a, b ) )
-		return false;
-	if( !Define( b, c ) )
-		return false;
-	if( !Define( c, d ) )
-		return false;
-	if( !Define( d, e ) )
-		return false;
-	if( !Define( e, f ) )
-		return false;
-	if( !Define( f, a ) )
-		return false;
-	return true;
+	Define(a, b);
+	Define(b, c);
+	Define(c, d);
+	Define(d, e);
+	Define(e, f);
+	Define(f, a);
 }
 
-bool Permutation::DefineCycleArray( const uint* cycleArray, uint cycleArraySize )
+void Permutation::DefineCycleArray( const uint* cycleArray, uint cycleArraySize )
 {
-	for( uint i = 0; i < cycleArraySize; i++ )
-		if( !Define( cycleArray[i], cycleArray[ ( i + 1 ) % cycleArraySize ] ) )
-			return false;
-	return true;
+	for (uint i = 0; i < cycleArraySize; i++)
+		Define(cycleArray[i], cycleArray[(i + 1) % cycleArraySize]);
 }
 
 std::size_t Permutation::CalcHash( void ) const
 {
 	std::stringstream stream;
 
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+	for( uint i = 0; i < (uint)map.size(); i++ )
 		if( map[i] != i )
 			stream << i << map[i];
 
@@ -154,10 +123,10 @@ bool Permutation::IsValid( void ) const
 {
 	NaturalNumberSet set;
 
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+	for( uint i = 0; i < (uint)map.size(); i++ )
 	{
 		uint j = map[i];
-		if( j >= MAX_MAP_SIZE )
+		if( j >= (uint)map.size() )
 			return false;
 		if( set.IsMember(j) )
 			return false;
@@ -191,7 +160,7 @@ bool Permutation::IsOdd( void ) const
 
 bool Permutation::IsIdentity( void ) const
 {
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+	for( uint i = 0; i < (uint)map.size(); i++ )
 		if( map[i] != i )
 			return false;
 	return true;
@@ -199,8 +168,9 @@ bool Permutation::IsIdentity( void ) const
 
 bool Permutation::IsEqualTo( const Permutation& permutation ) const
 {
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
-		if( map[i] != permutation.map[i] )
+	uint largest = (uint)std::max(map.size(), permutation.map.size());
+	for( uint i = 0; i < largest; i++ )
+		if( Evaluate(i) != permutation.Evaluate(i) )
 			return false;
 	return true;
 }
@@ -218,7 +188,7 @@ bool Permutation::CommutesWith( const Permutation& permutation ) const
 uint Permutation::CycleOrder( void ) const
 {
 	uint cycleOrder = 0;
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+	for( uint i = 0; i < (uint)map.size(); i++ )
 		if( map[i] != i )
 			cycleOrder++;
 	return cycleOrder;
@@ -249,15 +219,12 @@ void Permutation::SetCopy( const Permutation& permutation, bool copyWord /*= tru
 
 void Permutation::GetCopy( Permutation& permutation, bool copyWord /*= true*/ ) const
 {
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
-		permutation.map[i] = map[i];
-
-	delete permutation.word;
-	permutation.word = nullptr;
+	permutation.map = map;
+	permutation.word.reset();
 
 	if( word && copyWord )
 	{
-		permutation.word = new ElementList;
+		permutation.word = std::make_unique<ElementList>();
 		for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
 			permutation.word->push_back( *iter );
 	}
@@ -270,19 +237,20 @@ bool Permutation::SetInverse( const Permutation& permutation )
 
 bool Permutation::GetInverse( Permutation& permutation ) const
 {
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+	permutation.DefineIdentity();
+
+	for (uint i = 0; i < (uint)map.size(); i++)
 	{
 		uint j = map[i];
-		if( j >= MAX_MAP_SIZE )
+		if( j >= (uint)map.size() )
 			return false;
 
-		permutation.map[j] = i;
+		permutation.Define(j, i);
 	}
 
 	if( word )
 	{
-		delete permutation.word;
-		permutation.word = new ElementList;
+		permutation.word = std::make_unique<ElementList>();
 
 		for( ElementList::const_iterator iter = word->cbegin(); iter != word->cend(); iter++ )
 		{
@@ -299,15 +267,15 @@ bool Permutation::GetInverse( Permutation& permutation ) const
 
 void Permutation::Multiply( const Permutation& permutationA, const Permutation& permutationB )
 {
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
-		map[i] = permutationB.Evaluate( permutationA.Evaluate(i) );
+	DefineIdentity();
 
-	if( permutationA.word && permutationB.word )
+	uint largest = (uint)std::max(permutationA.map.size(), permutationB.map.size());
+	for (uint i = 0; i < largest; i++)
+		Define(i, permutationB.Evaluate(permutationA.Evaluate(i)));
+
+	if( permutationA.word.get() && permutationB.word.get())
 	{
-		if( !word )
-			word = new ElementList;
-		else
-			word->clear();
+		word = std::make_unique<ElementList>();
 
 		for( ElementList::const_iterator iter = permutationA.word->cbegin(); iter != permutationA.word->cend(); iter++ )
 			word->push_back( *iter );
@@ -387,11 +355,11 @@ void Permutation::Print( std::ostream& ostream, bool isCycle /*= false*/ ) const
 	else
 	{
 		uint i;
-		for( i = 0; i < MAX_MAP_SIZE; i++ )
+		for( i = 0; i < (uint)map.size(); i++ )
 			if( map[i] != i )
 				break;
 		
-		if( i < MAX_MAP_SIZE )
+		if( i < (uint)map.size() )
 		{
 			ostream << "(";
 
@@ -414,7 +382,7 @@ void Permutation::GetUnstableSet( NaturalNumberSet& unstableSet ) const
 {
 	unstableSet.RemoveAllMembers();
 
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+	for( uint i = 0; i < (uint)map.size(); i++ )
 		if( map[i] != i )
 			unstableSet.AddMember(i);
 }
@@ -423,7 +391,7 @@ void Permutation::GetStableSet( NaturalNumberSet& stableSet ) const
 {
 	stableSet.RemoveAllMembers();
 
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+	for( uint i = 0; i < (uint)map.size(); i++ )
 		if( map[i] == i )
 			stableSet.AddMember(i);
 }
@@ -440,13 +408,7 @@ void Permutation::operator=( const Permutation& permutation )
 
 void Permutation::SetName( const std::string& name )
 {
-	if( word )
-	{
-		delete word;
-		word = nullptr;
-	}
-
-	word = new ElementList;
+	word = std::make_unique<ElementList>();
 
 	Element element;
 	element.name = name;
@@ -456,7 +418,7 @@ void Permutation::SetName( const std::string& name )
 
 std::string Permutation::GetName( void ) const
 {
-	if( !word )
+	if( !word.get() )
 		return "anonymous";
 
 	std::stringstream stream;
@@ -498,7 +460,7 @@ std::string Permutation::GetName( void ) const
 
 std::string Permutation::MakeKeyForLexigraphicCompare( void ) const
 {
-	if( !word || word->size() == 0 )
+	if( !word.get() || word->size() == 0 )
 		return "";
 
 	std::stringstream stream;
@@ -541,7 +503,7 @@ bool Permutation::GetToJsonValue( rapidjson::Value& value, rapidjson::Document::
 
 	// We could certainly store this more compactly.
 	rapidjson::Value mapArray( rapidjson::kArrayType );
-	for( uint i = 0; i < MAX_MAP_SIZE; i++ )
+	for( uint i = 0; i < (uint)map.size(); i++ )
 		mapArray.PushBack( map[i], allocator );
 
 	value.AddMember( "map", mapArray, allocator );
@@ -551,12 +513,11 @@ bool Permutation::GetToJsonValue( rapidjson::Value& value, rapidjson::Document::
 
 bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 {
-	delete word;
-	word = nullptr;
+	word.reset();
 
 	if( value.HasMember( "word" ) && value[ "word" ].IsArray() )
 	{
-		word = new ElementList;
+		word = std::make_unique<ElementList>();
 
 		rapidjson::Value& wordArray = value[ "word" ].GetArray();
 
@@ -578,11 +539,8 @@ bool Permutation::SetFromJsonValue( /*const*/ rapidjson::Value& value )
 	DefineIdentity();
 
 	rapidjson::Value& mapArray = value[ "map" ].GetArray();
-	if( mapArray.Size() > MAX_MAP_SIZE )
-		return false;
-
-	for( uint i = 0; i < mapArray.Size(); i++ )
-		map[i] = mapArray[i].GetInt();
+	for (uint i = 0; i < mapArray.Size(); i++)
+		Define(i, mapArray[i].GetInt());
 
 	return true;
 }

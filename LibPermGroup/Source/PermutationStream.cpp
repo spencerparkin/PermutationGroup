@@ -118,8 +118,7 @@ void PermutationProductStream::Clear( void )
 /*virtual*/ bool PermutationProductStream::OutputPermutation( Permutation& permutation )
 {
 	permutation.DefineIdentity();
-	delete permutation.word;
-	permutation.word = new ElementList;
+	permutation.word = std::make_unique<ElementList>();
 	uint i;
 	for( i = 0; i < componentArray.size(); i++ )
 		permutation.MultiplyOnRight( *( *componentArray[i].permutationArray )[ componentArray[i].offset ] );
@@ -292,7 +291,7 @@ PermutationWordStream::PermutationWordStream( const PermutationSet* generatorSet
 	permutationQueue.clear();
 
 	Permutation identity;
-	identity.word = new ElementList;
+	identity.word = std::make_unique<ElementList>();
 	permutationQueue.insert( identity );
 
 	return true;
@@ -456,7 +455,7 @@ PermutationOrbitStream::PermutationOrbitStream( const PermutationSet* generatorS
 	permutationQueue.clear();
 
 	Permutation identity;
-	identity.word = new ElementList;
+	identity.word = std::make_unique<ElementList>();
 	permutationQueue.insert( identity );
 
 	return true;

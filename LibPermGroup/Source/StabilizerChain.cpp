@@ -523,12 +523,12 @@ bool StabilizerChain::Group::FactorInverseWithTrembling( const Permutation& perm
 			product.Multiply( permutation, trembler );
 
 			Permutation invProduct;
-			invProduct.word = new ElementList;
+			invProduct.word = std::make_unique<ElementList>();
 			if( !FactorInverse( product, invProduct ) )
 				return false;
 
 			Permutation altInvPermutation;
-			altInvPermutation.word = new ElementList;
+			altInvPermutation.word = std::make_unique<ElementList>();
 			altInvPermutation.Multiply( trembler, invProduct );
 
 			altInvPermutation.CompressWord( compressInfo );
@@ -563,7 +563,7 @@ void StabilizerChain::Group::NameGenerators( void )
 			element.name = name++;
 			element.exponent = 1;
 
-			permutation.word = new ElementList;
+			permutation.word = std::make_unique<ElementList>();
 			permutation.word->push_back( element );
 
 			generatorSet.erase( iter );
@@ -679,7 +679,7 @@ bool StabilizerChain::OptimizeNames( PermutationStream& permutationStream, const
 			{
 				subGroup->transversalSet.erase( iter );
 				Permutation identity;
-				identity.word = new ElementList;
+				identity.word = std::make_unique<ElementList>();
 				subGroup->transversalSet.insert( identity );
 				break;
 			}
@@ -782,11 +782,11 @@ bool StabilizerChain::TryToCompletePartiallyWordedChain( PermutationStream& perm
 			product.Multiply( cosetRepresentative, trembler );
 
 			Permutation invProduct;
-			invProduct.word = new ElementList;
+			invProduct.word = std::make_unique<ElementList>();
 			if( group->FactorInverse( product, invProduct ) && invProduct.word )
 			{
 				Permutation invCosetRepresentative;
-				invCosetRepresentative.word = new ElementList;
+				invCosetRepresentative.word = std::make_unique<ElementList>();
 
 				invCosetRepresentative.Multiply( trembler, invProduct );
 
